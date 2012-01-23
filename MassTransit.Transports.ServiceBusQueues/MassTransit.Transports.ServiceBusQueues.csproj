@@ -53,7 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InboundAzureQueueTransport.cs" />
+    <Compile Include="InboundServiceBusQueueTransport.cs" />
     <Compile Include="OutboundServiceBusQueueTransport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceBusQueueConfigurationExtensions.cs" />

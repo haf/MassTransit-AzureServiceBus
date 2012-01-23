@@ -52,7 +52,7 @@ namespace MassTransit.Transports.AzureQueue
             EnsureProtocolIsCorrect(settings.Address.Uri);
 
             var client = GetConnection(settings.Address);
-            return new InboundAzureQueueTransport(settings.Address, client);
+            return new InboundServiceBusQueueTransport(settings.Address, client);
         }
 
         public IOutboundTransport BuildOutbound(ITransportSettings settings)
