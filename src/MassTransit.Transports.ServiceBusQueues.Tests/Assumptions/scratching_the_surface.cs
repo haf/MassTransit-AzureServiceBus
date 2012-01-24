@@ -23,14 +23,16 @@ namespace MassTransit.Transports.AzureQueue.Tests.Assumptions
 	{
 		private QueueClient queueClient;
 		private NamespaceManager nsm;
-		private string queueName = "mt_client";
+		private string queueName = "test-queue";
 
 		private void CreateQueue()
 		{
 			try
 			{
-				if (nsm.GetQueue(queueName) == null)
-					nsm.CreateQueue(queueName);
+				//if (nsm.GetQueue(queueName) == null) 
+				// bugs out http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/6ce20f60-915a-4519-b7e3-5af26fc31e35
+				// says it'll give null, but throws!
+				nsm.CreateQueue(queueName);
 			}
 			catch (MessagingEntityAlreadyExistsException)
 			{
@@ -40,19 +42,26 @@ namespace MassTransit.Transports.AzureQueue.Tests.Assumptions
 		[SetUp]
 		public void when_I_place_a_message_in_the_queue()
 		{
-			var credentials = TokenProvider.CreateSharedSecretTokenProvider(AccountDetails.IssuerName, AccountDetails.Key);
+			var tokenProvider = TokenProvider.CreateSharedSecretTokenProvider(AccountDetails.IssuerName, AccountDetails.Key);
 			var busUri = ServiceBusEnvironment.CreateServiceUri("sb", AccountDetails.Namespace, string.Empty);
-			var factory = MessagingFactory.Create(busUri, credentials);
-			nsm = new NamespaceManager(busUri, new NamespaceManagerSettings());
+			var factory = MessagingFactory.Create(busUri, tokenProvider);
+			nsm = new NamespaceManager(busUri, new NamespaceManagerSettings { TokenProvider = tokenProvider });
 			CreateQueue();
 			queueClient = factory.CreateQueueClient(queueName);
+			Console.WriteLine(queueClient.Path);
 			queueClient.Send(new BrokeredMessage(new A("message contents")));
 		}
 
 		[TearDown]
 		public void finally_remove_queue()
 		{
-			nsm.DeleteQueue(queueName);
+			try
+			{
+				nsm.DeleteQueue(queueName);
+			}
+			catch (MessagingEntityNotFoundException)
+			{
+			}
 		}
 
 		[Test]

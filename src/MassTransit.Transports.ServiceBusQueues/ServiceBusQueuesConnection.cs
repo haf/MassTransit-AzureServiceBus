@@ -1,22 +1,29 @@
 using System;
 using Magnum.Extensions;
 using MassTransit.Transports.AzureQueue.Utils;
+using Microsoft.ServiceBus.Messaging;
 using log4net;
 
 namespace MassTransit.Transports.AzureQueue
 {
-	public class ServiceBusQueueConnection :
+	public class ServiceBusQueuesConnection :
 		Connection
 	{
-		private static readonly ILog _log = LogManager.GetLogger(typeof (ServiceBusQueueConnection));
+		private static readonly ILog _log = LogManager.GetLogger(typeof (ServiceBusQueuesConnection));
 		private readonly Uri _serviceUri;
 		private bool _disposed;
 		private object _someClient;
+		private QueueClient _queue;
 
-		public ServiceBusQueueConnection([NotNull] Uri serviceUri)
+		public ServiceBusQueuesConnection([NotNull] Uri serviceUri)
 		{
 			if (serviceUri == null) throw new ArgumentNullException("serviceUri");
 			_serviceUri = serviceUri;
+		}
+
+		public QueueClient Queue
+		{
+			get { return _queue; }
 		}
 
 		public void Dispose()

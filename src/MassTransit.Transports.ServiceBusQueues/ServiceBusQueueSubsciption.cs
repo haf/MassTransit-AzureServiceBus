@@ -5,7 +5,7 @@ using log4net;
 namespace MassTransit.Transports.AzureQueue
 {
 	public class ServiceBusQueueSubsciption :
-		ConnectionBinding<ServiceBusQueueConnection>
+		ConnectionBinding<ServiceBusQueuesConnection>
 	{
 		private static readonly ILog Log = LogManager.GetLogger(typeof (ServiceBusQueueSubsciption));
 		private readonly IEndpointAddress _address;
@@ -16,23 +16,23 @@ namespace MassTransit.Transports.AzureQueue
 			_address = address;
 		}
 
-		public void Bind(ServiceBusQueueConnection connection)
+		public void Bind(ServiceBusQueuesConnection connection)
 		{
 			if (Log.IsInfoEnabled)
 				Log.Warn("Subscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
 
-			connection.StompClient.Subscribe(_address.Uri.PathAndQuery);
+			//connection.StompClient.Subscribe(_address.Uri.PathAndQuery);
 
 			//it's better to configure the message broker to persist messages until a new client connects
 			//connection.StompClient.WaitForSubscriptionConformation(_address.Uri.PathAndQuery);
 		}
 
-		public void Unbind(ServiceBusQueueConnection connection)
+		public void Unbind(ServiceBusQueuesConnection connection)
 		{
 			if (Log.IsInfoEnabled)
 				Log.Warn("Unsubscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
 
-			connection.StompClient.Unsubscribe(_address.Uri.PathAndQuery);
+			//connection.StompClient.Unsubscribe(_address.Uri.PathAndQuery);
 		}
 	}
 }
