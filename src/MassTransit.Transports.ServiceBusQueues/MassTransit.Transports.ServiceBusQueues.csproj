@@ -64,6 +64,7 @@
     <Compile Include="ServiceBusQueueConnection.cs" />
     <Compile Include="ServiceBusQueueSubsciption.cs" />
     <Compile Include="ServiceBusQueueTransportFactory.cs" />
+    <Compile Include="Utils\JetbrainsCodeAnnotations.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

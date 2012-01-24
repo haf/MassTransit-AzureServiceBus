@@ -21,7 +21,7 @@ namespace MassTransit.Transports.AzureQueue.Tests
 {
 	[Scenario]
     public class message_publishing_on_a_single_bus 
-        : given_a_stomp_bus
+        : given_a_servicebusbroker_servicebus
     {
         private Future<A> _received;
 

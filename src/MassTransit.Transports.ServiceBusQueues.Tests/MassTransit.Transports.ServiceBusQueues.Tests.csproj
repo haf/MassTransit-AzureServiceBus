@@ -69,7 +69,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="given_a_stomp_bus.cs" />
+    <Compile Include="Assumptions\AccountDetails.cs" />
+    <Compile Include="Assumptions\scratching_the_surface.cs" />
+    <Compile Include="given_a_servicebusbroker_servicebus.cs" />
     <Compile Include="given_a_stomp_bus_with_a_subscriptionservice.cs" />
     <Compile Include="message_publishing_on_a_single_bus.cs" />
     <Compile Include="message_publishing_with_a_subscriptionservice.cs" />
@@ -85,6 +87,7 @@
       <Name>MassTransit.Transports.ServiceBusQueues</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
