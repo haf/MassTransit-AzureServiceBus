@@ -74,9 +74,23 @@
   <ItemGroup>
     <Compile Include="Assumptions\A.cs" />
     <Compile Include="Assumptions\AccountDetails.cs" />
+    <Compile Include="Assumptions\Given_a_sent_message.cs" />
+    <Compile Include="Assumptions\Subscriber.cs" />
+    <Compile Include="Assumptions\SubscriberImpl.cs" />
     <Compile Include="Assumptions\TestFactory.cs" />
+    <Compile Include="Assumptions\Topic.cs" />
+    <Compile Include="Assumptions\TopicClient.cs" />
+    <Compile Include="Assumptions\TopicClientImpl.cs" />
+    <Compile Include="Assumptions\TopicDescription.cs" />
+    <Compile Include="Assumptions\TopicDescriptionImpl.cs" />
+    <Compile Include="Assumptions\TopicImpl.cs" />
+    <Compile Include="Assumptions\Utils.cs" />
     <Compile Include="Assumptions\WhatTheAPIShouldHaveDoneForMe.cs" />
+    <Compile Include="Assumptions\When_creating_a_subscription_more_than_once_from_same_namespace_manager.cs" />
+    <Compile Include="Assumptions\When_getting_client_for_non_existent_topic.cs" />
     <Compile Include="Assumptions\When_sending_end_receiving_on_queue.cs" />
+    <Compile Include="Assumptions\When_sending_to_topic_with_subscriber.cs" />
+    <Compile Include="Assumptions\When_sending_to_topic_with_subscriber_and_tiny_lock_span.cs" />
     <Compile Include="ContextSetup.cs" />
     <Compile Include="given_a_broker.cs" />
     <Compile Include="given_a_stomp_bus_with_a_subscriptionservice.cs" />
