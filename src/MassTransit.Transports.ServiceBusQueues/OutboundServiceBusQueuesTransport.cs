@@ -1,8 +1,7 @@
 using System.IO;
-using System.Text;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.AzureQueue
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class OutboundServiceBusQueuesTransport
 		: IOutboundTransport

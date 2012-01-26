@@ -1,4 +1,6 @@
-﻿namespace MassTransit.Transports.AzureQueue.Utils
+﻿using System;
+
+namespace MassTransit.Transports.ServiceBusQueues.Utils
 {
 	/*
 	 * Copyright 2007-2011 JetBrains s.r.o.
@@ -15,8 +17,6 @@
 	 * See the License for the specific language governing permissions and
 	 * limitations under the License.
 	 */
-
-	using System;
 	/// <summary>
 	/// Indicates that marked element should be localized or not.
 	/// </summary>

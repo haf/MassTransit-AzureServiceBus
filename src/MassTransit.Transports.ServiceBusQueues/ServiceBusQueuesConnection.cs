@@ -1,10 +1,10 @@
 using System;
 using Magnum.Extensions;
-using MassTransit.Transports.AzureQueue.Utils;
+using MassTransit.Transports.ServiceBusQueues.Utils;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
 
-namespace MassTransit.Transports.AzureQueue
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class ServiceBusQueuesConnection :
 		Connection

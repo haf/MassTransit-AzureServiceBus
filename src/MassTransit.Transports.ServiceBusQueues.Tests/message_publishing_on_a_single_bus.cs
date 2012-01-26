@@ -1,4 +1,4 @@
-// Copyright 2011 Ernst Naezer, et. al.
+// Copyright 2011 Henrik Feldt
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -12,46 +12,46 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using MassTransit.BusConfigurators;
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.BusConfigurators;
 using MassTransit.TestFramework;
 
-namespace MassTransit.Transports.AzureQueue.Tests
+namespace MassTransit.Transports.ServiceBusQueues.Tests
 {
 	[Scenario]
-    public class message_publishing_on_a_single_bus 
-        : given_a_servicebusbroker_servicebus
-    {
-        private Future<A> _received;
+	public class message_publishing_on_a_single_bus
+		: given_a_broker
+	{
+		private Future<A> _received;
 
-        protected override void ConfigureServiceBus(Uri uri, ServiceBusConfigurator configurator)
-        {
-            base.ConfigureServiceBus(uri, configurator);
+		protected override void ConfigureServiceBus(Uri uri, ServiceBusConfigurator configurator)
+		{
+			base.ConfigureServiceBus(uri, configurator);
 
-            _received = new Future<A>();
-            configurator.Subscribe(s => s.Handler<A>(message => _received.Complete(message)));
-        }
+			_received = new Future<A>();
+			configurator.Subscribe(s => s.Handler<A>(message => _received.Complete(message)));
+		}
 
-        [When]
-        public void A_message_is_published()
-        {
-            LocalBus.Publish(new A
-                                 {
-                                     StringA = "ValueA",
-                                 });
-        }
+		[When]
+		public void A_message_is_published()
+		{
+			LocalBus.Publish(new A
+				{
+					StringA = "ValueA",
+				});
+		}
 
-        [Then]
-        public void Should_be_received_by_the_queue()
-        {
-            _received.WaitUntilCompleted(3.Seconds()).ShouldBeTrue();
-            _received.Value.StringA.ShouldEqual("ValueA");
-        }
+		[Then]
+		public void Should_be_received_by_the_queue()
+		{
+			_received.WaitUntilCompleted(3.Seconds()).ShouldBeTrue();
+			_received.Value.StringA.ShouldEqual("ValueA");
+		}
 
-        private class A 
-        {
-            public string StringA { get; set; }
-        }
-    }
+		private class A
+		{
+			public string StringA { get; set; }
+		}
+	}
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using MassTransit.Testing.ScenarioBuilders;
 
-namespace MassTransit.Transports.AzureQueue.Testing
+namespace MassTransit.Transports.ServiceBusQueues.Testing
 {
 	public class ServiceBusQueuesScenarioBuilder
 		: BusScenarioBuilderImpl

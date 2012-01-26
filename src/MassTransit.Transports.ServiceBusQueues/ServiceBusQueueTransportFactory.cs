@@ -3,7 +3,7 @@ using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
 
-namespace MassTransit.Transports.AzureQueue
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class ServiceBusQueueTransportFactory
 		: ITransportFactory
@@ -21,7 +21,7 @@ namespace MassTransit.Transports.AzureQueue
 		/// </summary>
 		public string Scheme
 		{
-			get { return "af-queues"; }
+			get { return "sb-queues"; }
 		}
 
 		/// <summary>

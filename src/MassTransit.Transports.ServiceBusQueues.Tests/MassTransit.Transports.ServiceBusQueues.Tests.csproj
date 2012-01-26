@@ -8,8 +8,8 @@
     <ProjectGuid>{BF352953-D63A-41A1-B3CF-65BE5624DA80}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MassTransit.Transports.AzureQueue.Tests</RootNamespace>
-    <AssemblyName>MassTransit.Transports.AzureQueue.Tests</AssemblyName>
+    <RootNamespace>MassTransit.Transports.ServiceBusQueues.Tests</RootNamespace>
+    <AssemblyName>MassTransit.Transports.ServiceBusQueues.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\MassTransit-ServiceBusQueues\</SolutionDir>
@@ -72,13 +72,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assumptions\A.cs" />
     <Compile Include="Assumptions\AccountDetails.cs" />
-    <Compile Include="Assumptions\scratching_the_surface.cs" />
-    <Compile Include="given_a_servicebusbroker_servicebus.cs" />
+    <Compile Include="Assumptions\TestFactory.cs" />
+    <Compile Include="Assumptions\WhatTheAPIShouldHaveDoneForMe.cs" />
+    <Compile Include="Assumptions\When_sending_end_receiving_on_queue.cs" />
+    <Compile Include="ContextSetup.cs" />
+    <Compile Include="given_a_broker.cs" />
     <Compile Include="given_a_stomp_bus_with_a_subscriptionservice.cs" />
     <Compile Include="message_publishing_on_a_single_bus.cs" />
     <Compile Include="message_publishing_with_a_subscriptionservice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Simplest_possible_configuration_with_ServiceBusQueues.cs" />
+    <Compile Include="When_converting_a_type_to_a_topic_name.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -90,7 +96,11 @@
       <Name>MassTransit.Transports.ServiceBusQueues</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="tests.log4net.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

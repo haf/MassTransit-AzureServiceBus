@@ -2,7 +2,7 @@ using System;
 using Magnum.Extensions;
 using log4net;
 
-namespace MassTransit.Transports.AzureQueue
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class ServiceBusQueueSubsciption :
 		ConnectionBinding<ServiceBusQueuesConnection>

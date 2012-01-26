@@ -1,4 +1,4 @@
-﻿namespace MassTransit.Transports.AzureQueue.Configuration
+﻿namespace MassTransit.Transports.ServiceBusQueues.Configuration
 {
 	public class ServiceBusQueuesFactoryConfigurator
 	{

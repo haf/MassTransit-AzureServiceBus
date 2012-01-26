@@ -1,13 +1,12 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Threading;
 using Magnum.Extensions;
 using MassTransit.Context;
 using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.AzureQueue
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class InboundServiceBusQueuesTransport
 		: IInboundTransport

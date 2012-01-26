@@ -1,7 +1,7 @@
 ﻿using System;
-using MassTransit.Transports.AzureQueue.Utils;
+using MassTransit.Transports.ServiceBusQueues.Utils;
 
-namespace MassTransit.Transports.AzureQueue
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	/// <summary>
 	/// The envelope that we're shoving into AppFabric ServiceBus Queues.

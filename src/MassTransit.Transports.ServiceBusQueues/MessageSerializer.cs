@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using MassTransit.Serialization;
 
-namespace MassTransit.Transports.AzureQueue
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class MessageSerializer
 		: IMessageSerializer
