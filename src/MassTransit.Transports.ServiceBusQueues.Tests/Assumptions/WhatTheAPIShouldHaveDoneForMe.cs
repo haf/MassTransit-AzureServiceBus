@@ -11,24 +11,61 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
 
+using System;
+using System.Threading.Tasks;
+using Magnum.Policies;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using Magnum.Extensions;
+using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {
 	public static class WhatTheAPIShouldHaveDoneForMe
 	{
-		public static void TryDeleteTopic(this NamespaceManager nsm, TopicDescription topic)
+		static readonly ILog _logger = LogManager.GetLogger(typeof (WhatTheAPIShouldHaveDoneForMe));
+
+		public static Task TryDeleteTopic(this NamespaceManager nsm, TopicDescription topic)
 		{
-			try
-			{
-				if (nsm.TopicExists(topic.Path))
-					// according to documentation this thing doesn't throw anything??!?!??!?!
-					nsm.DeleteTopic(topic.Path);
-			}
-			catch (MessagingEntityNotFoundException)
-			{
-			}
+			var exists = Task.Factory.FromAsync<string, bool>(nsm.BeginTopicExists, nsm.EndTopicExists, topic.Path, null);
+			return exists.ContinueWith<Task>((Task<bool> task) =>
+				{
+					try
+					{
+						if (task.Result)
+							// according to documentation this thing doesn't throw anything??!?!??!?!
+							return Task.Factory.FromAsync(nsm.BeginDeleteTopic, nsm.EndDeleteTopic, topic.Path, null);
+					}
+					catch (MessagingEntityNotFoundException)
+					{
+					}
+					return Task.Factory.StartNew(() => { });
+				});
+		}
+
+		public static Task<TopicClient> TryCreateTopicClient(this MessagingFactory messagingFactory,
+			NamespaceManager nm,
+			Topic topic)
+		{
+			var timeoutPolicy = ExceptionPolicy
+				.InCaseOf<TimeoutException>()
+				.CircuitBreak(50.Milliseconds(), 10);
+			
+			while (true)
+				try
+				{
+					return timeoutPolicy.Do(() =>
+						{
+							// where is the BeginCreateTopicClient???!??!?!?!?!?!
+							return Task.Factory.StartNew<TopicClient>(() =>
+								// missing BeginXXX method, this is synchronous equivalent!!
+								new TopicClientImpl(messagingFactory.CreateTopicClient(topic.Description.Path), nm, topic));
+						});
+				}
+				catch (TimeoutException ex)
+				{
+					_logger.Error("could not create topic in time", ex);
+				}
 		}
 
 		public static QueueDescription TryCreateQueue(this NamespaceManager nsm, string queueName)
@@ -57,21 +94,23 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		}
 
 		/// <returns> the topic description </returns>
-		public static TopicDescription TryCreateTopic(this NamespaceManager nm, string topicName)
+		public static Topic TryCreateTopic(this NamespaceManager nm,
+			MessagingFactory factory,
+			string topicName)
 		{
 			while (true)
 			{
 				try
 				{
 					if (!nm.TopicExists(topicName))
-						return nm.CreateTopic(topicName);
+						return new TopicImpl(nm, factory, nm.CreateTopic(topicName));
 				}
 				catch (MessagingEntityAlreadyExistsException)
 				{
 				}
 				try
 				{
-					return nm.GetTopic(topicName);
+					return new TopicImpl(nm, factory, nm.GetTopic(topicName));
 				}
 				catch (MessagingEntityNotFoundException) // someone beat us to removing it
 				{

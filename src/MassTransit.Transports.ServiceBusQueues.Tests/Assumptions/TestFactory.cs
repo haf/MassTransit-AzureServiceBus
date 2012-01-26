@@ -5,6 +5,7 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {
+	// in general their API should be using interfaces that carry both data and operations
 	static class TestFactory
 	{
 		public static TokenProvider CreateTokenProvider()
