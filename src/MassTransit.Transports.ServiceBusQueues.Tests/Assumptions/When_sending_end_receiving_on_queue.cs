@@ -13,8 +13,10 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Threading;
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using NUnit.Framework;
 
@@ -40,53 +42,81 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		}
 	}
 
-	/* These could be thrown:
+	/* These could be thrown, wow:
 	 * 
-	 * ServerBusyException
-	 * MessagingCommunicationException
-	 * TimeoutException
-	 * MessagingException
-	 * NotSupportedException
+	 * ServerBusyException (please DDoS me ASAP!!)
+	 * MessagingCommunicationException (???)
+	 * TimeoutException (I'm feeling tired today)
+	 * MessagingException (something that we cannot determine went wrong)
+	 * NotSupportedException (should never happen?)
 	 * InvalidOperationException (duplicate send)
-	 * MessagingEntityNotFoundException (for random things)
+	 * MessagingEntityNotFoundException (for random things such as not finding a message in the queue)
 	 */
 
-	[Category("Surprises")]
-	public class When_sending_to_topic
+	// WTF: "Microsoft.ServiceBus.Messaging.MessagingEntityNotFoundException 
+	//		: Messaging entity 'mt-client:Topic:mytopic|Olof Reading the News' could not be found..TrackingId:4629cd96-18fa-43ff-8bc7-83c1dddf3912_7_1,TimeStamp:1/26/2012 9:39:07 AM"
+	// ???
+	// wouldn't it be more prudent to make CreateSubscriptionClient TAKE A TopicDescription??
+	[Category("NegativeTests")]
+	public class Given_a_sent_message
 	{
-		string theTopic = "my.topic.there";
-		A message;
-		TopicClient topicClient;
-		MessagingFactory mf;
+		protected A message;
+		protected MessagingFactory mf;
+		protected TopicDescription topic;
+		protected NamespaceManager nm;
 
 		[TestFixtureSetUp]
 		public void making_sure_the_topic_is_there()
 		{
 			mf = TestFactory.CreateMessagingFactory();
-			var topic = TestFactory.CreateNamespaceManager(mf).TryCreateTopic(theTopic); // |> ignore
+			topic = (nm = TestFactory.CreateNamespaceManager(mf)).TryCreateTopic("my.topic.there");
 
-			// but no subscription!
+			// but no subscription for topicClient
 			topicClient = mf.CreateTopicClient(topic.Path);
 
 			message = TestFactory.AMessage();
 		}
 
+		[TestFixtureTearDown]
+		public void finally_close_the_client()
+		{
+			topicClient.Close();
+			nm.TryDeleteTopic(topic);
+		}
+
+		TopicClient topicClient;
+
 		[SetUp]
 		public void given_a_message_sent_to_the_topic()
 		{
-			topicClient.Send(new BrokeredMessage(message));
-			topicClient.Close();
+			var msg = new BrokeredMessage(message);
+			BeforeSend(msg);
+			topicClient.Send(msg);
 		}
 
+		protected virtual void BeforeSend(BrokeredMessage msg)
+		{
+		}
+	}
+
+	public class When_creating_a_subscription_more_than_once_from_same_namespace_manager
+	{
+		
+	}
+
+	public class When_sending_but_noone_subscribed
+		: Given_a_sent_message
+	{
 		[Test]
 		public void there_should_be_no_message_received_when_never_subscribed()
 		{
-			// WTF: "Microsoft.ServiceBus.Messaging.MessagingEntityNotFoundException 
-			//		: Messaging entity 'mt-client:Topic:mytopic|Olof Reading the News' could not be found..TrackingId:4629cd96-18fa-43ff-8bc7-83c1dddf3912_7_1,TimeStamp:1/26/2012 9:39:07 AM"
-			// ???
-			// wouldn't it be more prudent to make CreateSubscriptionClient TAKE A TopicDescription??
-			var sc = mf.CreateSubscriptionClient(theTopic, "Olof Reading the News", ReceiveMode.PeekLock);
-			var brokeredMessage = sc.Receive(2.Seconds());
+			var sc = mf.CreateSubscriptionClient(topic.Path, "Olof Reading the News", ReceiveMode.PeekLock);
+
+			// this thing may throw MessagingEntityNotFoundException if there's no subscription active first,
+			// furthermore, it may return null if there's a subscription, but got no messages, and this needs to be
+			// added to docs.
+			BrokeredMessage brokeredMessage = null;
+			Assert.Throws<MessagingEntityNotFoundException>(() => brokeredMessage = sc.Receive(500.Milliseconds()));
 			try
 			{
 				brokeredMessage.ShouldBeNull();
@@ -96,6 +126,51 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 				if (brokeredMessage != null)
 					brokeredMessage.Complete();
 			}
+		}
+	}
+
+	public class When_sending_to_topic_with_subscriber_and_tiny_lock_span
+		: Given_a_sent_message
+	{
+		SubscriptionClient client;
+
+		protected override void BeforeSend(BrokeredMessage msg)
+		{
+			var subDesc = new SubscriptionDescription(topic.Path, "Peter Svensson listens to the Radio".Replace(" ", "-"))
+			{
+				EnableBatchedOperations = true,
+				LockDuration = 1.Milliseconds();
+			};
+			nm.TryCreateSubscription(subDesc);
+			client = mf.CreateSubscriptionClient(topic.Path, subDesc.Name);
+		}
+	}
+
+	public class When_sending_to_topic_with_subscriber
+		: Given_a_sent_message
+	{
+		SubscriptionClient client;
+
+		protected override void BeforeSend(BrokeredMessage msg)
+		{
+			var subDesc = new SubscriptionDescription(topic.Path, "Peter Svensson listens to the Radio".Replace(" ", "-"))
+				{
+					EnableBatchedOperations = true,
+					LockDuration = 10.Seconds()
+				};
+			nm.TryCreateSubscription(subDesc);
+			client = mf.CreateSubscriptionClient(topic.Path, subDesc.Name);
+		}
+
+		[Test]
+		public void then_the_client_should_have_one_message_only()
+		{
+			var msg1 = client.Receive();
+			var msg1B = msg1.GetBody<A>();
+			msg1B.ShouldEqual(message);
+
+			client.Receive().ShouldBeNull();
+			msg1.Complete();
 		}
 	}
 
