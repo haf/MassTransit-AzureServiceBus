@@ -56,20 +56,11 @@ namespace MassTransit.Transports.ServiceBusQueues
 
 			return Task.Factory.StartNew<TopicClient>(() =>
 				{
-
-					while (true)
-						try
+					timeoutPolicy.Do(() =>
 						{
-							timeoutPolicy.Do(() =>
-								{
-									// where is the BeginCreateTopicClient??!
-									return new TopicClientImpl(messagingFactory.CreateTopicClient(topic.Description.Path), nm, topic);
-								});
-						}
-						catch (TimeoutException ex)
-						{
-							_logger.Error("could not create topic in time", ex);
-						}
+							// where is the BeginCreateTopicClient??!
+							return new TopicClientImpl(messagingFactory.CreateTopicClient(topic.Description.Path), nm, topic);
+						});
 				});
 		}
 

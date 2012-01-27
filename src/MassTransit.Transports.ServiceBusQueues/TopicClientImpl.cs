@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
@@ -42,9 +43,9 @@ namespace MassTransit.Transports.ServiceBusQueues
 			
 			// Missing: no mf.BeginCreateSubscriptionClient? Where do I use mode?
 			return Task.Factory
-				.FromAsync<string, MessageReceiver>(
+				.FromAsync<string, ReceiveMode, MessageReceiver>(
 					mf.BeginCreateMessageReceiver, mf.EndCreateMessageReceiver,
-					description.TopicPath, /* state */ _namespaceManager)
+					description.TopicPath, mode, /* state */ _namespaceManager)
 				.ContinueWith(tMsgR =>
 					{
 						var nm = tMsgR.AsyncState as NamespaceManager;

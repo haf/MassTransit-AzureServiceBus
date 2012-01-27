@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Magnum.Policies;
+using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
@@ -31,11 +35,36 @@ namespace MassTransit.Transports.ServiceBusQueues
 			get { return _description; }
 		}
 
-		public Task Drain()
+		public Task DrainBestEffort(TimeSpan timeout)
 		{
+			var retryFiveTimes = ExceptionPolicy.InCaseOf<TimeoutException>().Retry(5);
 			return CreateClient(ReceiveMode.ReceiveAndDelete)
-				.ContinueWith(tClient =>
+				.Then(tuple =>
 					{
+						var subscriber = tuple.Item2.Item2;
+						while (true)
+						{
+							try
+							{
+								// perform the drain operation;
+								// since there's no protocol for telling the topic 
+								// to drain itself and there's no extra meta
+								// data in the topic receive operation
+								// the specifies whether the topic queue had something
+								// inside last time, we can only wait till it doesn't
+								// return anything more and then say that we're done
+								while (retryFiveTimes.Do(() => subscriber.Receive(timeout).Result) != null)
+#pragma warning disable 642
+									;
+#pragma warning restore 642
+								break;
+							}
+							// happens seventh call (first -> 5 retries -> excep)
+							catch (TimeoutException)
+							{
+								break;
+							}
+						}
 					});
 		}
 
@@ -48,16 +77,18 @@ namespace MassTransit.Transports.ServiceBusQueues
 			subscriberName = subscriberName ?? Helper.GenerateRandomName();
 
 			if (!autoSubscribe)
-				return client.ContinueWith(tClient => Tuple.Create<TopicClient, Tuple<UnsubscribeAction, Subscriber>>(client.Result, null));
+				return client
+					.ContinueWith(tClient => 
+						Tuple.Create<TopicClient, Tuple<UnsubscribeAction, Subscriber>>(
+							client.Result, null));
 
-			return TaskExtensions.Unwrap<Tuple<TopicClient, Tuple<UnsubscribeAction, Subscriber>>>(client.ContinueWith(tClient =>
-					{
-						return tClient.Result.Subscribe(new SubscriptionDescription(_description.Path, Helper.GenerateRandomName()), mode, subscriberName)
-							.ContinueWith((Task<Tuple<UnsubscribeAction, Subscriber>> tSub) =>
-								{
-									return Tuple.Create(tClient.Result, tSub.Result);
-								});
-					}));
+			return client.Then(topicClient =>
+				{
+					var subDesc = new SubscriptionDescription(_description.Path, Helper.GenerateRandomName());
+					return topicClient
+						.Subscribe(subDesc, mode, subscriberName)
+						.ContinueWith(tSub => Tuple.Create(topicClient, tSub.Result));
+				});
 		}
 
 		public Task Delete()

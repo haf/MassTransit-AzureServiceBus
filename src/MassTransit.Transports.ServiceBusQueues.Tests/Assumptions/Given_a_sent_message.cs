@@ -22,7 +22,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			topic = nm.TryCreateTopic(mf, "my.topic.here").Result;
 
 			var client = topic.CreateClient();
-			topic.Drain().Wait();
+			topic.DrainBestEffort().Wait();
 			topicClient = client.Result.Item1;
 		}
 
@@ -38,7 +38,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		{
 			var msg = new BrokeredMessage(message);
 			BeforeSend(msg);
-			topicClient.Send(msg);
+			topicClient.Send(msg).Wait();
 		}
 
 		protected virtual void BeforeSend(BrokeredMessage msg)

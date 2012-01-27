@@ -1,11 +1,11 @@
 using System;
 using System.Text;
 
-namespace MassTransit.Transports.ServiceBusQueues
+namespace MassTransit.Transports.ServiceBusQueues.Internal
 {
-	public class Helper
+	public static class Helper
 	{
-		static Random r = new Random();
+		static readonly Random r = new Random();
 
 		public static string GenerateRandomName()
 		{

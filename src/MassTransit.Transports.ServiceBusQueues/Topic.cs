@@ -8,7 +8,11 @@ namespace MassTransit.Transports.ServiceBusQueues
 	{
 		TopicDescription Description { get; }
 
-		Task Drain();
+		/// <summary>
+		/// Consumes and deletes until there is no message for the specified timeout.
+		/// </summary>
+		/// <returns>The hot computation of the drain</returns>
+		Task DrainBestEffort(TimeSpan timeout);
 		
 		Task<Tuple<TopicClient, Tuple<UnsubscribeAction, Subscriber>>> 
 			CreateClient(ReceiveMode mode = ReceiveMode.PeekLock, string subscriberName = null, bool autoSubscribe = true);
