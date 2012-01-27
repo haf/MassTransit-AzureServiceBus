@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
@@ -20,7 +21,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			return MessagingFactory.Create(busUri, tokenProvider ?? CreateTokenProvider());
 		}
 
-		public static Tuple<Action, QueueClient> SetUpQueue([NotNull] string queueName,
+		public static Task<Tuple<Func<Task>, QueueClient>> SetUpQueue([NotNull] string queueName,
 		                                                    TokenProvider tokenProvider = null,
 		                                                    MessagingFactory factory = null)
 		{
@@ -29,8 +30,10 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			factory = factory ?? CreateMessagingFactory();
 
 			var nsm = CreateNamespaceManager(factory, tokenProvider);
-			nsm.TryCreateQueue(queueName);
-			return Tuple.Create<Action, QueueClient>(() => nsm.DeleteQueue(queueName), factory.CreateQueueClient(queueName));
+			return nsm.TryCreateQueue(queueName)
+				.ContinueWith(tQ => Tuple.Create<Func<Task>, QueueClient>(
+					() => Task.Factory.FromAsync(nsm.BeginDeleteQueue, nsm.EndDeleteQueue, queueName, null),
+					factory.CreateQueueClient(queueName)));
 		}
 
 		public static NamespaceManager CreateNamespaceManager([NotNull] MessagingFactory factory, TokenProvider tokenProvider = null)

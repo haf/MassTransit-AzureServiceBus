@@ -6,6 +6,8 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {
+	public delegate Task UnsubscribeAction();
+
 	public class TopicClientImpl : TopicClient
 	{
 		readonly Microsoft.ServiceBus.Messaging.TopicClient _inner;
@@ -27,27 +29,30 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 
 		public Task Send(BrokeredMessage msg)
 		{
-			var send = Task.Factory.FromAsync(_inner.BeginSend, _inner.EndSend, msg, null);
-			send.Start();
-			return send;
+			return Task.Factory.FromAsync(_inner.BeginSend, _inner.EndSend, msg, null);
 		}
 
-		public Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe(SubscriptionDescription description, ReceiveMode mode, string subscriberName)
+		public Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe(
+			SubscriptionDescription description,
+			ReceiveMode mode,
+			string subscriberName)
 		{
 			var mf = _inner.MessagingFactory;
 			description = description ?? new SubscriptionDescription(_topic.Description.Path, subscriberName ?? Utils.GenerateRandomName());
-
-			return Task.Factory.FromAsync<string, MessageReceiver>(
-				mf.BeginCreateMessageReceiver, mf.EndCreateMessageReceiver,
-				description.TopicPath, _namespaceManager)
+			
+			// Missing: no mf.BeginCreateSubscriptionClient? Where do I use mode?
+			return Task.Factory
+				.FromAsync<string, MessageReceiver>(
+					mf.BeginCreateMessageReceiver, mf.EndCreateMessageReceiver,
+					description.TopicPath, /* state */ _namespaceManager)
 				.ContinueWith(tMsgR =>
 					{
 						var nm = tMsgR.AsyncState as NamespaceManager;
-						return Tuple.Create(new UnsubscribeAction(() =>
-							{
-								nm.DeleteSubscription(description.TopicPath, description.Name);
-								return true;
-							}), new SubscriberImpl(tMsgR.Result) as Subscriber);
+						return Tuple.Create(
+							new UnsubscribeAction(() =>
+								Task.Factory.FromAsync(nm.BeginDeleteSubscription, nm.EndDeleteSubscription,
+													   description.TopicPath, description.Name, null)), 
+							new SubscriberImpl(tMsgR.Result) as Subscriber);
 					});
 		}
 

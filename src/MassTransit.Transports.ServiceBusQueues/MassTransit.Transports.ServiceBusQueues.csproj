@@ -68,8 +68,18 @@
     <Compile Include="ServiceBusQueuesConnection.cs" />
     <Compile Include="ServiceBusQueueSubsciption.cs" />
     <Compile Include="ServiceBusQueueTransportFactory.cs" />
+    <Compile Include="Subscriber.cs" />
+    <Compile Include="SubscriberImpl.cs" />
     <Compile Include="Testing\ServiceBusQueuesScenarioBuilder.cs" />
+    <Compile Include="Topic.cs" />
+    <Compile Include="TopicClient.cs" />
+    <Compile Include="TopicClientImpl.cs" />
+    <Compile Include="TopicDescription.cs" />
+    <Compile Include="TopicDescriptionImpl.cs" />
+    <Compile Include="TopicImpl.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="Utils\JetbrainsCodeAnnotations.cs" />
+    <Compile Include="WhatTheAPIShouldHaveDoneForMe.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

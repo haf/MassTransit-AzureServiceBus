@@ -13,6 +13,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		{
 			mf = TestFactory.CreateMessagingFactory();
 			var nm = TestFactory.CreateNamespaceManager(mf);
+
 			nm.TopicExists("my.topic.here").ShouldBeFalse();
 		}
 

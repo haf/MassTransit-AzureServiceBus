@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {
 	[Category("NegativeTests")]
-	public class Given_a_sent_message
+	public abstract class Given_a_sent_message
 	{
 		protected A message;
 		protected NamespaceManager nm;
@@ -19,7 +19,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 
 			var mf = TestFactory.CreateMessagingFactory();
 			nm = TestFactory.CreateNamespaceManager(mf);
-			topic = nm.TryCreateTopic(mf, "my.topic.here");
+			topic = nm.TryCreateTopic(mf, "my.topic.here").Result;
 
 			var client = topic.CreateClient();
 			topic.Drain().Wait();

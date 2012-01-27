@@ -14,6 +14,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using Microsoft.ServiceBus.Messaging;
@@ -41,14 +42,14 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 
 	public class When_sending_end_receiving_on_queue
 	{
-		Tuple<Action, QueueClient> t;
+		Tuple<Func<Task>, QueueClient> t;
 		A message;
 
 		[SetUp]
 		public void when_I_place_a_message_in_the_queue()
 		{
 			message = TestFactory.AMessage();
-			t = TestFactory.SetUpQueue("test-queue");
+			t = TestFactory.SetUpQueue("test-queue").Result;
 			t.Item2.Send(new BrokeredMessage(message));
 		}
 
@@ -75,7 +76,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		[TearDown]
 		public void finally_remove_queue()
 		{
-			t.Item1();
+			t.Item1().Wait();
 		}
 	}
 }
