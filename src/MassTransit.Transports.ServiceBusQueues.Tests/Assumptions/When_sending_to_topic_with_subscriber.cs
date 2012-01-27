@@ -1,27 +1,33 @@
+using System;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using Microsoft.ServiceBus.Messaging;
 using NUnit.Framework;
+using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {
 	public class When_sending_to_topic_with_subscriber
 		: Given_a_sent_message
 	{
+		static readonly ILog _logger = LogManager.GetLogger(typeof (When_sending_to_topic_with_subscriber));
+		
 		UnsubscribeAction unsubscribe;
 		Subscriber subscriber;
-		BrokeredMessage msg1;
 
 		protected override void BeforeSend(BrokeredMessage msg)
 		{
-			var subDesc = new SubscriptionDescription(topic.Description.Path, "Peter Svensson listens to the Radio".Replace(" ", "-"))
+			_logger.Debug("[BeforeSend] subscribing new client");
+			var awaitSub = topicClient.Subscribe(new SubscriptionDescriptionImpl(topic.Description.Path, "Peter Svensson listens to the Radio".Replace(" ", "-"))
 				{
 					EnableBatchedOperations = true,
 					LockDuration = 10.Seconds()
-				};
-			var subscribe = topicClient.Subscribe(subDesc).Result;
-			unsubscribe = subscribe.Item1;
-			subscriber = subscribe.Item2;
+				});
+
+			awaitSub.Wait();
+
+			unsubscribe = awaitSub.Result.Item1;
+			subscriber = awaitSub.Result.Item2;
 		}
 
 		[Test]
@@ -33,6 +39,13 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 
 			subscriber.Receive().Result.ShouldBeNull();
 			msg1.Complete();
+		}
+
+		[TearDown]
+		public void unsubscribe_subscriber()
+		{
+			if (unsubscribe != null)
+				unsubscribe();
 		}
 	}
 }

@@ -71,6 +71,7 @@
     <Compile Include="ServiceBusQueueTransportFactory.cs" />
     <Compile Include="Subscriber.cs" />
     <Compile Include="SubscriberImpl.cs" />
+    <Compile Include="SubscriptionDescription.cs" />
     <Compile Include="Testing\ServiceBusQueuesScenarioBuilder.cs" />
     <Compile Include="Topic.cs" />
     <Compile Include="TopicClient.cs" />
@@ -80,7 +81,7 @@
     <Compile Include="TopicImpl.cs" />
     <Compile Include="Internal\Helper.cs" />
     <Compile Include="Utils\JetbrainsCodeAnnotations.cs" />
-    <Compile Include="WhatTheAPIShouldHaveDoneForMe.cs" />
+    <Compile Include="Internal\WhatTheAPIShouldHaveDoneForMe.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

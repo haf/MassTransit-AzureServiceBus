@@ -1,0 +1,95 @@
+wtf @ this? I create the topics
+
+------ Test started: Assembly: MassTransit.Transports.ServiceBusQueues.Tests.dll ------
+
+Test 'MassTransit.Transports.ServiceBusQueues.Tests.Assumptions.When_sending_to_topic_with_subscriber_and_tiny_lock_span.then_the_clients_should_receive_duplicates' failed:
+	SetUp : System.AggregateException : One or more errors occurred.
+  ----> System.AggregateException : One or more errors occurred.
+  ----> System.AggregateException : One or more errors occurred.
+  ----> Microsoft.ServiceBus.Messaging.MessagingEntityNotFoundException : mt-client:Topic:my.topic.here.TrackingId:addabf24-e673-4360-8710-4c2ff2f058e6_5_0,TimeStamp:1/27/2012 1:24:07 PM
+  ----> System.ServiceModel.FaultException`1[System.ServiceModel.ExceptionDetail] : mt-client:Topic:my.topic.here.TrackingId:addabf24-e673-4360-8710-4c2ff2f058e6_5_0,TimeStamp:1/27/2012 1:24:07 PM
+	at System.Threading.Tasks.Task.ThrowIfExceptional(Boolean includeTaskCanceledExceptions)
+	at System.Threading.Tasks.Task.Wait(Int32 millisecondsTimeout, CancellationToken cancellationToken)
+	at System.Threading.Tasks.Task.Wait(TimeSpan timeout)
+	Assumptions\Given_a_sent_message.cs(53,0): at MassTransit.Transports.ServiceBusQueues.Tests.Assumptions.Given_a_sent_message.given_a_message_sent_to_the_topic()
+	--AggregateException
+	at System.Threading.Tasks.Task.ThrowIfExceptional(Boolean includeTaskCanceledExceptions)
+	at System.Threading.Tasks.Task.Wait(Int32 millisecondsTimeout, CancellationToken cancellationToken)
+	at System.Threading.Tasks.Task.Wait()
+	TopicImpl.cs(61,0): at MassTransit.Transports.ServiceBusQueues.TopicImpl.<>c__DisplayClass2.<>c__DisplayClass5.<MassTransit.Transports.ServiceBusQueues.Topic.DrainBestEffort>b__1()
+	at Magnum.Policies.ExceptionPolicy.<>c__DisplayClass1`1.<Do>b__0()
+	at Magnum.Policies.RetryPolicy.ImplementPolicy(Action action, Func`2 isHandled)
+	at Magnum.Policies.RetryPolicy.<>c__DisplayClass1.<Retry>b__0(Action action)
+	at Magnum.Policies.ExceptionPolicy.Do[TResult](Func`1 action)
+	TopicImpl.cs(58,0): at MassTransit.Transports.ServiceBusQueues.TopicImpl.<>c__DisplayClass2.<MassTransit.Transports.ServiceBusQueues.Topic.DrainBestEffort>b__0(Tuple`2 tuple)
+	Internal\TaskEx.cs(72,0): at MassTransit.Transports.ServiceBusQueues.Internal.TaskEx.<>c__DisplayClass7`1.<Then>b__6(Task`1 )
+	--AggregateException
+	at System.Threading.Tasks.Task.ThrowIfExceptional(Boolean includeTaskCanceledExceptions)
+	at System.Threading.Tasks.Task`1.get_Result()
+	SubscriberImpl.cs(59,0): at MassTransit.Transports.ServiceBusQueues.SubscriberImpl.<Receive>b__2(Task`1 tRec)
+	at System.Threading.Tasks.Task`1.<>c__DisplayClass1a`1.<ContinueWith>b__19()
+	at System.Threading.Tasks.Task`1.InvokeFuture(Object futureAsObj)
+	at System.Threading.Tasks.Task.InnerInvoke()
+	at System.Threading.Tasks.Task.Execute()
+	--MessagingEntityNotFoundException
+	
+	Server stack trace:
+	at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+	at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.ReceiveAsyncResult.<GetAsyncSteps>b__35(ReceiveAsyncResult thisPtr, IAsyncResult a)
+	at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.StepCallback(IAsyncResult result)
+	
+	Exception rethrown at [0]:
+	at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+	at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.OnEndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+	at Microsoft.ServiceBus.Messaging.OpenOnceManager.OpenOnceManagerAsyncResult`1.BeginOperationCallback(IAsyncResult result)
+	
+	Exception rethrown at [1]:
+	at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+	at Microsoft.ServiceBus.Messaging.MessageReceiver.EndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+	at Microsoft.ServiceBus.Messaging.MessageReceiver.EndReceive(IAsyncResult result)
+	at Microsoft.ServiceBus.Messaging.SubscriptionClient.EndReceive(IAsyncResult result)
+	at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endMethod, TaskCompletionSource`1 tcs)
+	--FaultException`1
+	
+	Server stack trace:
+	at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.ThrowIfFaultMessage(Message wcfMessage)
+	at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.HandleMessageReceived(IAsyncResult result)
+	
+	Exception rethrown at [0]:
+	at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+	at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.EndRequest(IAsyncResult result)
+	at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.RequestAsyncResult.<GetAsyncSteps>b__13(RequestAsyncResult thisPtr, IAsyncResult r)
+	at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.StepCallback(IAsyncResult result)
+	
+	Exception rethrown at [1]:
+	at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+	at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+	at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.EndRequest(IAsyncResult result)
+	at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+
+394 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - begin topic exists @ 'my.topic.here'
+2171 [17] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - end topic exists @ 'my.topic.here'
+2173 [17] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - begin create topic @ 'my.topic.here'
+2646 [11] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - end create topic @ 'my.topic.here'
+2649 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.TopicImpl (null) - create client called( mode: PeekMode.PeekLock, name: '', autoSub: False)
+2662 [17] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - create topic client for topic @ 'TopicDescription={ Path:'my.topic.here' }'
+2739 [17] DEBUG MassTransit.Transports.ServiceBusQueues.TopicClientImpl (null) - created @ 'my.topic.here'
+2740 [17] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - create topic client done for topic @ 'TopicDescription={ Path:'my.topic.here' }'
+2740 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.Tests.Assumptions.Given_a_sent_message (null) - [Given] done
+2746 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.Tests.Assumptions.Given_a_sent_message (null) - [SetUp] draining
+2747 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.TopicImpl (null) - create client called( mode: PeekMode.ReceiveAndDelete, name: '', autoSub: True)
+2748 [11] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - create topic client for topic @ 'TopicDescription={ Path:'my.topic.here' }'
+2748 [11] DEBUG MassTransit.Transports.ServiceBusQueues.TopicClientImpl (null) - created @ 'my.topic.here'
+2748 [11] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - create topic client done for topic @ 'TopicDescription={ Path:'my.topic.here' }'
+2752 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.TopicClientImpl (null) - being create subscription @ SubscriptionDescription={ TopicPath:'my.topic.here', Name:'uueatphfecfurioitfoa' }
+3203 [16] DEBUG MassTransit.Transports.ServiceBusQueues.TopicClientImpl (null) - end create message receiver @ SubscriptionDescription={ TopicPath:'my.topic.here', Name:'uueatphfecfurioitfoa' }
+3207 [16] DEBUG MassTransit.Transports.ServiceBusQueues.SubscriberImpl (null) - begin receive w/ timespan 00:00:00.2000000
+4393 [17] DEBUG MassTransit.Transports.ServiceBusQueues.SubscriberImpl (null) - end receive w/ timespan
+4416 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.Tests.Assumptions.Given_a_sent_message (null) - [Finally]
+4417 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - being topic exists @ my.topic.here
+4537 [17] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - end topic exists @ my.topic.here
+4538 [17] DEBUG MassTransit.Transports.ServiceBusQueues.Internal.WhatTheAPIShouldHaveDoneForMe (null) - begin delete topic @ my.topic.here
+4543 [TestRunnerThread] DEBUG MassTransit.Transports.ServiceBusQueues.TopicClientImpl (null) - dispose called
+
+0 passed, 1 failed, 0 skipped, took 5,21 seconds (NUnit 2.5.10).
+

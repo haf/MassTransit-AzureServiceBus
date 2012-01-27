@@ -14,7 +14,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 
 		protected override void BeforeSend(BrokeredMessage msg)
 		{
-			var subDesc = new SubscriptionDescription(topic.Description.Path, "Nils Sture listens to the Radio".Replace(" ", "-"))
+			var subDesc = new SubscriptionDescriptionImpl(topic.Description.Path, "Nils Sture listens to the Radio".Replace(" ", "-"))
 				{
 					EnableBatchedOperations = false,
 					LockDuration = 1.Milliseconds(),
@@ -36,13 +36,13 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		[TearDown]
 		public void Finally_TearDown()
 		{
-			unsubscribe();
+			if (unsubscribe != null) unsubscribe();
 		}
 
 		[Test]
 		public void then_the_clients_should_receive_duplicates()
 		{
-			subscriber.Receive().Result.GetBody<A>().ShouldEqual(message);
+			subscriber.Receive(200.Milliseconds()).Result.GetBody<A>().ShouldEqual(message);
 			msg1.Complete();
 		}
 	}

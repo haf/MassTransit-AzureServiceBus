@@ -104,5 +104,10 @@ namespace MassTransit.Transports.ServiceBusQueues
 		}
 
 		#endregion
+
+		public override string ToString()
+		{
+			return string.Format("TopicDescription={{ Path:'{0}' }}", Path);
+		}
 	}
 }

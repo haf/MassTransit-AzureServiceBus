@@ -18,6 +18,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{5E58A17C-99DE-46F2-A42D-353F97F5C277}"
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
+		docs\wtfs.txt = docs\wtfs.txt
 	EndProjectSection
 EndProject
 Global

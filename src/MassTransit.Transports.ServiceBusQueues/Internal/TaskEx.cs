@@ -78,12 +78,53 @@ namespace MassTransit.Transports.ServiceBusQueues.Internal
 		}
 		public static Task Then<T1>(this Task<T1> first, Func<T1, Task> next)
 		{
-			throw new NotImplementedException();
+			if (first == null) throw new ArgumentNullException("first");
+			if (next == null) throw new ArgumentNullException("next");
+
+			var tcs = new TaskCompletionSource<Unit>();
+			first.ContinueWith(delegate
+			{
+				if (first.IsFaulted) tcs.TrySetException(first.Exception.InnerExceptions);
+				else if (first.IsCanceled) tcs.TrySetCanceled();
+				else
+				{
+					try
+					{
+						var t = next(first.Result);
+						if (t == null) tcs.TrySetCanceled();
+						else t.ContinueWith(delegate
+						{
+							if (t.IsFaulted) tcs.TrySetException(t.Exception.InnerExceptions);
+							else if (t.IsCanceled) tcs.TrySetCanceled();
+							else tcs.TrySetResult(new Unit());
+						}, TaskContinuationOptions.ExecuteSynchronously);
+					}
+					catch (Exception exc) { tcs.TrySetException(exc); }
+				}
+			}, TaskContinuationOptions.ExecuteSynchronously);
+			return tcs.Task;
 		}
 
 		public static Task<T2> Then<T1, T2>(this Task<T1> first, Func<T1, T2> next)
 		{
-			throw new NotImplementedException();
+			if (first == null) throw new ArgumentNullException("first");
+			if (next == null) throw new ArgumentNullException("next");
+
+			var tcs = new TaskCompletionSource<T2>();
+			first.ContinueWith(delegate
+			{
+				if (first.IsFaulted) tcs.TrySetException(first.Exception.InnerExceptions);
+				else if (first.IsCanceled) tcs.TrySetCanceled();
+				else
+				{
+					try
+					{
+						tcs.TrySetResult(next(first.Result));
+					}
+					catch (Exception exc) { tcs.TrySetException(exc); }
+				}
+			}, TaskContinuationOptions.ExecuteSynchronously);
+			return tcs.Task;
 		}
 
 		public static Task<T2> Then<T1, T2>(
@@ -113,7 +154,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Internal
 						}
 						catch (Exception exc) { tcs.TrySetException(exc); }
 					}
-				});
+				}, TaskContinuationOptions.ExecuteSynchronously);
 			return tcs.Task;
 		}
 

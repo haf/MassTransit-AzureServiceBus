@@ -12,7 +12,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 		/// <param name="msg"></param>
 		Task Send(BrokeredMessage msg);
 
-		Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe(SubscriptionDescription description = null, 
+		Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe(SubscriptionDescription description = null,
 		                                                     ReceiveMode mode = ReceiveMode.PeekLock, string subscriberName = null);
 	}
 }

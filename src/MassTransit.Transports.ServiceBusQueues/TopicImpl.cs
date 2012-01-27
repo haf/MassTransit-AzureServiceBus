@@ -1,21 +1,22 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Magnum.Policies;
 using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class TopicImpl : Topic
 	{
-		readonly Random r = new Random();
+		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicImpl));
+		
 		readonly NamespaceManager _namespaceManager;
 		readonly MessagingFactory _messagingFactory;
 		readonly TopicDescription _description;
+		readonly Topic _self;
 
 		public TopicImpl(
 			[NotNull] NamespaceManager namespaceManager, 
@@ -28,6 +29,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_namespaceManager = namespaceManager;
 			_messagingFactory = messagingFactory;
 			_description = new TopicDescriptionImpl(description);
+			_self = this;
 		}
 
 		public TopicDescription Description
@@ -35,10 +37,10 @@ namespace MassTransit.Transports.ServiceBusQueues
 			get { return _description; }
 		}
 
-		public Task DrainBestEffort(TimeSpan timeout)
+		Task Topic.DrainBestEffort(TimeSpan timeout)
 		{
 			var retryFiveTimes = ExceptionPolicy.InCaseOf<TimeoutException>().Retry(5);
-			return CreateClient(ReceiveMode.ReceiveAndDelete)
+			return _self.CreateClient(ReceiveMode.ReceiveAndDelete)
 				.Then(tuple =>
 					{
 						var subscriber = tuple.Item2.Item2;
@@ -53,7 +55,12 @@ namespace MassTransit.Transports.ServiceBusQueues
 								// the specifies whether the topic queue had something
 								// inside last time, we can only wait till it doesn't
 								// return anything more and then say that we're done
-								while (retryFiveTimes.Do(() => subscriber.Receive(timeout).Result) != null)
+								while (retryFiveTimes.Do(() =>
+									{
+										var receive = subscriber.Receive(timeout);
+										receive.Wait();
+										return receive.Result;
+									}) != null)
 #pragma warning disable 642
 									;
 #pragma warning restore 642
@@ -65,14 +72,22 @@ namespace MassTransit.Transports.ServiceBusQueues
 								break;
 							}
 						}
+
+						_logger.Debug("unsubscribe action wait start");
+						tuple.Item2.Item1().Wait();
+						_logger.Debug("unsubscribe action wait end");
 					});
 		}
 
-		public Task<Tuple<TopicClient, Tuple<UnsubscribeAction, Subscriber>>> CreateClient(
-			ReceiveMode mode = ReceiveMode.PeekLock,
-			string subscriberName = null, 
-			bool autoSubscribe = true)
+		Task<Tuple<TopicClient, Tuple<UnsubscribeAction, Subscriber>>> Topic.CreateClient(
+			ReceiveMode mode,
+			string subscriberName, 
+			bool autoSubscribe,
+			int prefetch)
 		{
+			_logger.Debug(string.Format("create client called( mode: PeekMode.{0}, name: '{1}', autoSub: {2})",
+			              mode, subscriberName, autoSubscribe));
+
 			var client = _messagingFactory.TryCreateTopicClient(_namespaceManager, this);
 			subscriberName = subscriberName ?? Helper.GenerateRandomName();
 
@@ -84,14 +99,17 @@ namespace MassTransit.Transports.ServiceBusQueues
 
 			return client.Then(topicClient =>
 				{
-					var subDesc = new SubscriptionDescription(_description.Path, Helper.GenerateRandomName());
-					return topicClient
-						.Subscribe(subDesc, mode, subscriberName)
-						.ContinueWith(tSub => Tuple.Create(topicClient, tSub.Result));
+					var subDesc = new SubscriptionDescriptionImpl(_description.Path, Helper.GenerateRandomName())
+						{
+							EnableBatchedOperations = true,
+							MaxDeliveryCount = prefetch
+						};
+					return topicClient.Subscribe(subDesc, mode, subscriberName)
+						.Then(tSub => Tuple.Create(topicClient, tSub));
 				});
 		}
 
-		public Task Delete()
+		Task Topic.Delete()
 		{
 			return _namespaceManager.TryDeleteTopic(_description);
 		}
