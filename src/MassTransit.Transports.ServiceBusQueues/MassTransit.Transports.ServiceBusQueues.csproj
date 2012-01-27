@@ -77,7 +77,7 @@
     <Compile Include="TopicDescription.cs" />
     <Compile Include="TopicDescriptionImpl.cs" />
     <Compile Include="TopicImpl.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="Utils\JetbrainsCodeAnnotations.cs" />
     <Compile Include="WhatTheAPIShouldHaveDoneForMe.cs" />
   </ItemGroup>

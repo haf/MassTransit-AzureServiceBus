@@ -6,6 +6,8 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {
+	public delegate Task DeleteQueueAction();
+
 	// in general their API should be using interfaces that carry both data and operations
 	static class TestFactory
 	{
@@ -21,28 +23,31 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			return MessagingFactory.Create(busUri, tokenProvider ?? CreateTokenProvider());
 		}
 
-		public static Task<Tuple<Func<Task>, QueueClient>> SetUpQueue([NotNull] string queueName,
-		                                                    TokenProvider tokenProvider = null,
-		                                                    MessagingFactory factory = null)
-		{
-			if (queueName == null) throw new ArgumentNullException("queueName");
-
-			factory = factory ?? CreateMessagingFactory();
-
-			var nsm = CreateNamespaceManager(factory, tokenProvider);
-			return nsm.TryCreateQueue(queueName)
-				.ContinueWith(tQ => Tuple.Create<Func<Task>, QueueClient>(
-					() => Task.Factory.FromAsync(nsm.BeginDeleteQueue, nsm.EndDeleteQueue, queueName, null),
-					factory.CreateQueueClient(queueName)));
-		}
-
-		public static NamespaceManager CreateNamespaceManager([NotNull] MessagingFactory factory, TokenProvider tokenProvider = null)
+		public static NamespaceManager CreateNamespaceManager(
+			[NotNull] MessagingFactory factory, 
+			TokenProvider tokenProvider = null)
 		{
 			if (factory == null) throw new ArgumentNullException("factory");
 			return new NamespaceManager(factory.Address, new NamespaceManagerSettings
 				{
 					TokenProvider = tokenProvider ?? CreateTokenProvider()
 				});
+		}
+
+		public static Task<Tuple<DeleteQueueAction, QueueClient>> SetUpQueue(
+			[NotNull] string queueName,
+			TokenProvider tokenProvider = null,
+			MessagingFactory factory = null)
+		{
+			if (queueName == null) throw new ArgumentNullException("queueName");
+
+			factory = factory ?? CreateMessagingFactory();
+			var nsm = CreateNamespaceManager(factory, tokenProvider);
+
+			return nsm.TryCreateQueue(queueName)
+				.ContinueWith(tQ => Tuple.Create<DeleteQueueAction, QueueClient>(
+					() => Task.Factory.FromAsync(nsm.BeginDeleteQueue, nsm.EndDeleteQueue, queueName, null),
+					factory.CreateQueueClient(queueName)), TaskContinuationOptions.AttachedToParent);
 		}
 
 		public static A AMessage()

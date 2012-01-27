@@ -1,9 +1,9 @@
 using System;
 using System.Text;
 
-namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
+namespace MassTransit.Transports.ServiceBusQueues
 {
-	public class Utils
+	public class Helper
 	{
 		static Random r = new Random();
 

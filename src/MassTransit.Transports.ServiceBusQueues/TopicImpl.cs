@@ -4,7 +4,7 @@ using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class TopicImpl : Topic
 	{
@@ -45,19 +45,19 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			bool autoSubscribe = true)
 		{
 			var client = _messagingFactory.TryCreateTopicClient(_namespaceManager, this);
-			subscriberName = subscriberName ?? Utils.GenerateRandomName();
+			subscriberName = subscriberName ?? Helper.GenerateRandomName();
 
 			if (!autoSubscribe)
 				return client.ContinueWith(tClient => Tuple.Create<TopicClient, Tuple<UnsubscribeAction, Subscriber>>(client.Result, null));
 
-			return client.ContinueWith(tClient =>
-				{
-					return tClient.Result.Subscribe(new SubscriptionDescription(_description.Path, Utils.GenerateRandomName()), mode, subscriberName)
-						.ContinueWith((Task<Tuple<UnsubscribeAction, Subscriber>> tSub) =>
-							{
-								return Tuple.Create(tClient.Result, tSub.Result);
-							});
-				}).Unwrap();
+			return TaskExtensions.Unwrap<Tuple<TopicClient, Tuple<UnsubscribeAction, Subscriber>>>(client.ContinueWith(tClient =>
+					{
+						return tClient.Result.Subscribe(new SubscriptionDescription(_description.Path, Helper.GenerateRandomName()), mode, subscriberName)
+							.ContinueWith((Task<Tuple<UnsubscribeAction, Subscriber>> tSub) =>
+								{
+									return Tuple.Create(tClient.Result, tSub.Result);
+								});
+					}));
 		}
 
 		public Task Delete()

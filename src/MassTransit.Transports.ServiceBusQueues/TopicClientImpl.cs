@@ -4,7 +4,7 @@ using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public delegate Task UnsubscribeAction();
 
@@ -38,7 +38,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			string subscriberName)
 		{
 			var mf = _inner.MessagingFactory;
-			description = description ?? new SubscriptionDescription(_topic.Description.Path, subscriberName ?? Utils.GenerateRandomName());
+			description = description ?? new SubscriptionDescription(_topic.Description.Path, subscriberName ?? Helper.GenerateRandomName());
 			
 			// Missing: no mf.BeginCreateSubscriptionClient? Where do I use mode?
 			return Task.Factory

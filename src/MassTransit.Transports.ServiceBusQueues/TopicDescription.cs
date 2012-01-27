@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	/// <summary>
 	/// value object

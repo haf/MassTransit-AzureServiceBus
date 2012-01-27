@@ -18,8 +18,9 @@ using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using Magnum.Extensions;
 using log4net;
+using SBTopicDesc = Microsoft.ServiceBus.Messaging.TopicDescription;
 
-namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
+namespace MassTransit.Transports.ServiceBusQueues
 {
 	public static class WhatTheAPIShouldHaveDoneForMe
 	{
@@ -27,13 +28,14 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 
 		public static Task TryDeleteTopic(this NamespaceManager nsm, TopicDescription topic)
 		{
-			var exists = Task.Factory.FromAsync<string, bool>(nsm.BeginTopicExists, nsm.EndTopicExists, topic.Path, null);
-			return exists.ContinueWith<Task>((Task<bool> task) =>
+			var exists = Task.Factory.FromAsync<string, bool>(
+				nsm.BeginTopicExists, nsm.EndTopicExists, topic.Path, null);
+			return exists.ContinueWith(tExists =>
 				{
 					try
 					{
-						if (task.Result)
-							// according to documentation this thing doesn't throw anything??!?!??!?!
+						if (tExists.Result)
+							// according to documentation this thing doesn't throw anything??!
 							return Task.Factory.FromAsync(nsm.BeginDeleteTopic, nsm.EndDeleteTopic, topic.Path, null);
 					}
 					catch (MessagingEntityNotFoundException)
@@ -76,15 +78,21 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			//if (nsm.GetQueue(queueName) == null) 
 			// bugs out http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/6ce20f60-915a-4519-b7e3-5af26fc31e35
 			// says it'll give null, but throws!
-			Task<bool> exists = Task.Factory.FromAsync<string, bool>(nsm.BeginQueueExists, nsm.EndQueueExists, queueName, null);
-			exists.ContinueWith(tExists => {
-				// TODO: I should add retry logic as a part of the task async workflow!
-				}, TaskContinuationOptions.OnlyOnFaulted);
-			var create = Task.Factory.FromAsync<string, QueueDescription>(nsm.BeginCreateQueue, nsm.EndCreateQueue, queueName,
-			                                                              null);
-			var get = Task.Factory.FromAsync<string, QueueDescription>(nsm.BeginGetQueue, nsm.EndGetQueue, queueName, null);
 
-			return exists.ContinueWith(tExists => tExists.Result ? create : get).Unwrap();
+			Task<bool> exists = Task.Factory.FromAsync<string, bool>(
+				nsm.BeginQueueExists, nsm.EndQueueExists, queueName, null);
+
+			// TODO: I should add retry logic as a part of the task async workflow!
+			//exists.ContinueWith(tExists => {
+			//    }, TaskContinuationOptions.OnlyOnFaulted);
+
+			Func<Task<QueueDescription>> create = () => Task.Factory.FromAsync<string, QueueDescription>(
+				nsm.BeginCreateQueue, nsm.EndCreateQueue, queueName, null);
+
+			Func<Task<QueueDescription>> get = () => Task.Factory.FromAsync<string, QueueDescription>(
+				nsm.BeginGetQueue, nsm.EndGetQueue, queueName, null);
+
+			return exists.ContinueWith(tExists => tExists.Result ? get() : create()).Unwrap();
 		}
 
 		/// <returns> the topic description </returns>
@@ -92,17 +100,18 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			MessagingFactory factory,
 			string topicName)
 		{
-			var exists = Task.Factory.FromAsync<string, bool>(nm.BeginTopicExists, nm.EndTopicExists, topicName, null);
-			
-			var create = Task.Factory.FromAsync<string, Microsoft.ServiceBus.Messaging.TopicDescription>(
+			var exists = Task.Factory.FromAsync<string, bool>(
+				nm.BeginTopicExists, nm.EndTopicExists, topicName, null);
+
+			Func<Task<Topic>> create = () => Task.Factory.FromAsync<string, SBTopicDesc>(
 				nm.BeginCreateTopic, nm.EndCreateTopic, topicName, null)
 				.ContinueWith(tCreate => new TopicImpl(nm, factory, tCreate.Result) as Topic);
-			
-			var get = Task.Factory.FromAsync<string, Microsoft.ServiceBus.Messaging.TopicDescription>(
+
+			Func<Task<Topic>> get = () => Task.Factory.FromAsync<string, SBTopicDesc>(
 				nm.BeginGetTopic, nm.EndGetTopic, topicName, null)
 				.ContinueWith(tGet => new TopicImpl(nm, factory, tGet.Result) as Topic);
 
-			return exists.ContinueWith(tExists => tExists.Result ? get : create).Unwrap();
+			return exists.ContinueWith(tExists => tExists.Result ? get() : create()).Unwrap();
 
 			//while (true)
 			//{

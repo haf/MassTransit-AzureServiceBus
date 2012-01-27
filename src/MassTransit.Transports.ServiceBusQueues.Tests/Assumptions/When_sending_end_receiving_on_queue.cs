@@ -42,14 +42,16 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 
 	public class When_sending_end_receiving_on_queue
 	{
-		Tuple<Func<Task>, QueueClient> t;
+		Tuple<DeleteQueueAction, QueueClient> t;
 		A message;
 
 		[SetUp]
 		public void when_I_place_a_message_in_the_queue()
 		{
 			message = TestFactory.AMessage();
-			t = TestFactory.SetUpQueue("test-queue").Result;
+			var setup = TestFactory.SetUpQueue("test-queue");
+			setup.Wait();
+			t = setup.Result;
 			t.Item2.Send(new BrokeredMessage(message));
 		}
 
