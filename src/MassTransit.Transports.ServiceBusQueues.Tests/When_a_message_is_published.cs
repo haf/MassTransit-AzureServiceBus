@@ -20,7 +20,7 @@ using MassTransit.TestFramework;
 namespace MassTransit.Transports.ServiceBusQueues.Tests
 {
 	[Scenario]
-	public class message_publishing_on_a_single_bus
+	public class When_a_message_is_published
 		: given_a_broker
 	{
 		private Future<A> _received;
@@ -30,7 +30,9 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 			base.ConfigureServiceBus(uri, configurator);
 
 			_received = new Future<A>();
-			configurator.Subscribe(s => s.Handler<A>(message => _received.Complete(message)));
+
+			configurator.Subscribe(s => 
+				s.Handler<A>(message => _received.Complete(message)));
 		}
 
 		[When]

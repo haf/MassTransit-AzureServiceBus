@@ -62,6 +62,7 @@
     <Compile Include="InboundServiceBusQueuesTransport.cs" />
     <Compile Include="Internal\TaskEx.cs" />
     <Compile Include="MessageEnvelope.cs" />
+    <Compile Include="MessageName.cs" />
     <Compile Include="MessageSerializer.cs" />
     <Compile Include="OutboundServiceBusQueuesTransport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

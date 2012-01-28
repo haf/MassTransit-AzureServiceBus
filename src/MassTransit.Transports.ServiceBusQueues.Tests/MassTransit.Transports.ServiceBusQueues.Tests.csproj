@@ -86,11 +86,13 @@
     <Compile Include="ContextSetup.cs" />
     <Compile Include="given_a_broker.cs" />
     <Compile Include="given_a_stomp_bus_with_a_subscriptionservice.cs" />
-    <Compile Include="message_publishing_on_a_single_bus.cs" />
+    <Compile Include="When_a_message_is_published.cs" />
     <Compile Include="message_publishing_with_a_subscriptionservice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simplest_possible_configuration_with_ServiceBusQueues.cs" />
+    <Compile Include="When_converting_a_type_to_a_message_name.cs" />
     <Compile Include="When_converting_a_type_to_a_topic_name.cs" />
+    <Compile Include="When_creating_topics_for_message_names.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
