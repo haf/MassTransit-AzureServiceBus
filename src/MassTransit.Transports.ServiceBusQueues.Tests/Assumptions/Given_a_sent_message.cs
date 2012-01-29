@@ -23,10 +23,10 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		public void a_drained_topic_and_a_message()
 		{
 			BasicConfigurator.Configure();
-			message = TestFactory.AMessage();
+			message = ConfigFactory.AMessage();
 
-			var mf = TestFactory.CreateMessagingFactory();
-			nm = TestFactory.CreateNamespaceManager(mf);
+			var mf = ConfigFactory.CreateMessagingFactory();
+			nm = ConfigFactory.CreateNamespaceManager(mf);
 
 			var createTopic = nm.TryCreateTopic(mf, "my.topic.here");
 			createTopic.Wait();

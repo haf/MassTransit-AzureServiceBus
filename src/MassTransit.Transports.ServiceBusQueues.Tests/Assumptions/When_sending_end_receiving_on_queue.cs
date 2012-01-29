@@ -48,8 +48,8 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		[SetUp]
 		public void when_I_place_a_message_in_the_queue()
 		{
-			message = TestFactory.AMessage();
-			var setup = TestFactory.SetUpQueue("test-queue");
+			message = ConfigFactory.AMessage();
+			var setup = ConfigFactory.SetUpQueue("test-queue");
 			setup.Wait();
 			t = setup.Result;
 			t.Item2.Send(new BrokeredMessage(message));

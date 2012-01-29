@@ -1,16 +1,17 @@
 using System;
 using System.Threading.Tasks;
 using MassTransit.Transports.ServiceBusQueues.Internal;
+using MassTransit.Transports.ServiceBusQueues.Tests.Assumptions;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
+namespace MassTransit.Transports.ServiceBusQueues.Tests
 {
 	public delegate Task DeleteQueueAction();
 
 	// in general their API should be using interfaces that carry both data and operations
-	static class TestFactory
+	static class ConfigFactory
 	{
 		public static TokenProvider CreateTokenProvider()
 		{

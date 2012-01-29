@@ -10,8 +10,8 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		[Given]
 		public void nsm_mf_and_topic()
 		{
-			var tp = TestFactory.CreateTokenProvider();
-			mf = TestFactory.CreateMessagingFactory(tp);
+			var tp = ConfigFactory.CreateTokenProvider();
+			mf = ConfigFactory.CreateMessagingFactory(tp);
 		}
 
 		[Then]

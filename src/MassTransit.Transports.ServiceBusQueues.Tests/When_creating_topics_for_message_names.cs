@@ -14,8 +14,8 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 		[When]
 		public void given_a_namespace_manager()
 		{
-			var mf = TestFactory.CreateMessagingFactory();
-			nm = TestFactory.CreateNamespaceManager(mf);
+			var mf = ConfigFactory.CreateMessagingFactory();
+			nm = ConfigFactory.CreateNamespaceManager(mf);
 		}
 
 		[Then]

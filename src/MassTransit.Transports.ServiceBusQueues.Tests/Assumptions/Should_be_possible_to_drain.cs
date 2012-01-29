@@ -24,9 +24,9 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		[Given]
 		public void nsm_mf_and_topic()
 		{
-			var tp = TestFactory.CreateTokenProvider();
-			var mf = TestFactory.CreateMessagingFactory(tp);
-			var nm = TestFactory.CreateNamespaceManager(mf, tp);
+			var tp = ConfigFactory.CreateTokenProvider();
+			var mf = ConfigFactory.CreateMessagingFactory(tp);
+			var nm = ConfigFactory.CreateNamespaceManager(mf, tp);
 			topic = nm.TryCreateTopic(mf, "non-existing").Result;
 			topic.ShouldNotBeNull();
 		}
