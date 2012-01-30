@@ -48,6 +48,8 @@ This section deals with how to handle routing.
 
 ### Subscriptions
 
+Because SBQS provides subscriptions with topics, we'll try to use those.
+
 Subscriptions subscribe to the *topic* of the URI-normalized message type name. Single MT subscription subscribes to hierarchy by means of multiple SBQS subscription. E.g.
 
 `namespace A { class B : C { B(){} } interface C {} }`
@@ -106,6 +108,23 @@ E.g. `bus.Publish(new B())` instance *b1* causes state:
 
 Queue-per-process?
 
-### Thoughts on encryption
+## Thoughts on encryption
 
 We can use the encrypting serializer, like what is displsyed in `PreSharedKeyEncryptedMessageSerializer` in MT. We'll set keys as we set endpoint names, using configuration management.
+
+## Thoughts on reliability
+
+Service Bus doesn't garantuee the uptime that one would get off e.g.
+a dedicated Rabbit MQ HA cluster:
+
+ * Forum topic [Azure Service Bus Is not stable or reliable enough for a production system](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/c1a37655-47ed-47b0-8853-5132330d8213)
+
+It could be possible to create a mechanism for switching to an alternate transport mechanism if the one in use fails. Perhaps failover to ZeroMQ transport if SBQS fails?
+
+This transport will rate-limit on the persistency/quorum of service bus itself; i.e. when a message is considered safe - ZMQ wouldn't write to disk, but rather send the message asynchronously directly, so for example, given messages { 1,2,3,4,5 }, this transport could send { 1, receive ACK 1, 2 receive ACK 2, 3, receive ACK 3, ... } or optionally, { 1, 2, receive ACK 1, 3, 4, 5, receive ACK 2, receive ACK 3, ... }. ZeroMQ would do { 1, 2, 3, 4, 5 } and we'd never know from a sending app whether they arrived. It would be up to the producer to persist its current ACKed message for service bus and the ZMQ transport SHOULD have a PUSH/PULL socket that ferries the ACKs around.
+
+## Thoughts on sending medium/large messages
+
+ * Forum topic [BrokeredMessage 256KB limit](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/b804b71e-831d-43b6-a38c-847d01034471)
+
+

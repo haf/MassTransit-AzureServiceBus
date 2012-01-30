@@ -11,19 +11,23 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
 
+using System;
+using Magnum.TestFramework;
+using MassTransit.BusConfigurators;
+using MassTransit.TestFramework.Fixtures;
+
 namespace MassTransit.Transports.AzureQueue.Tests
 {
+	// we try to use topics instead of this:
+
 	//public class given_a_stomp_bus_with_a_subscriptionservice
 	//    : SubscriptionServiceTestFixture<StompTransportFactory>
 	//{
 	//    protected given_a_stomp_bus_with_a_subscriptionservice()
 	//    {
-	//        StompServer = new StompServer(new StompWsListener(new Uri("ws://localhost:8181")));
-	//        StompServer.Start();
-
-	//        LocalUri = new Uri("wazq://localhost:8181/test_queue");
-	//        RemoteUri = new Uri("wazq://localhost:8181/test_queue_control");
-	//        SubscriptionUri = new Uri("wazq://localhost:8181/subscriptions");
+	//        LocalUri = new Uri("sb-queues://localhost:8181/test_queue");
+	//        RemoteUri = new Uri("sb-queues://localhost:8181/test_queue_control");
+	//        SubscriptionUri = new Uri("sb-queues://localhost:8181/subscriptions");
 	//    }
 
 	//    protected override void ConfigureServiceBus(Uri uri, ServiceBusConfigurator configurator)

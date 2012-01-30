@@ -6,11 +6,11 @@ namespace MassTransit.Transports.ServiceBusQueues
 	public class OutboundServiceBusQueuesTransport
 		: IOutboundTransport
 	{
-		private readonly ConnectionHandler<ServiceBusQueuesConnection> _connectionHandler;
+		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		private readonly IEndpointAddress _address;
 
 		public OutboundServiceBusQueuesTransport(IEndpointAddress address,
-		                                        ConnectionHandler<ServiceBusQueuesConnection> connectionHandler)
+		                                        ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
 			_connectionHandler = connectionHandler;
 			_address = address;
@@ -30,7 +30,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 						{
 							context.SerializeTo(body);
 							var bm = new BrokeredMessage(new MessageEnvelope(body.ToArray()));
-							connection.Queue.Send(bm);
+							connection.Queues.Send(bm);
 						}
 					});
 		}

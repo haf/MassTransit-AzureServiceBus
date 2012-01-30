@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Magnum.Policies;
 using MassTransit.Transports.ServiceBusQueues.Internal;
+using MassTransit.Transports.ServiceBusQueues.Management;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;

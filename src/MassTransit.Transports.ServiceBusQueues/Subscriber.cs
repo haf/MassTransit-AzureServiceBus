@@ -4,9 +4,11 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
+	/// <summary>
+	/// A consumer that consumes published messages.
+	/// </summary>
 	public interface Subscriber
 	{
-		
 		/// <summary>
 		/// 
 		/// </summary>

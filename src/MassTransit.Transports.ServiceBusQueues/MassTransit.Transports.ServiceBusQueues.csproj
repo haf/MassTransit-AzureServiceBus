@@ -59,17 +59,17 @@
     <Compile Include="Configuration\Builders\ServiceBusQueuesTransportFactoryBuilder.cs" />
     <Compile Include="Configuration\ServiceBusQueuesExtensions.cs" />
     <Compile Include="Configuration\ServiceBusQueuesFactoryConfigurator.cs" />
-    <Compile Include="InboundServiceBusQueuesTransport.cs" />
+    <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="Internal\TaskEx.cs" />
     <Compile Include="MessageEnvelope.cs" />
     <Compile Include="MessageName.cs" />
-    <Compile Include="MessageSerializer.cs" />
     <Compile Include="OutboundServiceBusQueuesTransport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceBusQueuesClientExtensions.cs" />
-    <Compile Include="ServiceBusQueuesConnection.cs" />
-    <Compile Include="ServiceBusQueueSubsciption.cs" />
-    <Compile Include="ServiceBusQueueTransportFactory.cs" />
+    <Compile Include="ConnectionImpl.cs" />
+    <Compile Include="Subscription.cs" />
+    <Compile Include="TopicBinder.cs" />
+    <Compile Include="TransportFactoryImpl.cs" />
     <Compile Include="Subscriber.cs" />
     <Compile Include="SubscriberImpl.cs" />
     <Compile Include="SubscriptionDescription.cs" />
@@ -82,7 +82,7 @@
     <Compile Include="TopicImpl.cs" />
     <Compile Include="Internal\Helper.cs" />
     <Compile Include="Utils\JetbrainsCodeAnnotations.cs" />
-    <Compile Include="Internal\WhatTheAPIShouldHaveDoneForMe.cs" />
+    <Compile Include="Management\EndpointManagement.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -90,7 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Fallover\" />
-    <Folder Include="Management\" />
     <Folder Include="Partition\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

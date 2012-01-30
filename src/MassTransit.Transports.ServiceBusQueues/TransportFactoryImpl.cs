@@ -5,15 +5,15 @@ using MassTransit.Exceptions;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
-	public class ServiceBusQueueTransportFactory
+	public class TransportFactoryImpl
 		: ITransportFactory
 	{
-		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ServiceBusQueuesConnection>> _connectionCache;
+		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connectionCache;
 		private bool _disposed;
 
-		public ServiceBusQueueTransportFactory()
+		public TransportFactoryImpl()
 		{
-			_connectionCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ServiceBusQueuesConnection>>();
+			_connectionCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>>();
 		}
 
 		/// <summary>
@@ -39,7 +39,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
 			var client = GetConnection(settings.Address);
-			return new InboundServiceBusQueuesTransport(settings.Address, client);
+			return new InboundTransportImpl(settings.Address, client);
 		}
 
 		public IOutboundTransport BuildOutbound(ITransportSettings settings)
@@ -69,12 +69,12 @@ namespace MassTransit.Transports.ServiceBusQueues
 				                            string.Format("Address must start with 'stomp' not '{0}'", address.Scheme));
 		}
 
-		private ConnectionHandler<ServiceBusQueuesConnection> GetConnection(IEndpointAddress address)
+		private ConnectionHandler<ConnectionImpl> GetConnection(IEndpointAddress address)
 		{
 			return _connectionCache.Retrieve(address.Uri, () =>
 				{
-					var connection = new ServiceBusQueuesConnection(address.Uri);
-					var connectionHandler = new ConnectionHandlerImpl<ServiceBusQueuesConnection>(connection);
+					var connection = new ConnectionImpl(address.Uri);
+					var connectionHandler = new ConnectionHandlerImpl<ConnectionImpl>(connection);
 
 					return connectionHandler;
 				});
@@ -94,7 +94,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_disposed = true;
 		}
 
-		~ServiceBusQueueTransportFactory()
+		~TransportFactoryImpl()
 		{
 			Dispose(false);
 		}

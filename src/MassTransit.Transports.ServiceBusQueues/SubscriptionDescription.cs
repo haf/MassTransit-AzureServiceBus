@@ -40,7 +40,8 @@ namespace MassTransit.Transports.ServiceBusQueues
 		SBSubDesc IDareYou { get; }
 	}
 
-	public class SubscriptionDescriptionImpl : SubscriptionDescription
+	public class SubscriptionDescriptionImpl
+		: SubscriptionDescription
 	{
 		readonly SBSubDesc _subscriptionDescription;
 

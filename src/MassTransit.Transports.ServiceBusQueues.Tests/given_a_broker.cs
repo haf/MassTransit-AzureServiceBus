@@ -20,7 +20,7 @@ using MassTransit.Transports.ServiceBusQueues.Tests.Assumptions;
 namespace MassTransit.Transports.ServiceBusQueues.Tests
 {
 	public abstract class given_a_broker
-		: LocalTestFixture<ServiceBusQueueTransportFactory>
+		: LocalTestFixture<TransportFactoryImpl>
 	{
 		protected given_a_broker()
 		{

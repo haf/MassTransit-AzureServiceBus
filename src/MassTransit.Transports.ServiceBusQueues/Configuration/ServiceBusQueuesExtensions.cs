@@ -33,7 +33,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Configuration
 			var transportFactoryConfigurator = new ServiceBusQueuesFactoryConfigurator();
 
 			//configurator.AddTransportFactory(transportFactoryConfigurator.Build);
-			configurator.AddTransportFactory(new ServiceBusQueueTransportFactory());
+			configurator.AddTransportFactory(new TransportFactoryImpl());
 			
 			configurator.UseJsonSerializer();
 

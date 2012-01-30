@@ -6,15 +6,15 @@ using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
-	public class SubscriberImpl : Subscriber
+	public class SubscriberImpl
+		: Subscriber, ConnectionBinding<ConnectionImpl>
 	{
 		static readonly ILog _logger = LogManager.GetLogger(typeof (SubscriberImpl));
 		
 		readonly MessageReceiver _receiver;
 		readonly SubscriptionClient _client;
 
-		public SubscriberImpl(
-			[NotNull] MessageReceiver receiver)
+		public SubscriberImpl([NotNull] MessageReceiver receiver)
 		{
 			if (receiver == null) throw new ArgumentNullException("receiver");
 			_receiver = receiver;
@@ -24,6 +24,16 @@ namespace MassTransit.Transports.ServiceBusQueues
 		{
 			if (receiver == null) throw new ArgumentNullException("receiver");
 			_client = receiver;
+		}
+
+		void ConnectionBinding<ConnectionImpl>.Bind(ConnectionImpl connection)
+		{
+			throw new NotImplementedException();
+		}
+
+		void ConnectionBinding<ConnectionImpl>.Unbind(ConnectionImpl connection)
+		{
+			throw new NotImplementedException();
 		}
 
 		public Task<BrokeredMessage> Receive()

@@ -8,17 +8,17 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
-	public class InboundServiceBusQueuesTransport
+	public class InboundTransportImpl
 		: IInboundTransport
 	{
-		private readonly ConnectionHandler<ServiceBusQueuesConnection> _connectionHandler;
+		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		private readonly IEndpointAddress _address;
 
 		private bool _disposed;
-		private ServiceBusQueueSubsciption _subsciption;
+		private Subscription _subsciption;
 
-		public InboundServiceBusQueuesTransport(IEndpointAddress address,
-		                                        ConnectionHandler<ServiceBusQueuesConnection> connectionHandler)
+		public InboundTransportImpl(IEndpointAddress address,
+		                            ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
 			_connectionHandler = connectionHandler;
 			_address = address;
@@ -36,7 +36,9 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_connectionHandler.Use(connection =>
 				{
 					BrokeredMessage message;
-					if ((message = connection.Queue.Receive(50.Milliseconds())) == null)
+					if ((message = connection.Queues.Receive(
+						/* before any message transmission start */
+						50.Milliseconds())) == null)
 					{
 						Thread.Sleep(10);
 						return;
@@ -68,7 +70,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			if (_subsciption != null)
 				return;
 
-			_subsciption = new ServiceBusQueueSubsciption(_address);
+			_subsciption = new Subscription(_address);
 			_connectionHandler.AddBinding(_subsciption);
 		}
 
@@ -97,7 +99,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_disposed = true;
 		}
 
-		~InboundServiceBusQueuesTransport()
+		~InboundTransportImpl()
 		{
 			Dispose(false);
 		}

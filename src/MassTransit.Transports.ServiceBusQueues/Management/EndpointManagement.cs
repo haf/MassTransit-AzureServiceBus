@@ -14,16 +14,17 @@
 using System;
 using System.Threading.Tasks;
 using Magnum.Policies;
+using MassTransit.Transports.ServiceBusQueues.Internal;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using Magnum.Extensions;
 using log4net;
 
-namespace MassTransit.Transports.ServiceBusQueues.Internal
+namespace MassTransit.Transports.ServiceBusQueues.Management
 {
-	public static class WhatTheAPIShouldHaveDoneForMe
+	public static class EndpointManagement
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (WhatTheAPIShouldHaveDoneForMe));
+		static readonly ILog _logger = LogManager.GetLogger(typeof (EndpointManagement));
 
 		public static Task TryDeleteTopic(this NamespaceManager nsm, TopicDescription topic)
 		{

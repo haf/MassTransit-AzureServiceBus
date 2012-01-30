@@ -14,6 +14,7 @@
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.Transports.ServiceBusQueues.Internal;
+using MassTransit.Transports.ServiceBusQueues.Management;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using MassTransit.Transports.ServiceBusQueues.Internal;
+using MassTransit.Transports.ServiceBusQueues.Management;
 using MassTransit.Transports.ServiceBusQueues.Tests.Assumptions;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
