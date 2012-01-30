@@ -106,7 +106,7 @@ E.g. `bus.Publish(new B())` instance *b1* causes state:
 
 ### Endpoints
 
-Queue-per-process?
+Queue-per-service bus ReceiveFrom(...) call?
 
 ## Thoughts on encryption
 
