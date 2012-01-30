@@ -108,4 +108,4 @@ Queue-per-process?
 
 ### Thoughts on encryption
 
-We can use the encrypting serializer.
+We can use the encrypting serializer, like what is displsyed in `PreSharedKeyEncryptedMessageSerializer` in MT. We'll set keys as we set endpoint names, using configuration management.
