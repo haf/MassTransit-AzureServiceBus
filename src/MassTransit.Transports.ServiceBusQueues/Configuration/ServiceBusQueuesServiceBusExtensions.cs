@@ -8,9 +8,9 @@ namespace MassTransit.Transports.ServiceBusQueues.Configuration
 	{
 		/// <summary>
 		/// Specifies that MT should be using AppFabric ServiceBus Queues to receive messages and specifies the
-		/// uri.
+		/// uri by means of its components.
 		/// </summary>
-		public static T ReceiveFrom<T>(this T configurator,
+		public static T ReceiveFromComponents<T>(this T configurator,
 			string issuerOrUsername, string defaultKeyOrPassword,
 			string serviceBusNamespace, string applicationName)
 			where T : ServiceBusConfigurator

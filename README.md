@@ -25,10 +25,47 @@ or if this tickles your fancy:
 ```
 using (ServiceBusFactory.New(sbc =>
 {
-	sbc.ReceiveFrom("owner", "sharedKeyTopSecret", "myNamespace", "my-application");
+	sbc.ReceiveFromComponents("owner", "sharedKeyTopSecret", "myNamespace", "my-application");
 	sbc.UseServiceBusQueuesRouting();
 }))
 {
+}
+```
+
+## Compiling the code
+
+In order to compile the tests, you have to have a class called `AccountDetails` similar to this:
+
+```
+namespace MassTransit.Transports.ServiceBusQueues.Configuration
+{
+	// WARNING: note: DO NOT RENAME this file, or you'll commit the account details
+
+	/// <summary>
+	/// 	Configuration handler for account details
+	/// </summary>
+	public static class AccountDetails
+	{
+		private static string ENV(string name)
+		{
+			return Environment.GetEnvironmentVariable(name);
+		}
+
+		public static string IssuerName
+		{
+			get { return ENV("AccountDetailsIssuerName") ?? "owner"; }
+		}
+
+		public static string Key
+		{
+			get { return ENV("AccountDetailsKey") ?? "bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc="; }
+		}
+
+		public static string Namespace
+		{
+			get { return ENV("AccountDetailsNamespace") ?? "my-namespace"; }
+		}
+	}
 }
 ```
 
