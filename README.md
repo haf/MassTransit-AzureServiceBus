@@ -13,7 +13,9 @@ Do it like this, man;
 ```
 using (ServiceBusFactory.New(sbc =>
 	{
-		sbc.ReceiveFrom("sb-queues://owner:bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=@myNamespace/my-application");
+		sbc.ReceiveFrom(
+			"sb-queues://owner:bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=@myNamespace/my-application"
+			);
 		sbc.UseServiceBusQueuesRouting();
 	}))
 {
@@ -25,7 +27,8 @@ or if this tickles your fancy:
 ```
 using (ServiceBusFactory.New(sbc =>
 {
-	sbc.ReceiveFromComponents("owner", "bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=", "myNamespace", "my-application");
+	sbc.ReceiveFromComponents("owner", "bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=", 
+							  "myNamespace", "my-application");
 	sbc.UseServiceBusQueuesRouting();
 }))
 {
