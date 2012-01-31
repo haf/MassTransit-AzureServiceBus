@@ -1,6 +1,6 @@
-# MassTransit Microsoft Windows Azure AppFabric Service Bus Queues and Topics Message Broker Transport
+# MassTransit AzureServiceBus Transport
 
-No, Microsoft **does** have a sane product naming policy. In this case we'll be calling it *MassTransit Service Bus Queues*.
+A transport over AppFabric Service Bus in Azure. Currently capable of pub-sub and sending to endpoints. Pre-alpha at the moment.
 
 ## So wazzup? 
 
