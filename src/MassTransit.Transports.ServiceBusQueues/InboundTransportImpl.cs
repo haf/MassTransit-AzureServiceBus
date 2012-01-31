@@ -5,21 +5,27 @@ using Magnum.Extensions;
 using MassTransit.Context;
 using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
+using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class InboundTransportImpl
 		: IInboundTransport
 	{
+		static readonly ILog _logger = LogManager.GetLogger(typeof (InboundTransportImpl));
+
 		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		private readonly ServiceBusQueuesEndpointAddress _address;
 
 		private bool _disposed;
 		private Subscription _subsciption;
 
-		public InboundTransportImpl(ServiceBusQueuesEndpointAddress address,
-		                            ConnectionHandler<ConnectionImpl> connectionHandler)
+		public InboundTransportImpl(
+			[Util.NotNull] ServiceBusQueuesEndpointAddress address, 
+			[Util.NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
+			if (address == null) throw new ArgumentNullException("address");
+			if (connectionHandler == null) throw new ArgumentNullException("connectionHandler");
 			_connectionHandler = connectionHandler;
 			_address = address;
 		}
