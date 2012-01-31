@@ -6,6 +6,8 @@ A transport over AppFabric Service Bus in Azure. Currently capable of pub-sub an
 
 For one thing, this hot moma has **raw, badass WCF** at its heart, so beware of the large crowds of women that will show up outside your doorstep when you use this baby!
 
+First, get your Azure account here: https://www.windowsazure.com/en-us/develop/net/how-to-guides/service-bus-topics/#what-is. It's free the first three months.
+
 ## Configuration API
 
 Do it like this, man;
