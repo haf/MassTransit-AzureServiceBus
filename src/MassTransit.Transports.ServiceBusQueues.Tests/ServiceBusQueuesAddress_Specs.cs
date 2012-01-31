@@ -24,7 +24,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 	[Scenario]
 	public class ServiceBusQueuesAddress_Specs
 	{
-		ServiceBusQueuesAddressImpl _endpoint;
+		ServiceBusQueuesEndpointAddressImpl _endpoint;
 		Uri uri;
 
 		[When]
@@ -32,7 +32,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 		{
 			uri = new Uri(string.Format("sb-queues://owner:{0}@{1}/my-application",
 				AccountDetails.Key, AccountDetails.Namespace));
-			_endpoint = ServiceBusQueuesAddressImpl.Parse(uri);
+			_endpoint = ServiceBusQueuesEndpointAddressImpl.Parse(uri);
 		}
 
 		[Then]
@@ -63,10 +63,10 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 	[Scenario]
 	public class When_giving_full_hostname_spec
 	{
-		ServiceBusQueuesAddressImpl _endpointExtended;
+		ServiceBusQueuesEndpointAddressImpl _endpointExtended;
 		Uri _extended;
 		Uri _normal;
-		ServiceBusQueuesAddressImpl _endpoint;
+		ServiceBusQueuesEndpointAddressImpl _endpoint;
 
 		[When]
 		public void a_servicebusqueues_address_is_given()
@@ -75,8 +75,8 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 			_extended = GetUri(extraHost);
 			_normal = GetUri("");
 
-			_endpointExtended = ServiceBusQueuesAddressImpl.Parse(_extended);
-			_endpoint = ServiceBusQueuesAddressImpl.Parse(_normal);
+			_endpointExtended = ServiceBusQueuesEndpointAddressImpl.Parse(_extended);
+			_endpoint = ServiceBusQueuesEndpointAddressImpl.Parse(_normal);
 		}
 
 		Uri GetUri(string extraHost)
@@ -123,8 +123,8 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 		public void something_after_app_name()
 		{
 			IEnumerable<ValidationResult> results;
-			ServiceBusQueuesAddressImpl address;
-			ServiceBusQueuesAddressImpl.TryParse(_faulty_app, out address, out results)
+			ServiceBusQueuesEndpointAddressImpl address;
+			ServiceBusQueuesEndpointAddressImpl.TryParse(_faulty_app, out address, out results)
 				.ShouldBeFalse("parse should have failed");
 
 			AssertGotKey("Application", address, results);
@@ -134,14 +134,14 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 		public void missing_credentials()
 		{
 			IEnumerable<ValidationResult> results;
-			ServiceBusQueuesAddressImpl address;
-			ServiceBusQueuesAddressImpl.TryParse(_missing_creds, out address, out results)
+			ServiceBusQueuesEndpointAddressImpl address;
+			ServiceBusQueuesEndpointAddressImpl.TryParse(_missing_creds, out address, out results)
 				.ShouldBeFalse("parse should have failed");
 
 			AssertGotKey("UserInfo", address, results);
 		}
 
-		static void AssertGotKey(string key, ServiceBusQueuesAddressImpl address, IEnumerable<ValidationResult> results)
+		static void AssertGotKey(string key, ServiceBusQueuesEndpointAddressImpl address, IEnumerable<ValidationResult> results)
 		{
 			results.ShouldNotBeNull();
 			address.ShouldBeNull();

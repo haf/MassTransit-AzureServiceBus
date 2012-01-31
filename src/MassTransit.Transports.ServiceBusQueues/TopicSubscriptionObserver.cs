@@ -29,11 +29,11 @@ namespace MassTransit.Transports.ServiceBusQueues
 	{
 		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicSubscriptionObserver));
 
-		readonly ServiceBusQueuesAddress _address;
+		readonly ServiceBusQueuesEndpointAddress _address;
 		readonly Dictionary<Guid, Topic> _bindings;
 
 		public TopicSubscriptionObserver(
-			[NotNull] ServiceBusQueuesAddress address)
+			[NotNull] ServiceBusQueuesEndpointAddress address)
 		{
 			if (address == null) throw new ArgumentNullException("address");
 			_address = address;

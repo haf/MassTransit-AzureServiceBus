@@ -12,12 +12,12 @@ namespace MassTransit.Transports.ServiceBusQueues
 		: IInboundTransport
 	{
 		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
-		private readonly IEndpointAddress _address;
+		private readonly ServiceBusQueuesEndpointAddress _address;
 
 		private bool _disposed;
 		private Subscription _subsciption;
 
-		public InboundTransportImpl(IEndpointAddress address,
+		public InboundTransportImpl(ServiceBusQueuesEndpointAddress address,
 		                            ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
 			_connectionHandler = connectionHandler;
@@ -36,9 +36,9 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_connectionHandler.Use(connection =>
 				{
 					BrokeredMessage message;
-					if ((message = connection.Queues.Receive(
-						/* before any message transmission start */
-						50.Milliseconds())) == null)
+					/* timeout: before any message transmission start */
+					if ((message = connection.InboundQueue.Receive(50.Milliseconds())) == null
+						)//|| ((message = connection.Subscribers.)) == null)
 					{
 						Thread.Sleep(10);
 						return;

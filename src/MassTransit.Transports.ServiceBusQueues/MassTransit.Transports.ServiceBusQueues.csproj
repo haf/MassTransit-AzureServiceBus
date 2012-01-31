@@ -59,6 +59,7 @@
     <Compile Include="Configuration\AccountDetails.cs" />
     <Compile Include="Configuration\Builders\ServiceBusQueuesTransportFactoryBuilder.cs" />
     <Compile Include="Configuration\ConfigFactory.cs" />
+    <Compile Include="Configuration\EndpointFactoryConfiguratorExtensions.cs" />
     <Compile Include="Configuration\ServiceBusQueuesServiceBusExtensions.cs" />
     <Compile Include="Configuration\ServiceBusQueuesFactoryConfiguratorImpl.cs" />
     <Compile Include="InboundTransportImpl.cs" />
@@ -67,9 +68,8 @@
     <Compile Include="MessageName.cs" />
     <Compile Include="OutboundTransportImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceBusQueuesAddress.cs" />
-    <Compile Include="ServiceBusQueuesAddressImpl.cs" />
-    <Compile Include="ServiceBusQueuesClientExtensions.cs" />
+    <Compile Include="ServiceBusQueuesEndpointAddress.cs" />
+    <Compile Include="ServiceBusQueuesEndpointAddressImpl.cs" />
     <Compile Include="ConnectionImpl.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="TopicSubscriptionObserver.cs" />

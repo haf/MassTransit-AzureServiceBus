@@ -110,6 +110,19 @@ namespace MassTransit.Transports.ServiceBusQueues.Management
 				});
 		}
 
+		public static Task<MessageReceiver> TryCreateQueueClient(
+			[NotNull] this MessagingFactory mf, 
+			[NotNull] QueueDescription description)
+		{
+			if (mf == null) throw new ArgumentNullException("mf");
+			if (description == null) throw new ArgumentNullException("description");
+
+			return Task.Factory.FromAsync<string, MessageReceiver>(
+				mf.BeginCreateMessageReceiver,
+				mf.EndCreateMessageReceiver,
+				description.Path, null);
+		}
+
 		public static Task<QueueDescription> TryCreateQueue(this NamespaceManager nsm, string queueName)
 		{
 			//if (nsm.GetQueue(queueName) == null) 

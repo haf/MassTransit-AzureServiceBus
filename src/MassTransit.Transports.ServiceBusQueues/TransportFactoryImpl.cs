@@ -20,14 +20,13 @@ namespace MassTransit.Transports.ServiceBusQueues
 		readonly TokenProvider _tokenProvider;
 
 		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connectionCache;
+		private readonly ReaderWriterLockedDictionary<Uri, ServiceBusQueuesEndpointAddress> _addresses; 
 		private bool _disposed;
 
 		public TransportFactoryImpl()
 		{
+			_addresses = new ReaderWriterLockedDictionary<Uri, ServiceBusQueuesEndpointAddress>();
 			_connectionCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>>();
-			_tokenProvider = ConfigFactory.CreateTokenProvider();
-			_messagingFactory = ConfigFactory.CreateMessagingFactory(_tokenProvider);
-			_namespaceManager = ConfigFactory.CreateNamespaceManager(_messagingFactory, _tokenProvider);
 			_logger.Debug("created new transport factory");
 		}
 
@@ -61,8 +60,9 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_logger.Debug(string.Format("building inbound transport for address '{0}'", 
 				settings.Address));
 
-			var client = GetConnection(settings.Address);
-			return new InboundTransportImpl(settings.Address, client);
+			var address = _addresses.Retrieve(settings.Address.Uri, () => ServiceBusQueuesEndpointAddressImpl.Parse(settings.Address.Uri));
+			var client = GetConnection(address);
+			return new InboundTransportImpl(address, client);
 		}
 
 		public virtual IOutboundTransport BuildOutbound(ITransportSettings settings)
@@ -72,8 +72,10 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_logger.Debug(string.Format("building outbound transport for address '{0}'", 
 				settings.Address));
 
-			var client = GetConnection(settings.Address);
-			return new OutboundTransportImpl(settings.Address, client);
+			var address = _addresses.Retrieve(settings.Address.Uri, () => ServiceBusQueuesEndpointAddressImpl.Parse(settings.Address.Uri));
+			var client = GetConnection(address);
+
+			return new OutboundTransportImpl(address, client);
 		}
 
 		public virtual IOutboundTransport BuildError(ITransportSettings settings)
@@ -83,7 +85,8 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_logger.Debug(string.Format("building error transport for address '{0}'",
 				settings.Address));
 
-			var client = GetConnection(settings.Address);
+			var address = _addresses.Retrieve(settings.Address.Uri, () => ServiceBusQueuesEndpointAddressImpl.Parse(settings.Address.Uri));
+			var client = GetConnection(address);
 			return new OutboundTransportImpl(settings.Address, client);
 		}
 
@@ -98,13 +101,13 @@ namespace MassTransit.Transports.ServiceBusQueues
 				                            string.Format("Address must start with 'stomp' not '{0}'", address.Scheme));
 		}
 
-		private ConnectionHandler<ConnectionImpl> GetConnection(IEndpointAddress address)
+		private ConnectionHandler<ConnectionImpl> GetConnection(ServiceBusQueuesEndpointAddress address)
 		{
 			_logger.Debug(string.Format("get connection( address:'{0}' )", address));
 
 			return _connectionCache.Retrieve(address.Uri, () =>
 				{
-					var connection = new ConnectionImpl(address.Uri, _tokenProvider, _namespaceManager, _messagingFactory);
+					var connection = new ConnectionImpl(address);
 					var connectionHandler = new ConnectionHandlerImpl<ConnectionImpl>(connection);
 
 					return connectionHandler;
@@ -126,8 +129,10 @@ namespace MassTransit.Transports.ServiceBusQueues
 			{
 				_connectionCache.Values.Each(x => x.Dispose());
 				_connectionCache.Clear();
-
 				_connectionCache.Dispose();
+				_addresses.Values.Each(x => x.Dispose());
+				_addresses.Clear();
+				_addresses.Dispose();
 			}
 
 			_disposed = true;

@@ -14,9 +14,7 @@
 using System;
 using System.Collections.Generic;
 using Magnum.Extensions;
-using MassTransit.Transports.ServiceBusQueues.Configuration;
 using MassTransit.Transports.ServiceBusQueues.Util;
-using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
 using MassTransit.Transports.ServiceBusQueues.Management;
@@ -26,47 +24,32 @@ namespace MassTransit.Transports.ServiceBusQueues
 	public class ConnectionImpl :
 		Connection
 	{
-		static readonly ILog _log = LogManager.GetLogger(typeof (ConnectionImpl));
+		readonly ServiceBusQueuesEndpointAddress _endpointAddress;
+
+		static readonly ILog _logger = LogManager.GetLogger(typeof (ConnectionImpl));
 	
 		bool _disposed;
 
-		readonly Uri _serviceUri;
-		readonly TokenProvider _tokenProvider;
-		readonly NamespaceManager _namespaceManager;
-		readonly MessagingFactory _messagingFactory;
+		MessageReceiver _inboundQueue;
 
-		QueueClient _queues;
-		List<Subscriber> _subscribers = new List<Subscriber>();
-
-		public ConnectionImpl([NotNull] Uri serviceUri, // with ServiceBusEnvironment
-			TokenProvider tokenProvider,
-			NamespaceManager namespaceManager,
-			MessagingFactory messagingFactory)
+		readonly List<Subscriber> _subscribers = new List<Subscriber>();
+		
+		public ConnectionImpl([NotNull] ServiceBusQueuesEndpointAddress endpointAddress)
 		{
-			if (serviceUri == null) throw new ArgumentNullException("serviceUri");
+			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
+			_endpointAddress = endpointAddress;
 
-			_serviceUri = serviceUri;
-			_tokenProvider = tokenProvider;
-			_namespaceManager = namespaceManager;
-			_messagingFactory = messagingFactory;
+			_logger.Debug(string.Format("created connection impl for address ('{0}')", endpointAddress));
 		}
 
-		public QueueClient Queues
+		public MessageReceiver InboundQueue
 		{
-			get { return _queues; }
+			get { return _inboundQueue; }
 		}
 
 		public IEnumerable<Subscriber> Subscribers
 		{
 			get { return _subscribers; }
-		}
-
-		public void AddSubscriber([Util.NotNull] Subscriber subscriber)
-		{
-			if (subscriber == null) 
-				throw new ArgumentNullException("subscriber");
-
-			_subscribers.Add(subscriber);
 		}
 
 		public void Dispose()
@@ -82,7 +65,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 
 			if (_disposed)
 				throw new ObjectDisposedException("ServiceBusQueueConnection for {0}".FormatWith(
-					_serviceUri),
+					_endpointAddress),
 				                                  "The connection instance to AppFabric ServiceBus Queues, " +
 				                                  "is already disposed and cannot be disposed twice.");
 			try
@@ -99,34 +82,29 @@ namespace MassTransit.Transports.ServiceBusQueues
 		{
 			Disconnect();
 
-			// hackety
-			var serverAddress = new UriBuilder("sb-queues", _serviceUri.Host, _serviceUri.Port).Uri;
-			var upQueue = ConfigFactory.SetUpQueue(serverAddress.PathAndQuery);
-			_queues = upQueue.Result.Item2;
+			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
+			var queueClient = _endpointAddress.CreateQueueClient();
+			queueClient.Wait();
 
-			_log.Info("Connecting {0}".FormatWith(_serviceUri));
+			_inboundQueue = queueClient.Result;
+
+			_logger.Info("Connecting {0}".FormatWith(_endpointAddress));
 		}
 
 		public void Disconnect()
 		{
 			try
 			{
-				if (_queues != null)
+				if (_inboundQueue != null)
 				{
-					_log.Info("Disconnecting {0}".FormatWith(_serviceUri));
+					_logger.Info("Disconnecting {0}".FormatWith(_endpointAddress));
 
 					_subscribers.Clear();
-
-					//if (_stompClient.IsConnected)
-					//    _stompClient.Disconnect();
-
-					//_stompClient.Dispose();
-					//_stompClient = null;
 				}
 			}
 			catch (Exception ex)
 			{
-				_log.Warn("Failed to close AppFabric ServiceBus connection.", ex);
+				_logger.Warn("Failed to close AppFabric ServiceBus connection.", ex);
 			}
 		}
 	}

@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MassTransit.Configurators;
+using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Transports.ServiceBusQueues.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using MassTransit.Transports.ServiceBusQueues.Management;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
-	public class ServiceBusQueuesAddressImpl 
-		: ServiceBusQueuesAddress
+	public class ServiceBusQueuesEndpointAddressImpl 
+		: ServiceBusQueuesEndpointAddress
 	{
 		class Data
 		{
@@ -23,7 +26,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 		readonly MessagingFactory _mf;
 		readonly NamespaceManager _nm;
 
-		ServiceBusQueuesAddressImpl([NotNull] Data data)
+		ServiceBusQueuesEndpointAddressImpl([NotNull] Data data)
 		{
 			if (data == null)
 				throw new ArgumentNullException("data");
@@ -54,13 +57,38 @@ namespace MassTransit.Transports.ServiceBusQueues
 			get { return _nm; }
 		}
 
+		public Task<MessageReceiver> CreateQueueClient()
+		{
+			return _nm.TryCreateQueue(_data.Application).Then(qdesc => _mf.TryCreateQueueClient(qdesc));
+		}
+
+		public Uri Uri
+		{
+			get { return _nm.Address; }
+		}
+
+		bool IEndpointAddress.IsLocal
+		{
+			get { return false; }
+		}
+
+		bool IEndpointAddress.IsTransactional
+		{
+			get { return false; }
+		}
+
 		public void Dispose()
 		{
 			if (!_mf.IsClosed) _mf.Close();
 			GC.SuppressFinalize(this);
 		}
 
-		public static ServiceBusQueuesAddressImpl Parse([NotNull] Uri uri)
+		public override string ToString()
+		{
+			return string.Format("{0}{1}", _nm.Address, _data.Application);
+		}
+
+		public static ServiceBusQueuesEndpointAddressImpl Parse([NotNull] Uri uri)
 		{
 			if (uri == null)
 				throw new ArgumentNullException("uri");
@@ -68,11 +96,25 @@ namespace MassTransit.Transports.ServiceBusQueues
 			Data data;
 			IEnumerable<ValidationResult> results;
 			return TryParseInternal(uri, out data, out results)
-			       	? new ServiceBusQueuesAddressImpl(data)
+			       	? new ServiceBusQueuesEndpointAddressImpl(data)
 			       	: ParseFailed(uri, results);
 		}
 
-		static ServiceBusQueuesAddressImpl ParseFailed(Uri uri, IEnumerable<ValidationResult> results)
+		public static bool TryParse([NotNull] Uri inputUri, out ServiceBusQueuesEndpointAddressImpl address,
+		                            out IEnumerable<ValidationResult> validationResults)
+		{
+			if (inputUri == null) throw new ArgumentNullException("inputUri");
+			Data data;
+			if (TryParseInternal(inputUri, out data, out validationResults))
+			{
+				address = new ServiceBusQueuesEndpointAddressImpl(data);
+				return true;
+			}
+			address = null;
+			return false;
+		}
+
+		static ServiceBusQueuesEndpointAddressImpl ParseFailed(Uri uri, IEnumerable<ValidationResult> results)
 		{
 			throw new ArgumentException(
 				string.Format("There were problems parsing the uri '{0}': ", uri)
@@ -113,20 +155,6 @@ namespace MassTransit.Transports.ServiceBusQueues
 
 			results = null;
 			return true;
-		}
-
-		public static bool TryParse([NotNull] Uri inputUri, out ServiceBusQueuesAddressImpl address,
-		                            out IEnumerable<ValidationResult> validationResults)
-		{
-			if (inputUri == null) throw new ArgumentNullException("inputUri");
-			Data data;
-			if (TryParseInternal(inputUri, out data, out validationResults))
-			{
-				address = new ServiceBusQueuesAddressImpl(data);
-				return true;
-			}
-			address = null;
-			return false;
 		}
 	}
 }
