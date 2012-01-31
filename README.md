@@ -159,7 +159,7 @@ We can use the encrypting serializer, like what is displsyed in `PreSharedKeyEnc
 Service Bus doesn't garantuee the uptime that one would get off e.g.
 a dedicated Rabbit MQ HA cluster:
 
- * Forum topic [Azure Service Bus Is not stable or reliable enough for a production system](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/c1a37655-47ed-47b0-8853-5132330d8213)
+ * Forum topic [Azure Service Bus stability](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/c1a37655-47ed-47b0-8853-5132330d8213)
 
 It could be possible to create a mechanism for switching to an alternate transport mechanism if the one in use fails. Perhaps failover to ZeroMQ transport if SBQS fails?
 
