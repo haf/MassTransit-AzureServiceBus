@@ -11,7 +11,7 @@
     <RootNamespace>MassTransitQueues</RootNamespace>
     <AssemblyName>MassTransitQueues</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
-    <Name>MT-ASB</Name>
+    <Name>AzureDeployment</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,7 +37,7 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WorkerRole1\MassTransit.AzureWorker.csproj">
+    <ProjectReference Include="..\MassTransit.AzureWorker\MassTransit.AzureWorker.csproj">
       <Name>MassTransit.AzureWorker</Name>
       <Project>{6fe0f903-2620-4f19-9988-be051c385b2d}</Project>
       <Private>True</Private>
