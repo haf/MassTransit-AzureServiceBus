@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using MassTransit.Transports.ServiceBusQueues.Management;
-using MassTransit.Util;
+using MassTransit.Transports.ServiceBusQueues.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 

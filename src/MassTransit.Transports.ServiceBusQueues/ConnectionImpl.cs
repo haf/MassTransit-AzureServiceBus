@@ -15,7 +15,7 @@ using System;
 using System.Collections.Generic;
 using Magnum.Extensions;
 using MassTransit.Transports.ServiceBusQueues.Configuration;
-using MassTransit.Transports.ServiceBusQueues.Utils;
+using MassTransit.Transports.ServiceBusQueues.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using log4net;

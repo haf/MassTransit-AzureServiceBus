@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MassTransit.Transports.ServiceBusQueues.Utils
+namespace MassTransit.Transports.ServiceBusQueues.Util
 {
 	/*
 	 * Copyright 2007-2011 JetBrains s.r.o.

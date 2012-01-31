@@ -6,6 +6,7 @@ using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
 using SBSubDesc = Microsoft.ServiceBus.Messaging.SubscriptionDescription;
+using MassTransit.Transports.ServiceBusQueues.Management;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
@@ -31,13 +32,16 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_messagingFactory = messagingFactory;
 			_namespaceManager = namespaceManager;
 			_clientFac = path => _messagingFactory.CreateTopicClient(path);
+
+			_logger.Debug("created new topic client");
 		}
 
 		public Task Send(BrokeredMessage msg, Topic topic)
 		{
-			_logger.Debug("being send");
 			// todo: client has Close method... but not dispose.
 			var client = _clientFac(topic.Description.Path);
+
+			_logger.Debug("begin send");
 			return Task.Factory.FromAsync(client.BeginSend, client.EndSend, msg, null)
 				.ContinueWith(tSend => _logger.Debug("end send"));
 		}
@@ -53,11 +57,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			
 			// Missing: no mf.BeginCreateSubscriptionClient?
 			_logger.Debug(string.Format("being create subscription @ {0}", description));
-			return Task.Factory
-				.FromAsync<SBSubDesc, SBSubDesc>(
-					_namespaceManager.BeginCreateSubscription,
-					_namespaceManager.EndCreateSubscription,
-					description.IDareYou, null)
+			return _namespaceManager.TryCreateSubscription(description)
 				//.Then(tSbSubDesc => Task.Factory.FromAsync<string, ReceiveMode, MessageReceiver>(
 				//    mf.BeginCreateMessageReceiver, mf.EndCreateMessageReceiver,
 				//    description.TopicPath, mode, /* state */ _namespaceManager))
@@ -70,11 +70,8 @@ namespace MassTransit.Transports.ServiceBusQueues
 							new UnsubscribeAction(() =>
 								{
 									_logger.Debug(string.Format("begin delete subscription @ {0}", description));
-									return Task.Factory
-										.FromAsync(nm.BeginDeleteSubscription, nm.EndDeleteSubscription,
-											description.TopicPath, description.Name, null)
-										.ContinueWith(tDeleteSub => 
-											_logger.Debug(string.Format("end delete subscription @ {0}", description)));
+									return _namespaceManager.TryDeleteSubscription(description)
+										.ContinueWith(tDeleteSub =>  _logger.Debug(string.Format("end delete subscription @ {0}", description)));
 								}), 
 							new SubscriberImpl(tMsgR.Result) as Subscriber);
 					});

@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using MassTransit.Util;
+using MassTransit.Transports.ServiceBusQueues.Util;
 
 namespace MassTransit.Transports.ServiceBusQueues.Internal
 {
@@ -11,6 +11,18 @@ namespace MassTransit.Transports.ServiceBusQueues.Internal
 	{
 		class Unit
 		{
+		}
+
+		/// <summary>
+		/// Doesn't cause exceptions of this type to throw
+		/// </summary>
+		/// <typeparam name="TException"></typeparam>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static Task IgnoreExOf<TException>([NotNull] this Task t)
+		{
+			if (t == null) throw new ArgumentNullException("t");
+			return t.ContinueWith(tt => tt.IsFaulted ? new Task(() => { }) : t);
 		}
 
 		public static Task Then(this Task first, Action next)

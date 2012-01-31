@@ -85,6 +85,7 @@
     <Compile Include="ContextSetup.cs" />
     <Compile Include="given_a_broker.cs" />
     <Compile Include="given_a_stomp_bus_with_a_subscriptionservice.cs" />
+    <Compile Include="ServiceBusQueuesAddress_Specs.cs" />
     <Compile Include="When_a_message_is_published.cs" />
     <Compile Include="message_publishing_with_a_subscriptionservice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

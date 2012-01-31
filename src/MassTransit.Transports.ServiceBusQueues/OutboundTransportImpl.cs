@@ -3,14 +3,14 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
-	public class OutboundServiceBusQueuesTransport
+	public class OutboundTransportImpl
 		: IOutboundTransport
 	{
 		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		private readonly IEndpointAddress _address;
 
-		public OutboundServiceBusQueuesTransport(IEndpointAddress address,
-		                                        ConnectionHandler<ConnectionImpl> connectionHandler)
+		public OutboundTransportImpl(IEndpointAddress address,
+		                             ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
 			_connectionHandler = connectionHandler;
 			_address = address;

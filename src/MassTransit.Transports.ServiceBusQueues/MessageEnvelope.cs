@@ -1,5 +1,5 @@
 ﻿using System;
-using MassTransit.Transports.ServiceBusQueues.Utils;
+using MassTransit.Transports.ServiceBusQueues.Util;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {

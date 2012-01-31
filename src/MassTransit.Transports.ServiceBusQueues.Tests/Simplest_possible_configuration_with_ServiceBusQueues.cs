@@ -24,7 +24,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 			using (ServiceBusFactory.New(sbc =>
 				{
 					sbc.ReceiveFrom("sb-queues://owner:sharedKeyTopSecret@myNamespace/my-application");
-					sbc.UseServiceBusQueues();
+					sbc.UseServiceBusQueuesRouting();
 				}))
 			{
 			}
@@ -36,7 +36,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 			using (ServiceBusFactory.New(sbc =>
 			{
 				sbc.ReceiveFrom("owner", "sharedKeyTopSecret", "myNamespace", "my-application");
-				sbc.UseServiceBusQueues();
+				sbc.UseServiceBusQueuesRouting();
 			}))
 			{
 			}

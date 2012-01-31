@@ -14,7 +14,7 @@ Do it like this, man;
 using (ServiceBusFactory.New(sbc =>
 	{
 		sbc.ReceiveFrom("sb-queues://owner:sharedKeyTopSecret@myNamespace/my-application");
-		sbc.UseServiceBusQueues();
+		sbc.UseServiceBusQueuesRouting();
 	}))
 {
 }
@@ -26,7 +26,7 @@ or if this tickles your fancy:
 using (ServiceBusFactory.New(sbc =>
 {
 	sbc.ReceiveFrom("owner", "sharedKeyTopSecret", "myNamespace", "my-application");
-	sbc.UseServiceBusQueues();
+	sbc.UseServiceBusQueuesRouting();
 }))
 {
 }

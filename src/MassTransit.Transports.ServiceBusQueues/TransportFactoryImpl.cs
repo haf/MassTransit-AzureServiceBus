@@ -3,14 +3,18 @@ using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
 using MassTransit.Transports.ServiceBusQueues.Configuration;
+using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class TransportFactoryImpl
 		: ITransportFactory
 	{
+		static readonly ILog _logger = LogManager.GetLogger(typeof (TransportFactoryImpl));
+
 		readonly NamespaceManager _namespaceManager;
 		readonly MessagingFactory _messagingFactory;
 		readonly TokenProvider _tokenProvider;
@@ -24,6 +28,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			_tokenProvider = ConfigFactory.CreateTokenProvider();
 			_messagingFactory = ConfigFactory.CreateMessagingFactory(_tokenProvider);
 			_namespaceManager = ConfigFactory.CreateNamespaceManager(_messagingFactory, _tokenProvider);
+			_logger.Debug("created new transport factory");
 		}
 
 		/// <summary>
@@ -39,33 +44,47 @@ namespace MassTransit.Transports.ServiceBusQueues
 		/// </summary>
 		/// <param name="settings"> The settings. </param>
 		/// <returns> </returns>
-		public IDuplexTransport BuildLoopback(ITransportSettings settings)
+		public IDuplexTransport BuildLoopback([NotNull] ITransportSettings settings)
 		{
+			if (settings == null) 
+				throw new ArgumentNullException("settings");
+
+			_logger.Debug("building loopback");
+
 			return new Transport(settings.Address, () => BuildInbound(settings), () => BuildOutbound(settings));
 		}
 
-		public IInboundTransport BuildInbound(ITransportSettings settings)
+		public virtual IInboundTransport BuildInbound(ITransportSettings settings)
 		{
 			EnsureProtocolIsCorrect(settings.Address.Uri);
+
+			_logger.Debug(string.Format("building inbound transport for address '{0}'", 
+				settings.Address));
 
 			var client = GetConnection(settings.Address);
 			return new InboundTransportImpl(settings.Address, client);
 		}
 
-		public IOutboundTransport BuildOutbound(ITransportSettings settings)
+		public virtual IOutboundTransport BuildOutbound(ITransportSettings settings)
 		{
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
+			_logger.Debug(string.Format("building outbound transport for address '{0}'", 
+				settings.Address));
+
 			var client = GetConnection(settings.Address);
-			return new OutboundServiceBusQueuesTransport(settings.Address, client);
+			return new OutboundTransportImpl(settings.Address, client);
 		}
 
-		public IOutboundTransport BuildError(ITransportSettings settings)
+		public virtual IOutboundTransport BuildError(ITransportSettings settings)
 		{
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
+			_logger.Debug(string.Format("building error transport for address '{0}'",
+				settings.Address));
+
 			var client = GetConnection(settings.Address);
-			return new OutboundServiceBusQueuesTransport(settings.Address, client);
+			return new OutboundTransportImpl(settings.Address, client);
 		}
 
 		/// <summary>
@@ -81,6 +100,8 @@ namespace MassTransit.Transports.ServiceBusQueues
 
 		private ConnectionHandler<ConnectionImpl> GetConnection(IEndpointAddress address)
 		{
+			_logger.Debug(string.Format("get connection( address:'{0}' )", address));
+
 			return _connectionCache.Retrieve(address.Uri, () =>
 				{
 					var connection = new ConnectionImpl(address.Uri, _tokenProvider, _namespaceManager, _messagingFactory);
@@ -90,10 +111,18 @@ namespace MassTransit.Transports.ServiceBusQueues
 				});
 		}
 
-		private void Dispose(bool disposing)
+		public void Dispose()
 		{
-			if (_disposed) return;
-			if (disposing)
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool managed)
+		{
+			if (_disposed) 
+				return;
+
+			if (managed)
 			{
 				_connectionCache.Values.Each(x => x.Dispose());
 				_connectionCache.Clear();
@@ -102,17 +131,6 @@ namespace MassTransit.Transports.ServiceBusQueues
 			}
 
 			_disposed = true;
-		}
-
-		~TransportFactoryImpl()
-		{
-			Dispose(false);
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
 		}
 	}
 }

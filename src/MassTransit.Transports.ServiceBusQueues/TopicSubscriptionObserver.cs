@@ -13,69 +13,74 @@
 
 using System;
 using System.Collections.Generic;
-using System.ServiceModel.Channels;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
-using MassTransit.Util;
-using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
 using MassTransit.Transports.ServiceBusQueues.Management;
-using MassTransit.Transports.ServiceBusQueues.Internal;
+using MassTransit.Transports.ServiceBusQueues.Util;
+using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
+	/// <summary>
+	/// 	Monitors the subscriptions from the local bus and subscribes the topics with topic clients when subscriptions occurr: when they do; create the appropriate topics for them.
+	/// </summary>
 	public class TopicSubscriptionObserver
 		: SubscriptionObserver
 	{
-		readonly TopicClient _client;
-		readonly MessagingFactory _fac;
-		readonly NamespaceManager _nm;
-		readonly ConnectionImpl _connection;
-		readonly Dictionary<Guid, UnsubscribeAction> _bindings;
+		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicSubscriptionObserver));
+
+		readonly ServiceBusQueuesAddress _address;
+		readonly Dictionary<Guid, Topic> _bindings;
 
 		public TopicSubscriptionObserver(
-			TopicClient client,
-			MessagingFactory fac,
-			NamespaceManager nm,
-			ConnectionImpl connection
-			)
+			[NotNull] ServiceBusQueuesAddress address)
 		{
-			_client = client;
-			_fac = fac;
-			_nm = nm;
-			_connection = connection;
+			if (address == null) throw new ArgumentNullException("address");
+			_address = address;
+			_bindings = new Dictionary<Guid, Topic>();
 		}
 
 		public void OnSubscriptionAdded([NotNull] SubscriptionAdded message)
 		{
-			if (message == null) throw new ArgumentNullException("message");
+			if (message == null)
+				throw new ArgumentNullException("message");
 
-			var messageType = Type.GetType(message.MessageName);
-			var messageName = new MessageName(messageType);
+			_logger.Debug(string.Format("subscription added: '{0}'", message));
+
+			var messageName = GetMessageName(message);
 			var topicName = messageName.ToString();
 
-			var t = _nm.TryCreateTopic(_fac, topicName)
-				.Then(topic =>
-				      _client.Subscribe(new TopicImpl(_nm, _fac, topic.Description)));
+			var t = _address.NamespaceManager.TryCreateTopic(_address.MessagingFactory, topicName);
+
 			t.Wait();
 
-			_bindings[message.SubscriptionId] = t.Result.Item1;
-
-			_connection.AddSubscriber(t.Result.Item2);
+			_bindings[message.SubscriptionId] = t.Result;
 		}
 
 		public void OnSubscriptionRemoved(SubscriptionRemoved message)
 		{
+			_logger.Debug(string.Format("subscription removed: '{0}'", message));
+
+			var messageName = GetMessageName(message);
+
 			if (_bindings.ContainsKey(message.SubscriptionId))
 			{
-				_bindings[message.SubscriptionId]();
+				_logger.Debug(string.Format("cannot remove topic {0} because we don't know who consumes off of it",
+				                            messageName));
+
 				_bindings.Remove(message.SubscriptionId);
 			}
 		}
 
+		static MessageName GetMessageName(Subscriptions.Messages.Subscription message)
+		{
+			var messageType = Type.GetType(message.MessageName);
+			var messageName = new MessageName(messageType);
+			return messageName;
+		}
+
 		public void OnComplete()
 		{
-			throw new NotImplementedException();
 		}
 	}
 }

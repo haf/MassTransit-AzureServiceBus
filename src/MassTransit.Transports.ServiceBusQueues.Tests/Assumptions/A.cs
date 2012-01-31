@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using MassTransit.Util;
+using MassTransit.Transports.ServiceBusQueues.Util;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 {

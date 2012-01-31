@@ -13,18 +13,55 @@
 
 using System;
 using System.Threading.Tasks;
+using Magnum.Extensions;
 using Magnum.Policies;
 using MassTransit.Transports.ServiceBusQueues.Internal;
+using MassTransit.Transports.ServiceBusQueues.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using Magnum.Extensions;
 using log4net;
+using SBSubDesc = Microsoft.ServiceBus.Messaging.SubscriptionDescription;
 
 namespace MassTransit.Transports.ServiceBusQueues.Management
 {
-	public static class EndpointManagement
+	/// <summary>
+	/// 	Wrapper over the service bus API that provides a limited amount of retry logic and wraps the APM pattern methods into tasks.
+	/// </summary>
+	public static class NamespaceManagerExtensions
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (EndpointManagement));
+		static readonly ILog _logger = LogManager.GetLogger(typeof (NamespaceManagerExtensions));
+
+		public static Task TryCreateSubscription([NotNull] this NamespaceManager namespaceManager,
+		                                         [NotNull] SubscriptionDescription description)
+		{
+			return Task.Factory
+				.FromAsync<SBSubDesc, SBSubDesc>(
+					namespaceManager.BeginCreateSubscription,
+					namespaceManager.EndCreateSubscription,
+					description.IDareYou, null);
+		}
+
+		public static Task TryDeleteSubscription([NotNull] this NamespaceManager namespaceManager, [NotNull] SubscriptionDescription description)
+		{
+			if (namespaceManager == null)
+				throw new ArgumentNullException("namespaceManager");
+			if (description == null)
+				throw new ArgumentNullException("description");
+
+			var exists = Task.Factory
+				.FromAsync<string, string, bool>(namespaceManager.BeginSubscriptionExists,
+				                                 namespaceManager.EndSubscriptionExists,
+				                                 description.TopicPath, description.Name, null);
+
+			Func<Task> delete =
+				() => Task.Factory
+				      	.FromAsync(namespaceManager.BeginDeleteSubscription,
+				      	           namespaceManager.EndDeleteSubscription,
+				      	           description.TopicPath, description.Name, null)
+						.IgnoreExOf<MessagingEntityNotFoundException>();
+
+			return exists.Then(e => e ? delete() : new Task(() => { }));
+		}
 
 		public static Task TryDeleteTopic(this NamespaceManager nsm, TopicDescription topic)
 		{
@@ -39,31 +76,22 @@ namespace MassTransit.Transports.ServiceBusQueues.Management
 
 			return exists.ContinueWith(tExists =>
 				{
-					try
-					{
-						if (tExists.Result)
-						{
-							_logger.Debug(string.Format("begin delete topic @ {0}", topic.Path));
-							// according to documentation this thing doesn't throw anything??!
-							return Task.Factory.FromAsync(nsm.BeginDeleteTopic, nsm.EndDeleteTopic, topic.Path, null)
-								.ContinueWith(endDelete =>
-									{
-										_logger.Debug(string.Format("end delete topic @ {0}", topic.Path));
-										return endDelete;
-									});
-						}
-					}
-					catch (MessagingEntityNotFoundException)
-					{
-					}
-					return Task.Factory.StartNew(() => { });
+					_logger.Debug(string.Format("begin delete topic @ {0}", topic.Path));
+					// according to documentation this thing doesn't throw anything??!
+					return Task.Factory.FromAsync(nsm.BeginDeleteTopic, nsm.EndDeleteTopic, topic.Path, null)
+						.ContinueWith(endDelete =>
+							{
+								_logger.Debug(string.Format("end delete topic @ {0}", topic.Path));
+								return endDelete;
+							})
+						.IgnoreExOf<MessagingEntityNotFoundException>();
 				});
 		}
 
 		// this one is messed up due to a missing API
 		public static Task<TopicClient> TryCreateTopicClient(this MessagingFactory messagingFactory,
-			NamespaceManager nm,
-			Topic topic)
+		                                                     NamespaceManager nm,
+		                                                     Topic topic)
 		{
 			var timeoutPolicy = ExceptionPolicy
 				.InCaseOf<TimeoutException>()
@@ -126,8 +154,8 @@ namespace MassTransit.Transports.ServiceBusQueues.Management
 
 		/// <returns> the topic description </returns>
 		public static Task<Topic> TryCreateTopic(this NamespaceManager nm,
-			MessagingFactory factory,
-			string topicName)
+		                                         MessagingFactory factory,
+		                                         string topicName)
 		{
 			_logger.Debug(string.Format("begin topic exists @ '{0}'", topicName));
 			var exists = Task.Factory.FromAsync<string, bool>(

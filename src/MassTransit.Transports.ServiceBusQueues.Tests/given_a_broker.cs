@@ -15,7 +15,6 @@ using System;
 using Magnum.Extensions;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.ServiceBusQueues.Configuration;
-using MassTransit.Transports.ServiceBusQueues.Tests.Assumptions;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests
 {
@@ -31,6 +30,13 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 			                   		AccountDetails.Namespace)); // namespace
 
 			ConfigureEndpointFactory(x => x.UseServiceBusQueues());
+		}
+
+		protected override void ConfigureServiceBus(Uri uri, BusConfigurators.ServiceBusConfigurator configurator)
+		{
+			base.ConfigureServiceBus(uri, configurator);
+
+			configurator.UseServiceBusQueuesRouting();
 		}
 	}
 }

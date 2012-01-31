@@ -59,14 +59,16 @@
     <Compile Include="Configuration\AccountDetails.cs" />
     <Compile Include="Configuration\Builders\ServiceBusQueuesTransportFactoryBuilder.cs" />
     <Compile Include="Configuration\ConfigFactory.cs" />
-    <Compile Include="Configuration\ServiceBusQueuesExtensions.cs" />
-    <Compile Include="Configuration\ServiceBusQueuesFactoryConfigurator.cs" />
+    <Compile Include="Configuration\ServiceBusQueuesServiceBusExtensions.cs" />
+    <Compile Include="Configuration\ServiceBusQueuesFactoryConfiguratorImpl.cs" />
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="Internal\TaskEx.cs" />
     <Compile Include="MessageEnvelope.cs" />
     <Compile Include="MessageName.cs" />
-    <Compile Include="OutboundServiceBusQueuesTransport.cs" />
+    <Compile Include="OutboundTransportImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceBusQueuesAddress.cs" />
+    <Compile Include="ServiceBusQueuesAddressImpl.cs" />
     <Compile Include="ServiceBusQueuesClientExtensions.cs" />
     <Compile Include="ConnectionImpl.cs" />
     <Compile Include="Subscription.cs" />
@@ -83,15 +85,14 @@
     <Compile Include="TopicDescriptionImpl.cs" />
     <Compile Include="TopicImpl.cs" />
     <Compile Include="Internal\Helper.cs" />
-    <Compile Include="Utils\JetbrainsCodeAnnotations.cs" />
-    <Compile Include="Management\EndpointManagement.cs" />
+    <Compile Include="Util\JetbrainsCodeAnnotations.cs" />
+    <Compile Include="Management\NamespaceManagerExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Fallover\" />
     <Folder Include="Partition\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
