@@ -1,4 +1,5 @@
 using Magnum.TestFramework;
+using MassTransit.Transports.ServiceBusQueues.Configuration;
 using Microsoft.ServiceBus.Messaging;
 using NUnit.Framework;
 

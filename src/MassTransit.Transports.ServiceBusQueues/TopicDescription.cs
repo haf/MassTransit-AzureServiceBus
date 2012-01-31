@@ -15,6 +15,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 		long MaxSizeInMegabytes { get; }
 		bool RequiresDuplicateDetection { get; }
 		TimeSpan DuplicateDetectionHistoryTimeWindow { get; }
+
 		long SizeInBytes { get; }
 		
 		[NotNull]

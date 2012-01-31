@@ -1,18 +1,16 @@
 using System;
 using System.Threading.Tasks;
-using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Transports.ServiceBusQueues.Management;
-using MassTransit.Transports.ServiceBusQueues.Tests.Assumptions;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.ServiceBusQueues.Tests
+namespace MassTransit.Transports.ServiceBusQueues.Configuration
 {
 	public delegate Task DeleteQueueAction();
 
 	// in general their API should be using interfaces that carry both data and operations
-	static class ConfigFactory
+	public static class ConfigFactory
 	{
 		public static TokenProvider CreateTokenProvider()
 		{
@@ -51,11 +49,6 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 				.ContinueWith(tQ => Tuple.Create<DeleteQueueAction, QueueClient>(
 					() => Task.Factory.FromAsync(nsm.BeginDeleteQueue, nsm.EndDeleteQueue, queueName, null),
 					factory.CreateQueueClient(queueName)), TaskContinuationOptions.AttachedToParent);
-		}
-
-		public static A AMessage()
-		{
-			return new A("Ditten datten", new byte[] {2, 4, 6, 7, byte.MaxValue});
 		}
 	}
 }

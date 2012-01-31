@@ -20,7 +20,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 					LockDuration = 1.Milliseconds(),
 					MaxDeliveryCount = 1
 				};
-			var subscribe = topicClient.Subscribe(subDesc).Result;
+			var subscribe = topicClient.Subscribe(topic, subDesc).Result;
 			unsubscribe = subscribe.Item1;
 			subscriber = subscribe.Item2;
 		}

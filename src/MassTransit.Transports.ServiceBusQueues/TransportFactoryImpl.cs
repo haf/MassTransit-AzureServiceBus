@@ -2,18 +2,28 @@ using System;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
+using MassTransit.Transports.ServiceBusQueues.Configuration;
+using Microsoft.ServiceBus;
+using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class TransportFactoryImpl
 		: ITransportFactory
 	{
+		readonly NamespaceManager _namespaceManager;
+		readonly MessagingFactory _messagingFactory;
+		readonly TokenProvider _tokenProvider;
+
 		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connectionCache;
 		private bool _disposed;
 
 		public TransportFactoryImpl()
 		{
 			_connectionCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>>();
+			_tokenProvider = ConfigFactory.CreateTokenProvider();
+			_messagingFactory = ConfigFactory.CreateMessagingFactory(_tokenProvider);
+			_namespaceManager = ConfigFactory.CreateNamespaceManager(_messagingFactory, _tokenProvider);
 		}
 
 		/// <summary>
@@ -73,7 +83,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 		{
 			return _connectionCache.Retrieve(address.Uri, () =>
 				{
-					var connection = new ConnectionImpl(address.Uri);
+					var connection = new ConnectionImpl(address.Uri, _tokenProvider, _namespaceManager, _messagingFactory);
 					var connectionHandler = new ConnectionHandlerImpl<ConnectionImpl>(connection);
 
 					return connectionHandler;

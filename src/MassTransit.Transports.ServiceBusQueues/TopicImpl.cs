@@ -22,14 +22,14 @@ namespace MassTransit.Transports.ServiceBusQueues
 		public TopicImpl(
 			[NotNull] NamespaceManager namespaceManager, 
 			[NotNull] MessagingFactory messagingFactory,
-			[NotNull] Microsoft.ServiceBus.Messaging.TopicDescription description)
+			[NotNull] TopicDescription description)
 		{
 			if (namespaceManager == null) throw new ArgumentNullException("namespaceManager");
 			if (messagingFactory == null) throw new ArgumentNullException("messagingFactory");
 			if (description == null) throw new ArgumentNullException("description");
 			_namespaceManager = namespaceManager;
 			_messagingFactory = messagingFactory;
-			_description = new TopicDescriptionImpl(description);
+			_description = description;
 			_self = this;
 		}
 
@@ -105,7 +105,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 							EnableBatchedOperations = true,
 							MaxDeliveryCount = prefetch
 						};
-					return topicClient.Subscribe(subDesc, mode, subscriberName)
+					return topicClient.Subscribe(this, subDesc, mode, subscriberName)
 						.Then(tSub => Tuple.Create(topicClient, tSub));
 				});
 		}

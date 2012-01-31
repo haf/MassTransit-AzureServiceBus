@@ -75,7 +75,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Management
 						{
 							// where is the BeginCreateTopicClient??!
 							_logger.Debug(string.Format("create topic client for topic @ '{0}'", topic.Description));
-							var client = new TopicClientImpl(messagingFactory.CreateTopicClient(topic.Description.Path), nm, topic);
+							var client = new TopicClientImpl(messagingFactory, nm);
 							_logger.Debug(string.Format("create topic client done for topic @ '{0}'", topic.Description));
 							return client;
 						});
@@ -146,7 +146,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Management
 						.ContinueWith(tCreate =>
 							{
 								_logger.Debug(string.Format("end create topic @ '{0}'", topicName));
-								return new TopicImpl(nm, factory, tCreate.Result) as Topic;
+								return new TopicImpl(nm, factory, new TopicDescriptionImpl(tCreate.Result)) as Topic;
 							});
 				};
 
@@ -158,7 +158,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Management
 						.ContinueWith(tGet =>
 							{
 								_logger.Debug(string.Format("end get topic @ '{0}'", topicName));
-								return new TopicImpl(nm, factory, tGet.Result) as Topic;
+								return new TopicImpl(nm, factory, new TopicDescriptionImpl(tGet.Result)) as Topic;
 							});
 				};
 

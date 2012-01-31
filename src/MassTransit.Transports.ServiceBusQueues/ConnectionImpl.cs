@@ -12,10 +12,14 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using Magnum.Extensions;
+using MassTransit.Transports.ServiceBusQueues.Configuration;
 using MassTransit.Transports.ServiceBusQueues.Utils;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
+using MassTransit.Transports.ServiceBusQueues.Management;
 
 namespace MassTransit.Transports.ServiceBusQueues
 {
@@ -23,16 +27,28 @@ namespace MassTransit.Transports.ServiceBusQueues
 		Connection
 	{
 		static readonly ILog _log = LogManager.GetLogger(typeof (ConnectionImpl));
-		readonly Uri _serviceUri;
+	
 		bool _disposed;
-		object _someClient;
-		QueueClient _queues;
-		readonly TopicClient _topics;
 
-		public ConnectionImpl([NotNull] Uri serviceUri)
+		readonly Uri _serviceUri;
+		readonly TokenProvider _tokenProvider;
+		readonly NamespaceManager _namespaceManager;
+		readonly MessagingFactory _messagingFactory;
+
+		QueueClient _queues;
+		List<Subscriber> _subscribers = new List<Subscriber>();
+
+		public ConnectionImpl([NotNull] Uri serviceUri, // with ServiceBusEnvironment
+			TokenProvider tokenProvider,
+			NamespaceManager namespaceManager,
+			MessagingFactory messagingFactory)
 		{
 			if (serviceUri == null) throw new ArgumentNullException("serviceUri");
+
 			_serviceUri = serviceUri;
+			_tokenProvider = tokenProvider;
+			_namespaceManager = namespaceManager;
+			_messagingFactory = messagingFactory;
 		}
 
 		public QueueClient Queues
@@ -40,9 +56,17 @@ namespace MassTransit.Transports.ServiceBusQueues
 			get { return _queues; }
 		}
 
-		public TopicClient Topics
+		public IEnumerable<Subscriber> Subscribers
 		{
-			get { return _topics; }
+			get { return _subscribers; }
+		}
+
+		public void AddSubscriber([Util.NotNull] Subscriber subscriber)
+		{
+			if (subscriber == null) 
+				throw new ArgumentNullException("subscriber");
+
+			_subscribers.Add(subscriber);
 		}
 
 		public void Dispose()
@@ -75,7 +99,10 @@ namespace MassTransit.Transports.ServiceBusQueues
 		{
 			Disconnect();
 
-			var serverAddress = new UriBuilder("ws", _serviceUri.Host, _serviceUri.Port).Uri;
+			// hackety
+			var serverAddress = new UriBuilder("sb-queues", _serviceUri.Host, _serviceUri.Port).Uri;
+			var upQueue = ConfigFactory.SetUpQueue(serverAddress.PathAndQuery);
+			_queues = upQueue.Result.Item2;
 
 			_log.Info("Connecting {0}".FormatWith(_serviceUri));
 		}
@@ -84,9 +111,11 @@ namespace MassTransit.Transports.ServiceBusQueues
 		{
 			try
 			{
-				if (_someClient != null)
+				if (_queues != null)
 				{
 					_log.Info("Disconnecting {0}".FormatWith(_serviceUri));
+
+					_subscribers.Clear();
 
 					//if (_stompClient.IsConnected)
 					//    _stompClient.Disconnect();

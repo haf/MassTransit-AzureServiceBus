@@ -11,44 +11,45 @@ namespace MassTransit.Transports.ServiceBusQueues
 {
 	public delegate Task UnsubscribeAction();
 
+	// handles subscribers
 	public class TopicClientImpl : TopicClient
 	{
 		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicClientImpl));
 		
-		readonly Microsoft.ServiceBus.Messaging.TopicClient _inner;
+		readonly MessagingFactory _messagingFactory;
 		readonly NamespaceManager _namespaceManager;
-		readonly Topic _topic;
 		bool _isDisposed;
+		Func<string, Microsoft.ServiceBus.Messaging.TopicClient> _clientFac;
 
-		public TopicClientImpl([NotNull] Microsoft.ServiceBus.Messaging.TopicClient inner,
-		                       [NotNull] NamespaceManager namespaceManager, 
-		                       [NotNull] Topic topic)
+		public TopicClientImpl(
+			[NotNull] MessagingFactory messagingFactory,
+			[NotNull] NamespaceManager namespaceManager)
 		{
-			if (inner == null) throw new ArgumentNullException("inner");
+			if (messagingFactory == null) throw new ArgumentNullException("messagingFactory");
 			if (namespaceManager == null) throw new ArgumentNullException("namespaceManager");
-			if (topic == null) throw new ArgumentNullException("topic");
 
-			_inner = inner;
+			_messagingFactory = messagingFactory;
 			_namespaceManager = namespaceManager;
-			_topic = topic;
-
-			_logger.Debug(string.Format("created @ '{0}'", _topic.Description.Path));
+			_clientFac = path => _messagingFactory.CreateTopicClient(path);
 		}
 
-		public Task Send(BrokeredMessage msg)
+		public Task Send(BrokeredMessage msg, Topic topic)
 		{
 			_logger.Debug("being send");
-			return Task.Factory.FromAsync(_inner.BeginSend, _inner.EndSend, msg, null)
+			// todo: client has Close method... but not dispose.
+			var client = _clientFac(topic.Description.Path);
+			return Task.Factory.FromAsync(client.BeginSend, client.EndSend, msg, null)
 				.ContinueWith(tSend => _logger.Debug("end send"));
 		}
 
-		public Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe(
+		public Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe([NotNull] Topic topic,
 			SubscriptionDescription description,
 			ReceiveMode mode,
 			string subscriberName)
 		{
-			var mf = _inner.MessagingFactory;
-			description = description ?? new SubscriptionDescriptionImpl(_topic.Description.Path, subscriberName ?? Helper.GenerateRandomName());
+			if (topic == null) throw new ArgumentNullException("topic");
+
+			description = description ?? new SubscriptionDescriptionImpl(topic.Description.Path, subscriberName);
 			
 			// Missing: no mf.BeginCreateSubscriptionClient?
 			_logger.Debug(string.Format("being create subscription @ {0}", description));
@@ -60,7 +61,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 				//.Then(tSbSubDesc => Task.Factory.FromAsync<string, ReceiveMode, MessageReceiver>(
 				//    mf.BeginCreateMessageReceiver, mf.EndCreateMessageReceiver,
 				//    description.TopicPath, mode, /* state */ _namespaceManager))
-				.ContinueWith(tSubDesc => mf.CreateSubscriptionClient(description.TopicPath, description.Name, mode))
+				.ContinueWith(tSubDesc => _messagingFactory.CreateSubscriptionClient(description.TopicPath, description.Name, mode))
 				.ContinueWith(tMsgR =>
 					{
 						_logger.Debug(string.Format("end create message receiver @ {0}", description));
@@ -93,9 +94,6 @@ namespace MassTransit.Transports.ServiceBusQueues
 
 			if (_isDisposed)
 				throw new ObjectDisposedException("TopicClientImpl", "cannot dispose twice");
-			
-			if (!_inner.IsClosed)
-				_inner.Close();
 
 			_isDisposed = true;
 		}

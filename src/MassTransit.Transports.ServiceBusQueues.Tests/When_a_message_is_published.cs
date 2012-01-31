@@ -15,6 +15,7 @@ using System;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.BusConfigurators;
+using MassTransit.Pipeline.Inspectors;
 using MassTransit.TestFramework;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests
@@ -38,6 +39,11 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 		[When]
 		public void A_message_is_published()
 		{
+			Console.WriteLine("Inbound");
+			PipelineViewer.Trace(LocalBus.InboundPipeline);
+			Console.WriteLine("Outbound");
+			PipelineViewer.Trace(LocalBus.OutboundPipeline);
+
 			LocalBus.Publish(new A
 				{
 					StringA = "ValueA",

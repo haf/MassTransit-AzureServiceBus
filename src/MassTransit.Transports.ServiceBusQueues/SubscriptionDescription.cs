@@ -13,6 +13,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Util;
 
 namespace MassTransit.Transports.ServiceBusQueues
@@ -45,11 +46,16 @@ namespace MassTransit.Transports.ServiceBusQueues
 	{
 		readonly SBSubDesc _subscriptionDescription;
 
-		public SubscriptionDescriptionImpl([NotNull] string topicPath, [NotNull] string subscriptionName)
+		/// <summary>
+		/// Create a new subscription description instance with a required
+		/// topic path and optional name.
+		/// </summary>
+		public SubscriptionDescriptionImpl([NotNull] string topicPath, 
+			string subscriptionName = null)
 		{
 			if (topicPath == null) throw new ArgumentNullException("topicPath");
-			if (subscriptionName == null) throw new ArgumentNullException("subscriptionName");
-			_subscriptionDescription = new SBSubDesc(topicPath, subscriptionName);
+			_subscriptionDescription = new SBSubDesc(topicPath,
+				subscriptionName ?? Helper.GenerateRandomName());
 		}
 
 		public bool IsReadOnly

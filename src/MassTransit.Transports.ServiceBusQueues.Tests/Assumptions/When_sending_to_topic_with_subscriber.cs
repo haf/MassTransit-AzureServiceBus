@@ -18,7 +18,9 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		protected override void BeforeSend(BrokeredMessage msg)
 		{
 			_logger.Debug("[BeforeSend] subscribing new client");
-			var awaitSub = topicClient.Subscribe(new SubscriptionDescriptionImpl(topic.Description.Path, "Peter Svensson listens to the Radio".Replace(" ", "-"))
+			var awaitSub = topicClient.Subscribe(
+				topic,
+				new SubscriptionDescriptionImpl(topic.Description.Path, "Peter Svensson listens to the Radio".Replace(" ", "-"))
 				{
 					EnableBatchedOperations = true,
 					LockDuration = 10.Seconds()

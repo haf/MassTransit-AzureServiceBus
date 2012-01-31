@@ -121,10 +121,10 @@ a dedicated Rabbit MQ HA cluster:
 
 It could be possible to create a mechanism for switching to an alternate transport mechanism if the one in use fails. Perhaps failover to ZeroMQ transport if SBQS fails?
 
-This transport will rate-limit on the persistency/quorum of service bus itself; i.e. when a message is considered safe - ZMQ wouldn't write to disk, but rather send the message asynchronously directly, so for example, given messages { 1,2,3,4,5 }, this transport could send { 1, receive ACK 1, 2 receive ACK 2, 3, receive ACK 3, ... } or optionally, { 1, 2, receive ACK 1, 3, 4, 5, receive ACK 2, receive ACK 3, ... }. ZeroMQ would do { 1, 2, 3, 4, 5 } and we'd never know from a sending app whether they arrived. It would be up to the producer to persist its current ACKed message for service bus and the ZMQ transport SHOULD have a PUSH/PULL socket that ferries the ACKs around.
+This transport will rate-limit on the persistency/quorum of service bus itself; i.e. when a message is considered safe - ZMQ wouldn't write to disk, but rather send the message asynchronously directly, so for example, given messages { 1,2,3,4,5 }, this transport could send { 1, receive ACK 1, 2 receive ACK 2, 3, receive ACK 3, ... } or optionally, { 1, 2, receive ACK 1, 3, 4, 5, receive ACK 2, receive ACK 3, ... }. ZeroMQ would do { 1, 2, 3, 4, 5 } and we'd never know from a sending app whether they arrived. It would be up to the producer to persist its current ACKed message for service bus and the ZMQ transport SHOULD have a PUSH/PULL socket that returns with an ACKs with the message id.
 
 ## Thoughts on sending medium/large messages
 
  * Forum topic [BrokeredMessage 256KB limit](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/b804b71e-831d-43b6-a38c-847d01034471)
-
+ * 
 

@@ -56,7 +56,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\AccountDetails.cs" />
     <Compile Include="Configuration\Builders\ServiceBusQueuesTransportFactoryBuilder.cs" />
+    <Compile Include="Configuration\ConfigFactory.cs" />
     <Compile Include="Configuration\ServiceBusQueuesExtensions.cs" />
     <Compile Include="Configuration\ServiceBusQueuesFactoryConfigurator.cs" />
     <Compile Include="InboundTransportImpl.cs" />
@@ -68,7 +70,7 @@
     <Compile Include="ServiceBusQueuesClientExtensions.cs" />
     <Compile Include="ConnectionImpl.cs" />
     <Compile Include="Subscription.cs" />
-    <Compile Include="TopicBinder.cs" />
+    <Compile Include="TopicSubscriptionObserver.cs" />
     <Compile Include="TransportFactoryImpl.cs" />
     <Compile Include="Subscriber.cs" />
     <Compile Include="SubscriberImpl.cs" />

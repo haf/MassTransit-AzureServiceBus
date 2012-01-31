@@ -5,10 +5,12 @@ using log4net;
 namespace MassTransit.Transports.ServiceBusQueues
 {
 	public class Subscription 
-		: ConnectionBinding<ConnectionImpl>, IDisposable
+		: ConnectionBinding<ConnectionImpl>
 	{
 		private static readonly ILog Log = LogManager.GetLogger(typeof (Subscription));
 		private readonly IEndpointAddress _address;
+
+		UnsubscribeAction _unsubscribe;
 
 		public Subscription(IEndpointAddress address)
 		{
@@ -21,7 +23,12 @@ namespace MassTransit.Transports.ServiceBusQueues
 			if (Log.IsInfoEnabled)
 				Log.Warn("Subscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
 
-			//connection.Queues.Subscribe(_address.Uri.PathAndQuery);
+			//var tupleTask = connection.Topics.Subscribe( 
+				
+			//    new SubscriptionDescriptionImpl(_address.Uri.PathAndQuery));
+			//tupleTask.Wait();
+
+			//_unsubscribe = tupleTask.Result.Item1;
 
 			//it's better to configure the message broker to persist messages until a new client connects
 			//connection.StompClient.WaitForSubscriptionConformation(_address.Uri.PathAndQuery);
@@ -32,17 +39,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 			if (Log.IsInfoEnabled)
 				Log.Warn("Unsubscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
 
-			//connection.StompClient.Unsubscribe(_address.Uri.PathAndQuery);
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool isManaged)
-		{
+			_unsubscribe().Wait();
 		}
 	}
 }

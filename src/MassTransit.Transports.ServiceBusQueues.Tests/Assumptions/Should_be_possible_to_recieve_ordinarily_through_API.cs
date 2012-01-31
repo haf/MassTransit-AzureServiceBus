@@ -1,5 +1,6 @@
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.Transports.ServiceBusQueues.Configuration;
 using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Transports.ServiceBusQueues.Management;
 using Microsoft.ServiceBus.Messaging;
@@ -27,7 +28,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		{
 			var client = topic.CreateClient(ReceiveMode.PeekLock, autoSubscribe: false).Result;
 			client.ShouldNotBeNull();
-			var subscriber = client.Item1.Subscribe().Result;
+			var subscriber = client.Item1.Subscribe(topic).Result;
 			subscriber.ShouldNotBeNull();
 			subscriber.Item2.Receive(20.Milliseconds()).Result.ShouldBeNull();
 		}

@@ -1,5 +1,6 @@
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.Transports.ServiceBusQueues.Configuration;
 using MassTransit.Transports.ServiceBusQueues.Internal;
 using MassTransit.Transports.ServiceBusQueues.Management;
 using Microsoft.ServiceBus;
@@ -24,7 +25,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		public void a_drained_topic_and_a_message()
 		{
 			BasicConfigurator.Configure();
-			message = ConfigFactory.AMessage();
+			message = MyFactory.AMessage();
 
 			var mf = ConfigFactory.CreateMessagingFactory();
 			nm = ConfigFactory.CreateNamespaceManager(mf);
@@ -60,7 +61,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 			var msg = new BrokeredMessage(message);
 			BeforeSend(msg);
 			_logger.Debug("[SetUp] sending test message");
-			topicClient.Send(msg).Wait();
+			topicClient.Send(msg, topic).Wait();
 		}
 
 		protected virtual void BeforeSend(BrokeredMessage msg)

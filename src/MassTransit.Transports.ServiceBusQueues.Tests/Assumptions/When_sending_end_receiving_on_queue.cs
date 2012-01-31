@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.Transports.ServiceBusQueues.Configuration;
 using Microsoft.ServiceBus.Messaging;
 using NUnit.Framework;
 
@@ -48,7 +49,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests.Assumptions
 		[SetUp]
 		public void when_I_place_a_message_in_the_queue()
 		{
-			message = ConfigFactory.AMessage();
+			message = MyFactory.AMessage();
 			var setup = ConfigFactory.SetUpQueue("test-queue");
 			setup.Wait();
 			t = setup.Result;
