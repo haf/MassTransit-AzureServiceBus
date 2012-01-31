@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MassTransitQueues.CqrsEngine.Events;
+using MassTransit.AzureWorker.Events;
 
-namespace MassTransitQueues.CqrsEngine
+namespace MassTransit.AzureWorker
 {
 	public sealed class CqrsEngineHost : IDisposable
 	{

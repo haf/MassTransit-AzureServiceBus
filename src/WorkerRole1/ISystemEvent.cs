@@ -1,4 +1,4 @@
-namespace MassTransitQueues.CqrsEngine
+namespace MassTransit.AzureWorker
 {
 	/// <summary>
 	/// 	System event representing something that happened within the infrastructure

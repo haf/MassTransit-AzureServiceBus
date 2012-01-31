@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MassTransitQueues.CqrsEngine
+namespace MassTransit.AzureWorker
 {
 	/// <summary>
 	/// 	Generic process interface, that is registered in the container and managed by the Engine. It is used internally by the infrastructure.

@@ -1,10 +1,7 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/CodeInspection/CodeAnnotations/DefaultNamespace/@EntryValue">MassTransit.Transports.ServiceBusQueues.Utils</s:String>
-	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EAzureServiceBus_002EUtil/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EServiceBusQueues_002EUtil/@EntryIndexedValue">False</s:Boolean>
-	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EServiceBusQueues_002EUtil/@EntryIndexRemoved">True</s:Boolean>
-	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EServiceBusQueues_002EUtils/@EntryIndexedValue">False</s:Boolean>
-	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EServiceBusQueues_002EUtils/@EntryIndexRemoved">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EServiceBusQueues_002EUtil/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EServiceBusQueues_002EUtils/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/EXPLICIT_INTERNAL_MODIFIER/@EntryValue">False</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/EXPLICIT_PRIVATE_MODIFIER/@EntryValue">False</s:Boolean>
 	<s:String x:Key="/Default/CodeStyle/FileHeader/FileHeaderText/@EntryValue">Copyright 2011 Henrik Feldt&#xD;

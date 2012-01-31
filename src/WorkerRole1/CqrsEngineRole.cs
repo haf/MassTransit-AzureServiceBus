@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
-namespace MassTransitQueues.CqrsEngine
+namespace MassTransit.AzureWorker
 {
 	public abstract class CqrsEngineRole : RoleEntryPoint
 	{

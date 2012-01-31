@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MassTransitQueues.CqrsEngine.Events
+namespace MassTransit.AzureWorker.Events
 {
 	[Serializable]
 	public sealed class EngineStarted : ISystemEvent

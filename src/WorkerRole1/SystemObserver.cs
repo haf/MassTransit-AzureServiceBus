@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace MassTransitQueues.CqrsEngine
+namespace MassTransit.AzureWorker
 {
 	public static class SystemObserver
 	{

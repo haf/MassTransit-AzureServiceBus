@@ -14,9 +14,9 @@ Do it like this, man;
 using (ServiceBusFactory.New(sbc =>
 	{
 		sbc.ReceiveFrom(
-			"sb-queues://owner:bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=@myNamespace/my-application"
+			"azure-sb://owner:bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=@myNamespace/my-application"
 			);
-		sbc.UseServiceBusQueuesRouting();
+		sbc.UseAzureServiceBusRouting();
 	}))
 {
 }
@@ -29,7 +29,7 @@ using (ServiceBusFactory.New(sbc =>
 {
 	sbc.ReceiveFromComponents("owner", "bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=", 
 							  "myNamespace", "my-application");
-	sbc.UseServiceBusQueuesRouting();
+	sbc.UseAzureServiceBusRouting();
 }))
 {
 }
@@ -40,7 +40,7 @@ using (ServiceBusFactory.New(sbc =>
 In order to compile the tests, you have to have a class called `AccountDetails` similar to this:
 
 ```
-namespace MassTransit.Transports.ServiceBusQueues.Configuration
+namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
 	// WARNING: note: DO NOT RENAME this file, or you'll commit the account details
 
@@ -72,7 +72,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Configuration
 }
 ```
 
-Place this file in `src\MassTransit.Transports.ServiceBusQueues\Configuration`.
+Place this file in `src\MassTransit.Transports.AzureServiceBus\Configuration`.
 
 # Spec
 Aims:
