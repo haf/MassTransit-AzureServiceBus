@@ -66,6 +66,7 @@ namespace MassTransit.Transports.ServiceBusQueues
 						else
 						{
 							receive(context);
+							message.Complete();
 						}
 					}
 				});

@@ -18,10 +18,10 @@ using MassTransit.Transports.ServiceBusQueues.Configuration;
 
 namespace MassTransit.Transports.ServiceBusQueues.Tests
 {
-	public abstract class given_a_broker
+	public abstract class given_a_bus
 		: LocalTestFixture<TransportFactoryImpl>
 	{
-		protected given_a_broker()
+		protected given_a_bus()
 		{
 			LocalUri = new Uri("sb-queues://{0}:{1}@{2}/test-client"
 			                   	.FormatWith(

@@ -168,5 +168,6 @@ This transport will rate-limit on the persistency/quorum of service bus itself; 
 ## Thoughts on sending medium/large messages
 
  * Forum topic [BrokeredMessage 256KB limit](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/b804b71e-831d-43b6-a38c-847d01034471)
- * 
+
+The way of sending large messages (over 256K) is to upload it to Azure Blob Storage.
 

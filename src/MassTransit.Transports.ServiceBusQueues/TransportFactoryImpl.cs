@@ -2,10 +2,7 @@ using System;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
-using MassTransit.Transports.ServiceBusQueues.Configuration;
 using MassTransit.Util;
-using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
 using log4net;
 
 namespace MassTransit.Transports.ServiceBusQueues
@@ -14,10 +11,6 @@ namespace MassTransit.Transports.ServiceBusQueues
 		: ITransportFactory
 	{
 		static readonly ILog _logger = LogManager.GetLogger(typeof (TransportFactoryImpl));
-
-		readonly NamespaceManager _namespaceManager;
-		readonly MessagingFactory _messagingFactory;
-		readonly TokenProvider _tokenProvider;
 
 		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connectionCache;
 		private readonly ReaderWriterLockedDictionary<Uri, ServiceBusQueuesEndpointAddress> _addresses; 

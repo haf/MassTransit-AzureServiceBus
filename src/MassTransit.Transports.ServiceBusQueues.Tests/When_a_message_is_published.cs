@@ -22,7 +22,7 @@ namespace MassTransit.Transports.ServiceBusQueues.Tests
 {
 	[Scenario]
 	public class When_a_message_is_published
-		: given_a_broker
+		: given_a_bus
 	{
 		private Future<A> _received;
 
