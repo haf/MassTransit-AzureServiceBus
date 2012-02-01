@@ -92,7 +92,7 @@
     <Compile Include="given_a_bus.cs" />
     <Compile Include="Cat_eating_rat_spec.cs" />
     <Compile Include="AzureServiceBusAddress_Specs.cs" />
-    <Compile Include="given_two_buses.cs" />
+    <Compile Include="given_a_rat_hole_and_a_cat.cs" />
     <Compile Include="When_a_message_is_published.cs" />
     <Compile Include="message_publishing_with_a_subscriptionservice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

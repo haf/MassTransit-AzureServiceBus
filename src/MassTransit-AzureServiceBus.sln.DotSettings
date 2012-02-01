@@ -4,7 +4,7 @@
 	<s:Boolean x:Key="/Default/CodeInspection/CodeAnnotations/NamespacesWithAnnotations/=MassTransit_002ETransports_002EServiceBusQueues_002EUtils/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/EXPLICIT_INTERNAL_MODIFIER/@EntryValue">False</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/EXPLICIT_PRIVATE_MODIFIER/@EntryValue">False</s:Boolean>
-	<s:String x:Key="/Default/CodeStyle/FileHeader/FileHeaderText/@EntryValue">Copyright 2011 Henrik Feldt&#xD;
+	<s:String x:Key="/Default/CodeStyle/FileHeader/FileHeaderText/@EntryValue">Copyright 2012 Henrik Feldt&#xD;
  &#xD;
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use &#xD;
 this file except in compliance with the License. You may obtain a copy of the &#xD;
