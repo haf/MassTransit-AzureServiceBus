@@ -29,7 +29,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	
 		bool _disposed;
 
-		MessageReceiver _inboundQueue;
+		QueueClient _queue;
 
 		readonly List<Subscriber> _subscribers = new List<Subscriber>();
 		
@@ -41,9 +41,9 @@ namespace MassTransit.Transports.AzureServiceBus
 			_logger.Debug(string.Format("created connection impl for address ('{0}')", endpointAddress));
 		}
 
-		public MessageReceiver InboundQueue
+		public QueueClient Queue
 		{
-			get { return _inboundQueue; }
+			get { return _queue; }
 		}
 
 		public IEnumerable<Subscriber> Subscribers
@@ -85,7 +85,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			var queueClient = _endpointAddress.CreateQueueClient();
 			queueClient.Wait();
 
-			_inboundQueue = queueClient.Result;
+			_queue = queueClient.Result;
 
 			_logger.Info("Connecting {0}".FormatWith(_endpointAddress));
 		}
@@ -94,7 +94,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			try
 			{
-				if (_inboundQueue != null)
+				if (_queue != null)
 				{
 					_logger.Info("Disconnecting {0}".FormatWith(_endpointAddress));
 

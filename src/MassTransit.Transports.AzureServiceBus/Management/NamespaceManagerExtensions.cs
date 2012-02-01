@@ -109,17 +109,19 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 				});
 		}
 
-		public static Task<MessageReceiver> TryCreateQueueClient(
+		public static Task<QueueClient> TryCreateQueueClient(
 			[NotNull] this MessagingFactory mf, 
 			[NotNull] QueueDescription description)
 		{
 			if (mf == null) throw new ArgumentNullException("mf");
 			if (description == null) throw new ArgumentNullException("description");
 
-			return Task.Factory.FromAsync<string, MessageReceiver>(
-				mf.BeginCreateMessageReceiver,
-				mf.EndCreateMessageReceiver,
-				description.Path, null);
+			//return Task.Factory.FromAsync<string, MessageReceiver>(
+			//    mf.BeginCreateMessageReceiver,
+			//    mf.EndCreateMessageReceiver,
+			//    description.Path, null);
+			// where's the BeginCreateQueueClient??!
+			return Task.Factory.StartNew(() => mf.CreateQueueClient(description.Path));
 		}
 
 		public static Task<QueueDescription> TryCreateQueue(this NamespaceManager nsm, string queueName)

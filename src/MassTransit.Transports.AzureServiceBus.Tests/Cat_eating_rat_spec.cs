@@ -12,30 +12,35 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
+using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	public class Cat_eating_rat_spec
 		: given_two_buses
 	{
-		ConsumerOf<Rat> TheCatIs;
-
+		ConsumerOf<Rat> the_cat_is;
+		Future<Rat> cat_having_dinner;
+			
 		[When]
 		public void sending_to_remote_bus()
 		{
-			TheCatIs = new ConsumerOf<Rat>(large_rat_actually =>
+			cat_having_dinner = new Future<Rat>();
+			the_cat_is = new ConsumerOf<Rat>(a_large_rat_actually =>
 				{
 					Console.WriteLine("Miaooo!!!");
-					Console.WriteLine(large_rat_actually.Sound + "!!!");
+					Console.WriteLine(a_large_rat_actually.Sound + "!!!");
 					Console.WriteLine("Cat: chase! ...");
 					Console.WriteLine("*silence*");
 					Console.WriteLine("Cat: *Crunch chrunch*");
+					cat_having_dinner.Complete(a_large_rat_actually);
 				});
 
-			RemoteBus.SubscribeInstance(TheCatIs);
+			RemoteBus.SubscribeInstance(the_cat_is);
 			
 			RemoteBus.ShouldHaveSubscriptionFor<Rat>();
 			LocalBus.ShouldHaveSubscriptionFor<Rat>();
@@ -47,7 +52,9 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[Then]
 		public void the_rat_got_eaten()
 		{
-			TheCatIs.ReceivedMessageCount.ShouldBeEqualTo(1);
+			cat_having_dinner
+				.WaitUntilCompleted(8.Seconds())
+				.ShouldBeTrue();
 		}
 	}
 

@@ -80,7 +80,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			var address = _addresses.Retrieve(settings.Address.Uri, () => AzureServiceBusEndpointAddressImpl.Parse(settings.Address.Uri));
 			var client = GetConnection(address);
-			return new OutboundTransportImpl(settings.Address, client);
+			return new OutboundTransportImpl(address, client);
 		}
 
 		/// <summary>

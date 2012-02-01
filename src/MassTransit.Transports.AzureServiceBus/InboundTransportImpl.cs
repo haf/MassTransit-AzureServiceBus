@@ -43,7 +43,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				{
 					BrokeredMessage message;
 					/* timeout: before any message transmission start */
-					if ((message = connection.InboundQueue.Receive(50.Milliseconds())) == null
+					if ((message = connection.Queue.Receive(50.Milliseconds())) == null
 						)//|| ((message = connection.Subscribers.)) == null)
 					{
 						Thread.Sleep(10);

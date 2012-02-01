@@ -16,6 +16,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		MessagingFactory MessagingFactory { get; }
 		NamespaceManager NamespaceManager { get; }
 
-		Task<MessageReceiver> CreateQueueClient();
+		Task<QueueClient> CreateQueueClient();
 	}
 }

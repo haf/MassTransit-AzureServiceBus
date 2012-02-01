@@ -10,9 +10,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		static readonly ILog _logger = LogManager.GetLogger(typeof (OutboundTransportImpl));
 		
 		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
-		private readonly IEndpointAddress _address;
+		private readonly AzureServiceBusEndpointAddress _address;
 
-		public OutboundTransportImpl(IEndpointAddress address,
+		public OutboundTransportImpl(AzureServiceBusEndpointAddress address,
 		                             ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
 			_connectionHandler = connectionHandler;
@@ -37,8 +37,15 @@ namespace MassTransit.Transports.AzureServiceBus
 						{
 							context.SerializeTo(body);
 							var bm = new BrokeredMessage(new MessageEnvelope(body.ToArray()));
-							//connection.Subscribers.Send(bm);
-							// TODO: fix sending, probably we have the correct address in the c'tor.
+							//bm.ContentType = context.ContentType;
+							
+							if (!string.IsNullOrWhiteSpace(context.CorrelationId))
+								bm.CorrelationId = context.CorrelationId;
+							
+							if (!string.IsNullOrWhiteSpace(context.MessageId))
+								bm.MessageId = context.MessageId;
+
+							connection.Queue.Send(bm); // sync?
 						}
 					});
 		}

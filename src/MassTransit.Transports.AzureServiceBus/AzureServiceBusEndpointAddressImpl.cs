@@ -69,7 +69,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _data; }
 		}
 
-		public Task<MessageReceiver> CreateQueueClient()
+		public Task<QueueClient> CreateQueueClient()
 		{
 			return _nm.TryCreateQueue(_data.Application).Then(qdesc => _mf.TryCreateQueueClient(qdesc));
 		}
