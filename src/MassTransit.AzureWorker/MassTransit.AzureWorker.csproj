@@ -65,6 +65,12 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus\MassTransit.Transports.AzureServiceBus.csproj">
+      <Project>{0E9F5DB7-3FA0-444F-BF82-74947525AE62}</Project>
+      <Name>MassTransit.Transports.AzureServiceBus</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

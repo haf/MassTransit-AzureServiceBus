@@ -14,7 +14,6 @@
 using System;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
-using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
@@ -55,15 +54,5 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	public interface Rat
 	{
 		string Sound { get; set; }
-	}
-
-	public abstract class given_two_buses
-		: TwoBusTestFixture<TransportFactoryImpl>
-	{
-		protected given_two_buses()
-		{
-			LocalUri = new Uri(string.Format("azure-sb://owner:{0}@{1}/local_bus", AccountDetails.Key, AccountDetails.Namespace));
-			RemoteUri = new Uri(string.Format("azure-sb://owner:{0}@{1}/remote_bus", AccountDetails.Key, AccountDetails.Namespace));
-		}
 	}
 }

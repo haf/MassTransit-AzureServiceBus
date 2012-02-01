@@ -13,7 +13,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class AzureServiceBusEndpointAddressImpl 
 		: AzureServiceBusEndpointAddress
 	{
-		class Data
+		internal class Data
 		{
 			public string UsernameIssuer { get; set; }
 			public string PasswordSharedSecret { get; set; }
@@ -21,6 +21,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			public string Application { get; set; }
 		}
 
+		readonly Uri _rebuiltUri;
 		readonly Data _data;
 		readonly TokenProvider _tp;
 		readonly MessagingFactory _mf;
@@ -40,21 +41,32 @@ namespace MassTransit.Transports.AzureServiceBus
 			_mf = MessagingFactory.Create(sbUri, _tp);
 
 			_nm = new NamespaceManager(sbUri, _tp);
+
+			_rebuiltUri = new Uri(string.Format("azure-sb://{0}/{1}", data.Namespace, data.Application));
 		}
-		
+
+		[NotNull]
 		public TokenProvider TokenProvider
 		{
 			get { return _tp; }
 		}
 
+		[NotNull]
 		public MessagingFactory MessagingFactory
 		{
 			get { return _mf; }
 		}
 
+		[NotNull]
 		public NamespaceManager NamespaceManager
 		{
 			get { return _nm; }
+		}
+
+		[NotNull]
+		internal Data Details
+		{
+			get { return _data; }
 		}
 
 		public Task<MessageReceiver> CreateQueueClient()
@@ -64,7 +76,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public Uri Uri
 		{
-			get { return _nm.Address; }
+			get { return _rebuiltUri; }
 		}
 
 		bool IEndpointAddress.IsLocal
@@ -150,7 +162,7 @@ namespace MassTransit.Transports.AzureServiceBus
 					Namespace = uri.Host.Contains(".") 
 									? uri.Host.Substring(0, uri.Host.IndexOf('.')) 
 									: uri.Host,
-					Application = uri.AbsolutePath
+					Application = uri.AbsolutePath.TrimStart('/')
 				};
 
 			results = null;

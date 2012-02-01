@@ -24,7 +24,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	[Scenario]
 	public class AzureServiceBusAddress_Specs
 	{
-		AzureServiceBusEndpointAddressImpl _endpoint;
+		AzureServiceBusEndpointAddressImpl _address;
 		Uri uri;
 
 		[When]
@@ -32,41 +32,79 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		{
 			uri = new Uri(string.Format("azure-sb://owner:{0}@{1}/my-application",
 				AccountDetails.Key, AccountDetails.Namespace));
-			_endpoint = AzureServiceBusEndpointAddressImpl.Parse(uri);
+			_address = AzureServiceBusEndpointAddressImpl.Parse(uri);
 		}
 
 		[Then]
 		public void messaging_factory_should_not_be_null()
 		{
-			_endpoint.MessagingFactory.ShouldNotBeNull();
+			_address.MessagingFactory.ShouldNotBeNull();
 		}
 
 		[Then]
 		public void token_provider_should_not_be_null()
 		{
-			_endpoint.TokenProvider.ShouldNotBeNull();
+			_address.TokenProvider.ShouldNotBeNull();
 		}
 
 		[Then]
 		public void namespace_manager_should_not_be_null()
 		{
-			_endpoint.NamespaceManager.ShouldNotBeNull();
+			_address.NamespaceManager.ShouldNotBeNull();
+		}
+
+		[Then]
+		public void details_should_have_correct_app_name()
+		{
+			_address.Details.Application
+				.ShouldEqual("my-application");
+		}
+
+		[Then]
+		public void details_should_have_correct_namespace()
+		{
+			_address.Details.Namespace
+				.ShouldBeEqualTo(AccountDetails.Namespace);
+		}
+
+		[Then]
+		public void details_should_have_correct_shared_secret()
+		{
+			_address.Details.PasswordSharedSecret
+				.ShouldEqual(AccountDetails.Key);
+		}
+
+		[Then]
+		public void details_should_have_correct_issuer()
+		{
+			_address.Details.UsernameIssuer
+				.ShouldEqual(AccountDetails.IssuerName);
+		}
+
+		[Then]
+		public void rebuilt_uri_should_be_correct()
+		{
+			var uriWithoutCreds = new Uri(string.Format("azure-sb://{0}/{1}", 
+				AccountDetails.Namespace, "my-application"));
+
+			_address.Uri
+				.ShouldEqual(uriWithoutCreds);
 		}
 
 		[Finally]
 		public void dispose_it()
 		{
-			_endpoint.Dispose();
+			_address.Dispose();
 		}
 	}
 
 	[Scenario]
 	public class When_giving_full_hostname_spec
 	{
-		AzureServiceBusEndpointAddressImpl _endpointExtended;
+		AzureServiceBusEndpointAddressImpl _addressExtended;
 		Uri _extended;
 		Uri _normal;
-		AzureServiceBusEndpointAddressImpl _endpoint;
+		AzureServiceBusEndpointAddressImpl _address;
 
 		[When]
 		public void a_servicebusqueues_address_is_given()
@@ -75,8 +113,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			_extended = GetUri(extraHost);
 			_normal = GetUri("");
 
-			_endpointExtended = AzureServiceBusEndpointAddressImpl.Parse(_extended);
-			_endpoint = AzureServiceBusEndpointAddressImpl.Parse(_normal);
+			_addressExtended = AzureServiceBusEndpointAddressImpl.Parse(_extended);
+			_address = AzureServiceBusEndpointAddressImpl.Parse(_normal);
 		}
 
 		Uri GetUri(string extraHost)
@@ -94,14 +132,14 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			new UriBuilder(ext.Scheme, ext.Host, ext.Port, ext.AbsolutePath)
 				.Uri
-				.ShouldEqual(_endpoint.NamespaceManager.Address);
+				.ShouldEqual(_address.NamespaceManager.Address);
 		}
 
 		[Then]
 		public void the_two_endpoints_namespace_manager_endpoints_equal()
 		{
-			_endpoint.NamespaceManager.Address
-				.ShouldEqual(_endpointExtended.NamespaceManager.Address);
+			_address.NamespaceManager.Address
+				.ShouldEqual(_addressExtended.NamespaceManager.Address);
 		}
 	}
 

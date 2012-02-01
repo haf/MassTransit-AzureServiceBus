@@ -33,35 +33,41 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Magnum">
-      <HintPath>..\lib\Magnum.dll</HintPath>
+    <Reference Include="Magnum, Version=2.0.0.4, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
     </Reference>
     <Reference Include="Magnum.TestFramework">
       <HintPath>..\lib\Tests\Magnum.TestFramework.dll</HintPath>
     </Reference>
-    <Reference Include="MassTransit">
-      <HintPath>..\lib\MassTransit.dll</HintPath>
+    <Reference Include="MassTransit, Version=2.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MassTransit.2.0.7.0\lib\net40\MassTransit.dll</HintPath>
     </Reference>
-    <Reference Include="MassTransit.TestFramework">
-      <HintPath>..\lib\Tests\MassTransit.TestFramework.dll</HintPath>
+    <Reference Include="MassTransit.TestFramework, Version=2.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MassTransit.TestFramework.2.0.7.0\lib\net40\MassTransit.TestFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="MassTransit.Transports.MSMQ">
+      <HintPath>..\packages\MassTransit.2.0.7.0\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=1.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.ServiceBus.1.6.0.0\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.5.9.10348\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="nunit.mocks, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.5.9.10348\lib\nunit.mocks.dll</HintPath>
     </Reference>
     <Reference Include="pnunit.framework, Version=1.0.4000.25744, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.5.9.10348\lib\pnunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Rhino.Mocks">
+      <HintPath>..\packages\RhinoMocks.3.6\lib\Rhino.Mocks.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -86,6 +92,7 @@
     <Compile Include="given_a_bus.cs" />
     <Compile Include="Cat_eating_rat_spec.cs" />
     <Compile Include="AzureServiceBusAddress_Specs.cs" />
+    <Compile Include="given_two_buses.cs" />
     <Compile Include="When_a_message_is_published.cs" />
     <Compile Include="message_publishing_with_a_subscriptionservice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -10,7 +10,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		private static readonly ILog Log = LogManager.GetLogger(typeof (Subscription));
 		private readonly IEndpointAddress _address;
 
-		UnsubscribeAction _unsubscribe;
+		//UnsubscribeAction _unsubscribe;
 
 		public Subscription(IEndpointAddress address)
 		{
@@ -39,7 +39,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (Log.IsInfoEnabled)
 				Log.Warn("Unsubscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
 
-			_unsubscribe().Wait();
+			//_unsubscribe().Wait();
 		}
 	}
 }
