@@ -64,9 +64,9 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		// well behaved cats wear napkins
 		void cat_prepares_with_napkin()
 		{
-			RemoteBus.SubscribeInstance(the_cat_is);
-			RemoteBus.ShouldHaveSubscriptionFor<Rat>();
-			LocalBus.ShouldHaveSubscriptionFor<Rat>();
+			Cat.SubscribeInstance(the_cat_is);
+			Cat.ShouldHaveSubscriptionFor<Rat>();
+			RatHole.ShouldHaveSubscriptionFor<Rat>();
 		}
 
 		[Then]
