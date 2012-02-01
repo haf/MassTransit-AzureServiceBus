@@ -88,6 +88,7 @@
     <Compile Include="Assumptions\When_sending_to_topic_with_subscriber.cs" />
     <Compile Include="Assumptions\When_sending_to_topic_with_subscriber_and_tiny_lock_span.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_drain.cs" />
+    <Compile Include="Cat_eating_rats_spec.cs" />
     <Compile Include="ContextSetup.cs" />
     <Compile Include="given_a_bus.cs" />
     <Compile Include="Cat_eating_rat_spec.cs" />

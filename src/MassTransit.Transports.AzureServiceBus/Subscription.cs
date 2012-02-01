@@ -21,7 +21,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		public void Bind(ConnectionImpl connection)
 		{
 			if (Log.IsInfoEnabled)
-				Log.Warn("Subscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
+				Log.Info("Subscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
 
 			//var tupleTask = connection.Topics.Subscribe( 
 				
@@ -37,7 +37,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		public void Unbind(ConnectionImpl connection)
 		{
 			if (Log.IsInfoEnabled)
-				Log.Warn("Unsubscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
+				Log.Info("Unsubscribing to {0}".FormatWith(_address.Uri.PathAndQuery));
 
 			//_unsubscribe().Wait();
 		}

@@ -20,6 +20,9 @@ using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
+	/// <summary>
+	/// Since we don't have an obvious connection 
+	/// </summary>
 	public class ConnectionImpl :
 		Connection
 	{
@@ -35,7 +38,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		
 		public ConnectionImpl([NotNull] AzureServiceBusEndpointAddress endpointAddress)
 		{
-			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
+			if (endpointAddress == null) 
+				throw new ArgumentNullException("endpointAddress");
+
 			_endpointAddress = endpointAddress;
 
 			_logger.Debug(string.Format("created connection impl for address ('{0}')", endpointAddress));
@@ -97,6 +102,8 @@ namespace MassTransit.Transports.AzureServiceBus
 				if (_queue != null)
 				{
 					_logger.Info("Disconnecting {0}".FormatWith(_endpointAddress));
+					
+					_queue.Close(); // use Task? Why?
 
 					_subscribers.Clear();
 				}

@@ -15,6 +15,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
@@ -33,9 +34,12 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		Action<string> cat_sounds = Console.WriteLine,
 					   rat_sounds = Console.WriteLine;
 
+		Guid dinner_id;
+
 		ConsumerOf<Rat> the_cat_is;
 		Future<Rat> cat_having_dinner;
-			
+		MassTransit.UnsubscribeAction take_nap;
+
 		[When]
 		public void a_rat_is_sent_to_a_hungry_cat()
 		{
@@ -53,18 +57,22 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			cat_prepares_with_napkin();
 
 			var cat = find_hungry_cat();
-			cat.Send<Rat>(new { Sound = "mzmmzzzzz" });
+			cat.Send<Rat>(new
+				{
+					Sound = "Eeeek",
+					CorrelationId = CombGuid.Generate()
+				});
 		}
 
 		IEndpoint find_hungry_cat()
 		{
-			return LocalBus.GetEndpoint(new Uri(string.Format("azure-sb://{0}/hungry_cat", AccountDetails.Namespace)));
+			return LocalBus.GetEndpoint(RemoteUri);
 		}
 
 		// well behaved cats wear napkins
 		void cat_prepares_with_napkin()
 		{
-			Cat.SubscribeInstance(the_cat_is);
+			take_nap = Cat.SubscribeInstance(the_cat_is);
 			Cat.ShouldHaveSubscriptionFor<Rat>();
 			RatHole.ShouldHaveSubscriptionFor<Rat>();
 		}
@@ -75,10 +83,21 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			cat_having_dinner
 				.WaitUntilCompleted(8.Seconds())
 				.ShouldBeTrue();
+
+			cat_having_dinner.Value
+				.CorrelationId
+				.ShouldEqual(dinner_id);
+		}
+
+		[Finally]
+		public void the_cat_naps()
+		{
+			if (take_nap != null)
+				take_nap();
 		}
 	}
 
-	public interface Rat
+	public interface Rat : CorrelatedBy<Guid>
 	{
 		string Sound { get; }
 	}
