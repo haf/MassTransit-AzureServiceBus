@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
 using MassTransit.Transports.AzureServiceBus.Management;
@@ -40,7 +41,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			_bindings = new Dictionary<Guid, Topic>();
 		}
 
-		public void OnSubscriptionAdded([NotNull] SubscriptionAdded message)
+		public void OnSubscriptionAdded(SubscriptionAdded message)
 		{
 			if (message == null)
 				throw new ArgumentNullException("message");
@@ -51,7 +52,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			var topicName = messageName.ToString();
 
 			var t = _address.NamespaceManager.TryCreateTopic(_address.MessagingFactory, topicName);
-
 			t.Wait();
 
 			_bindings[message.SubscriptionId] = t.Result;

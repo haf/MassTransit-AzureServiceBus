@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>1.6</ProductVersion>
-    <ProjectGuid>{a6a10cd7-9a4e-4175-a6d4-fca07437cc0e}</ProjectGuid>
+    <ProjectGuid>{04363cbc-d947-4173-8079-40af92c0d3f3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MassTransitQueues</RootNamespace>
-    <AssemblyName>MassTransitQueues</AssemblyName>
+    <RootNamespace>MassTransit.AzurePerformance.Sender</RootNamespace>
+    <AssemblyName>MassTransit.AzurePerformance.Sender</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
-    <Name>AzureDeployment</Name>
+    <Name>MassTransit.AzurePerformance</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,14 +37,28 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MassTransit.AzureWorker\MassTransit.AzureWorker.csproj">
-      <Name>MassTransit.AzureWorker</Name>
-      <Project>{6fe0f903-2620-4f19-9988-be051c385b2d}</Project>
+    <ProjectReference Include="..\MassTransit.AzurePerformance.Receiver\MassTransit.AzurePerformance.Receiver.csproj">
+      <Name>MassTransit.AzurePerformance.Receiver</Name>
+      <Project>{44179e8b-8f83-4dba-8e36-04929fc2d206}</Project>
       <Private>True</Private>
       <RoleType>Worker</RoleType>
-      <RoleName>MassTransit.AzureWorker</RoleName>
+      <RoleName>MassTransit.AzurePerformance.Receiver</RoleName>
       <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
     </ProjectReference>
+    <ProjectReference Include="..\MassTransit.AzurePerformance.Sender\MassTransit.AzurePerformance.Sender.csproj">
+      <Name>MassTransit.AzurePerformance.Sender</Name>
+      <Project>{0d432674-793c-43e8-8bf5-0d471d79e488}</Project>
+      <Private>True</Private>
+      <RoleType>Worker</RoleType>
+      <RoleName>MassTransit.AzurePerformance.Sender</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Profiles" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublishProfile Include="Profiles\SwedenHackProduction.azurePubxml" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>

@@ -63,7 +63,6 @@ namespace MassTransit.Transports.AzureServiceBus
 				.ContinueWith(tMsgR =>
 					{
 						_logger.Debug(string.Format("end create message receiver @ {0}", description));
-						var nm = _namespaceManager;
 						return Tuple.Create(
 							new UnsubscribeAction(() =>
 								{

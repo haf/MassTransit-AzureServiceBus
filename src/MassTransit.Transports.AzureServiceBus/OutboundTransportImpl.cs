@@ -1,9 +1,14 @@
+using System;
 using System.IO;
+using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
+	/// <summary>
+	/// Outbound transport targeting the azure service bus.
+	/// </summary>
 	public class OutboundTransportImpl
 		: IOutboundTransport
 	{
@@ -21,15 +26,18 @@ namespace MassTransit.Transports.AzureServiceBus
 			_logger.Debug(string.Format("created outbound transport for address '{0}'", address));
 		}
 
+		/// <summary>
+		/// Gets the endpoint address this transport sends to.
+		/// </summary>
 		public IEndpointAddress Address
 		{
 			get { return _address; }
 		}
 
+		// service bus best practices for performance:
+		// http://msdn.microsoft.com/en-us/library/windowsazure/hh528527.aspx
 		public void Send(ISendContext context)
 		{
-			_logger.Debug(string.Format("outbound ('{0}') sending {1}", _address, context));
-
 			_connectionHandler
 				.Use(connection =>
 					{
@@ -44,8 +52,22 @@ namespace MassTransit.Transports.AzureServiceBus
 							
 							if (!string.IsNullOrWhiteSpace(context.MessageId))
 								bm.MessageId = context.MessageId;
+							
+							if (SpecialLoggers.Messages.IsDebugEnabled)
+								SpecialLoggers.Messages.Debug(string.Format("SEND-begin:{0}:{1}:{2}",
+									_address, bm.Label, bm.MessageId));
 
-							connection.Queue.Send(bm); // sync?
+							connection.Queue.BeginSend(bm, ar =>
+								{
+									var q = ar.AsyncState as Tuple<QueueClient, BrokeredMessage>;
+									var msg = q.Item2;
+
+									if (SpecialLoggers.Messages.IsDebugEnabled)
+										SpecialLoggers.Messages.Debug(string.Format("SEND-end:{0}:{1}:{2}",
+											_address, msg.Label, msg.MessageId));
+
+									q.Item1.EndSend(ar); // might blow up
+								}, Tuple.Create(connection.Queue, bm));
 						}
 					});
 		}

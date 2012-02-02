@@ -14,34 +14,53 @@
 using System;
 using System.Collections.Generic;
 using Magnum.Extensions;
+using MassTransit.Exceptions;
+using MassTransit.Transports.AzureServiceBus.Internal;
+using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
-	/// <summary>
-	/// Since we don't have an obvious connection 
-	/// </summary>
-	public class ConnectionImpl :
-		Connection
+	/// <summary>Connection to Azure Service Bus message broker.</summary>
+	public class ConnectionImpl 
+		: Connection
 	{
 		readonly AzureServiceBusEndpointAddress _endpointAddress;
+		readonly int _prefetchCount;
+		readonly MessagingFactory _messagingFactory;
 
 		static readonly ILog _logger = LogManager.GetLogger(typeof (ConnectionImpl));
 	
 		bool _disposed;
-
 		QueueClient _queue;
 
 		readonly List<Subscriber> _subscribers = new List<Subscriber>();
 		
-		public ConnectionImpl([NotNull] AzureServiceBusEndpointAddress endpointAddress)
+		public ConnectionImpl(
+			[NotNull] AzureServiceBusEndpointAddress endpointAddress,
+			[NotNull] TokenProvider tokenProvider,
+			int prefetchCount = 100) // todo: configuration setting
 		{
-			if (endpointAddress == null) 
-				throw new ArgumentNullException("endpointAddress");
+			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
+			if (tokenProvider == null) throw new ArgumentNullException("tokenProvider");
 
 			_endpointAddress = endpointAddress;
+			_prefetchCount = prefetchCount;
+
+			var mfs = new MessagingFactorySettings
+				{
+					TokenProvider = tokenProvider,
+					NetMessagingTransportSettings =
+						{
+							// todo: configuration setting
+							BatchFlushInterval = 50.Milliseconds()
+						}
+				};
+
+			_messagingFactory = MessagingFactory.Create(_endpointAddress.NamespaceManager.Address, mfs);
 
 			_logger.Debug(string.Format("created connection impl for address ('{0}')", endpointAddress));
 		}
@@ -75,6 +94,8 @@ namespace MassTransit.Transports.AzureServiceBus
 			try
 			{
 				Disconnect();
+
+				_messagingFactory.Close();
 			}
 			finally
 			{
@@ -86,13 +107,16 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			Disconnect();
 
-			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
-			var queueClient = _endpointAddress.CreateQueueClient();
-			queueClient.Wait();
-
-			_queue = queueClient.Result;
-
 			_logger.Info("Connecting {0}".FormatWith(_endpointAddress));
+
+			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
+			_queue = _endpointAddress
+						.CreateQueue()
+						.Then(qdesc => _messagingFactory.TryCreateQueueClient(qdesc, _prefetchCount))
+						.Result;
+			
+			if (_queue == null) throw new TransportException(_endpointAddress.Uri, "The create queue client task returned null.");
+
 		}
 
 		public void Disconnect()

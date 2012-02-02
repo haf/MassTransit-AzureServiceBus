@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using Magnum.Extensions;
 using MassTransit.Context;
@@ -12,13 +14,12 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class InboundTransportImpl
 		: IInboundTransport
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (InboundTransportImpl));
-
 		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		private readonly AzureServiceBusEndpointAddress _address;
 
 		private bool _disposed;
 		private Subscription _subsciption;
+		static readonly ILog _logger = SpecialLoggers.Messages;
 
 		public InboundTransportImpl(
 			[Util.NotNull] AzureServiceBusEndpointAddress address, 
@@ -57,19 +58,49 @@ namespace MassTransit.Transports.AzureServiceBus
 						context.SetInputAddress(Address);
 						context.SetCorrelationId(message.CorrelationId);
 
+						if (_logger.IsDebugEnabled)
+							TraceMessage(context);
+
 						var receive = callback(context);
 						if (receive == null)
 						{
-							if (SpecialLoggers.Messages.IsInfoEnabled)
-								SpecialLoggers.Messages.InfoFormat("SKIP:{0}:{1}", Address, context.MessageId);
+							if (_logger.IsInfoEnabled)
+								_logger.InfoFormat("SKIP:{0}:{1}", Address, context.MessageId);
+							
+							return;
 						}
-						else
+
+						if (_logger.IsDebugEnabled)
+							_logger.DebugFormat("RECV:{0}:{1}:{2}", _address, message.Label, message.MessageId);
+
+						receive(context);
+						
+						try
 						{
-							receive(context);
 							message.Complete();
+						}
+						catch (MessageLockLostException ex)
+						{
+							if (_logger.IsErrorEnabled)
+								_logger.Error("Message Lock Lost on message Complete()", ex);
+						}
+						catch (MessagingException ex)
+						{
+							if (_logger.IsErrorEnabled)
+								_logger.Error("Generic MessagingException thrown", ex);
 						}
 					}
 				});
+		}
+
+		static void TraceMessage(ReceiveContext context)
+		{
+			using (var ms = new MemoryStream())
+			{
+				context.CopyBodyTo(ms);
+				var msg = Encoding.UTF8.GetString(ms.ToArray());
+				_logger.Debug(string.Format("{0} body:\n {1}", DateTime.UtcNow, msg));
+			}
 		}
 
 		private void AddConsumerBinding()

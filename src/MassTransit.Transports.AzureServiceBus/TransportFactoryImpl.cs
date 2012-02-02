@@ -13,7 +13,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		static readonly ILog _logger = LogManager.GetLogger(typeof (TransportFactoryImpl));
 
 		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connectionCache;
-		private readonly ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress> _addresses; 
+		private readonly ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress> _addresses;
 		private bool _disposed;
 
 		public TransportFactoryImpl()
@@ -100,7 +100,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			return _connectionCache.Retrieve(address.Uri, () =>
 				{
-					var connection = new ConnectionImpl(address);
+					var connection = new ConnectionImpl(address, address.TokenProvider);
 					var connectionHandler = new ConnectionHandlerImpl<ConnectionImpl>(connection);
 
 					return connectionHandler;
@@ -123,6 +123,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				_connectionCache.Values.Each(x => x.Dispose());
 				_connectionCache.Clear();
 				_connectionCache.Dispose();
+
 				_addresses.Values.Each(x => x.Dispose());
 				_addresses.Clear();
 				_addresses.Dispose();

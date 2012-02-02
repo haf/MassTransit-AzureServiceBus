@@ -12,10 +12,26 @@ namespace MassTransit.Transports.AzureServiceBus
 	public interface AzureServiceBusEndpointAddress 
 		: IEndpointAddress, IDisposable
 	{
-		//TokenProvider TokenProvider { get; }
+		/// <summary>
+		/// Gets the token provider for this address.
+		/// </summary>
+		TokenProvider TokenProvider { get; }
+
+		/// <summary>
+		/// Gets a per-transport messaging factory.
+		/// Warning: Don't use from connection! (http://msdn.microsoft.com/en-us/library/windowsazure/hh528527.aspx)
+		/// </summary>
 		MessagingFactory MessagingFactory { get; }
+		
+		/// <summary>
+		/// Gets the namespace manager in use for this transport/bus.
+		/// </summary>
 		NamespaceManager NamespaceManager { get; }
 
-		Task<QueueClient> CreateQueueClient();
+		/// <summary>
+		/// Creates a new queue.
+		/// </summary>
+		/// <returns></returns>
+		Task<QueueDescription> CreateQueue();
 	}
 }

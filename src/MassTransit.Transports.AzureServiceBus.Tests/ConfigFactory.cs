@@ -1,11 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.AzureServiceBus.Configuration
+namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	public delegate Task DeleteQueueAction();
 

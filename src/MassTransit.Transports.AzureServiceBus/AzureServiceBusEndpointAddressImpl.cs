@@ -42,7 +42,10 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			_nm = new NamespaceManager(sbUri, _tp);
 
-			_rebuiltUri = new Uri(string.Format("azure-sb://{0}/{1}", data.Namespace, data.Application));
+			_rebuiltUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}", 
+				data.UsernameIssuer,
+				data.PasswordSharedSecret,
+				data.Namespace, data.Application));
 		}
 
 		[NotNull]
@@ -69,11 +72,14 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _data; }
 		}
 
-		public Task<QueueClient> CreateQueueClient()
+		public Task<QueueDescription> CreateQueue()
 		{
-			return _nm.TryCreateQueue(_data.Application).Then(qdesc => _mf.TryCreateQueueClient(qdesc));
+			return _nm.TryCreateQueue(_data.Application);
 		}
 
+		/// <summary>
+		/// This uri is MT-schemed, not AzureSB-schemed
+		/// </summary>
 		public Uri Uri
 		{
 			get { return _rebuiltUri; }
@@ -97,7 +103,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public override string ToString()
 		{
-			return string.Format("{0}{1}", _nm.Address, _data.Application);
+			return _rebuiltUri.ToString();
 		}
 
 		public static AzureServiceBusEndpointAddressImpl Parse([NotNull] Uri uri)

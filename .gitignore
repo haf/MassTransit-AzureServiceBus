@@ -6,3 +6,5 @@ obj/
 packages/
 AccountDetails.cs
 csx/
+Profiles/
+ServiceConfiguration.Cloud.cscfg

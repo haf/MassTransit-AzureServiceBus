@@ -94,7 +94,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 		{
 			var timeoutPolicy = ExceptionPolicy
 				.InCaseOf<TimeoutException>()
-				.CircuitBreak(50.Milliseconds(), 10);
+				.CircuitBreak(50.Milliseconds(), 5);
 
 			return Task.Factory.StartNew<TopicClient>(() =>
 				{
@@ -111,7 +111,8 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 
 		public static Task<QueueClient> TryCreateQueueClient(
 			[NotNull] this MessagingFactory mf, 
-			[NotNull] QueueDescription description)
+			[NotNull] QueueDescription description,
+			int prefetchCount)
 		{
 			if (mf == null) throw new ArgumentNullException("mf");
 			if (description == null) throw new ArgumentNullException("description");
@@ -121,7 +122,12 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 			//    mf.EndCreateMessageReceiver,
 			//    description.Path, null);
 			// where's the BeginCreateQueueClient??!
-			return Task.Factory.StartNew(() => mf.CreateQueueClient(description.Path));
+			return Task.Factory.StartNew(() =>
+				{
+					var qc = mf.CreateQueueClient(description.Path);
+					qc.PrefetchCount = prefetchCount;
+					return qc;
+				});
 		}
 
 		public static Task<QueueDescription> TryCreateQueue(this NamespaceManager nsm, string queueName)

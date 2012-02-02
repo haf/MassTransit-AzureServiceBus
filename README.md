@@ -80,7 +80,7 @@ Place this file in `src\MassTransit.Transports.AzureServiceBus\Configuration`.
 Aims:
 
  * Sub-Pub over message types
- * `GetEndpoint(...).Send<T>(this ..., T msg)`.
+ * `GetEndpoint(...).Send<T>(this ..., T msg)`. [Done]
 
 # Technical notes
 

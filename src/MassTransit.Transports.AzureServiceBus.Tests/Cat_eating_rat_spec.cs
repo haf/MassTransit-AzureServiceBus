@@ -43,6 +43,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[When]
 		public void a_rat_is_sent_to_a_hungry_cat()
 		{
+			dinner_id = CombGuid.Generate();
 			cat_having_dinner = new Future<Rat>();
 			the_cat_is = new ConsumerOf<Rat>(a_large_rat_actually =>
 				{
@@ -60,7 +61,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			cat.Send<Rat>(new
 				{
 					Sound = "Eeeek",
-					CorrelationId = CombGuid.Generate()
+					CorrelationId = dinner_id
 				});
 		}
 
