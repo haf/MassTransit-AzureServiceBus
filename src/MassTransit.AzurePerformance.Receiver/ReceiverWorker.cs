@@ -76,7 +76,7 @@ namespace MassTransit.AzurePerformance.Receiver
 									Received = currentReceived,
 									Ticks = watch.ElapsedTicks,
 									Failures = localFailures ?? failures,
-
+									SampleMessage = payment,
 									/* assume all prev 100 msgs same size */
 									//Size = consumeContext.BaseContext.BodyStream.Length * 100 
 								};
@@ -90,6 +90,9 @@ namespace MassTransit.AzurePerformance.Receiver
 				PipelineViewer.Trace(sb.InboundPipeline);
 
 				stopping.WaitOne();
+
+				sb.GetEndpoint(new Uri(string.Format("azure-sb://owner:{0}@{1}/sender", AccountDetails.Key, AccountDetails.Namespace)))
+					.Send<ZoomDone>(new{});
 			}
 
 			Trace.WriteLine(
@@ -107,11 +110,19 @@ of which:
 metrics:
 	Message per second:		{4}
 	Total bytes transferred:{5}
+	All samples' data equal:{6}
 ",
  received-rampUp, watch.Elapsed, failures,
  sampleSize-failures,
  1000d * sampleSize / (double)watch.ElapsedMilliseconds,
- datapoints.Sum(dp => dp.Size)));
+ datapoints.Sum(dp => dp.Size),
+ datapoints.Select(x => x.SampleMessage).All(x => x.Payload.Equals(TestData.PayloadMessage, StringComparison.InvariantCulture))));
+
+			while (true)
+			{
+				Trace.WriteLine("Idling... aka. softar.", "Information");
+				Thread.Sleep(10000);
+			}
 		}
 
 		class DataPoint
@@ -121,6 +132,8 @@ metrics:
 			public long Ticks { get; set; }
 			/// <summary>Size since last data point</summary>
 			public long Size { get; set; }
+
+			public ZoomZoom SampleMessage { get; set; }
 
 			public override string ToString() {
 				return "DP={{Rec:{0},Fail:{1},Ticks:{2}}}".FormatWith(Received, Failures, Ticks);

@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using Magnum.Extensions;
+using Magnum.Threading;
 using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
@@ -12,10 +16,17 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class OutboundTransportImpl
 		: IOutboundTransport
 	{
+		const int MaxOutstanding = 100;
+
 		static readonly ILog _logger = LogManager.GetLogger(typeof (OutboundTransportImpl));
-		
-		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
-		private readonly AzureServiceBusEndpointAddress _address;
+
+		int _messagesInFlight;
+
+		readonly ReaderWriterLockedObject<Queue<BrokeredMessage>> _retryMsgs
+			= new ReaderWriterLockedObject<Queue<BrokeredMessage>>(new Queue<BrokeredMessage>(MaxOutstanding));
+
+		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
+		readonly AzureServiceBusEndpointAddress _address;
 
 		public OutboundTransportImpl(AzureServiceBusEndpointAddress address,
 		                             ConnectionHandler<ConnectionImpl> connectionHandler)
@@ -57,19 +68,65 @@ namespace MassTransit.Transports.AzureServiceBus
 								SpecialLoggers.Messages.Debug(string.Format("SEND-begin:{0}:{1}:{2}",
 									_address, bm.Label, bm.MessageId));
 
-							connection.Queue.BeginSend(bm, ar =>
-								{
-									var q = ar.AsyncState as Tuple<QueueClient, BrokeredMessage>;
-									var msg = q.Item2;
-
-									if (SpecialLoggers.Messages.IsDebugEnabled)
-										SpecialLoggers.Messages.Debug(string.Format("SEND-end:{0}:{1}:{2}",
-											_address, msg.Label, msg.MessageId));
-
-									q.Item1.EndSend(ar); // might blow up
-								}, Tuple.Create(connection.Queue, bm));
+							TrySendMessage(connection, bm);
 						}
 					});
+		}
+
+		void TrySendMessage(ConnectionImpl connection, BrokeredMessage bm)
+		{
+			// don't have too many outstanding at same time
+			SpinWait.SpinUntil(() => _messagesInFlight < MaxOutstanding);
+			
+			Interlocked.Increment(ref _messagesInFlight);
+
+			connection.Queue.BeginSend(bm, ar =>
+				{
+					var tuple = ar.AsyncState as Tuple<QueueClient, BrokeredMessage>;
+					var msg = tuple.Item2;
+					var queueClient = tuple.Item1;
+
+					if (SpecialLoggers.Messages.IsDebugEnabled)
+						SpecialLoggers.Messages.Debug(string.Format("SEND-end:{0}:{1}:{2}",
+						                                            _address, msg.Label, msg.MessageId));
+
+					try
+					{
+						// if the queue is deleted in the middle of things here, then I can't recover
+						// at the moment; I have to extend the connection handler with an asynchronous
+						// API to let it re-initialize the queue and hence maybe even the full transport...
+						// MessagingEntityNotFoundException.
+						queueClient.EndSend(ar);
+						Interlocked.Decrement(ref _messagesInFlight);
+					}
+					catch (ServerBusyException serverBusyException)
+					{
+						if (SpecialLoggers.Messages.IsWarnEnabled)
+							SpecialLoggers.Messages.Warn(string.Format("SEND-too-busy:{0}:{1}:{2}",
+							                                           _address, msg.Label, msg.MessageId), serverBusyException);
+						
+						RetryLoop(connection, bm);
+					}
+				}, Tuple.Create(connection.Queue, bm));
+		}
+
+		// call only if first time gotten server busy exception
+		private void RetryLoop(ConnectionImpl connection, BrokeredMessage bm)
+		{
+			// exception tells me to wait 10 seconds before retrying.
+			Thread.Sleep(10.Seconds());
+
+			// push all pending retries onto the sending operation
+			_retryMsgs.WriteLock(queue =>
+				{
+					queue.Enqueue(bm);
+
+					if (SpecialLoggers.Messages.IsInfoEnabled)
+						SpecialLoggers.Messages.Info(string.Format("SEND-retry:{0}. Queue count: {1}", _address, queue.Count));
+
+					while (queue.Count > 0)
+						TrySendMessage(connection, queue.Dequeue());
+				});
 		}
 
 		public void Dispose()

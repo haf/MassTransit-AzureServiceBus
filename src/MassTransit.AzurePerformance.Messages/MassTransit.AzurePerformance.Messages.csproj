@@ -42,6 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestData.cs" />
+    <Compile Include="ZoomDone.cs" />
     <Compile Include="ZoomZoom.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

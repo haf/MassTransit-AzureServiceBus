@@ -19,7 +19,6 @@ using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Configuration;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests

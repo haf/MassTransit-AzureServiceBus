@@ -50,7 +50,7 @@ namespace MassTransit.Transports.AzureServiceBus
 						Thread.Sleep(10);
 						return;
 					}
-
+					
 					using (var body = new MemoryStream(message.GetBody<MessageEnvelope>().ActualBody, false))
 					{
 						var context = ReceiveContext.FromBodyStream(body);
