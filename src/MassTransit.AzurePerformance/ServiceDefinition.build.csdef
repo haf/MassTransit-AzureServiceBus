@@ -16,6 +16,7 @@
     <ConfigurationSettings>
       <Setting name="RampUpCount" />
       <Setting name="SampleSize" />
+      <Setting name="WaitForNumberOfSenders" />
     </ConfigurationSettings>
   </WorkerRole>
   <WorkerRole name="MassTransit.AzurePerformance.Sender" vmsize="Small">

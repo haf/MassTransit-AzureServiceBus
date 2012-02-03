@@ -21,22 +21,26 @@ namespace MassTransit.AzurePerformance.Sender
 			BasicConfigurator.Configure();
 			Trace.WriteLine("Sender entry point called", "Information");
 			RoleEnvironment.Stopping += (sender, args) => _isStopping = true;
+			var id = RoleEnvironment.CurrentRoleInstance.Id;
+			var myUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}",
+			                                  AccountDetails.IssuerName,
+			                                  AccountDetails.Key,
+			                                  AccountDetails.Namespace,
+			                                  "sender" + id.Substring(id.IndexOf("IN_", StringComparison.InvariantCulture) + 3)
+			                    	));
 
+			var startSignal = new ManualResetEventSlim(false);
 			using (var sb = ServiceBusFactory.New(sbc =>
 				{
-					sbc.ReceiveFromComponents(
-						AccountDetails.IssuerName,
-						AccountDetails.Key,
-						AccountDetails.Namespace,
-						"sender"
-						);
+					sbc.ReceiveFrom(myUri);
 
 					sbc.UseAzureServiceBusRouting();
 
-					sbc.Subscribe(s => s.Handler<ZoomDone>(zd =>
+					sbc.Subscribe(s =>
 						{
-							_isStopping = true;
-						}));
+							s.Handler<ZoomDone>(zd => { _isStopping = true; });
+							s.Handler<ReadySetGo>(go => startSignal.Set());
+						});
 				}))
 			{
 				var receiver = sb.GetEndpoint(new Uri(string.Format("azure-sb://{0}:{1}@{2}/receiver", 
@@ -44,9 +48,14 @@ namespace MassTransit.AzurePerformance.Sender
 						AccountDetails.Key,
 						AccountDetails.Namespace)));
 
+				receiver.Send<SenderUp>(new { Source = myUri });
+
+				startSignal.Wait();
+
 				var count = 0;
 				var watch = Stopwatch.StartNew();
-				while (!_isStopping)
+				// it sends about 3 x stopcount in the time receiver has to get them
+				while (!_isStopping && count != 2500)
 				{
 					var msg = new ZoomImpl { Id = CombGuid.Generate() };
 					receiver.Send<ZoomZoom>(msg);
@@ -74,7 +83,7 @@ namespace MassTransit.AzurePerformance.Sender
 
 			public string Payload
 			{
-				get { return TestData.PayloadMessage; }
+				get { return TestData.SmallPayloadMessage; }
 			}
 
 			public bool Equals(ZoomImpl other)

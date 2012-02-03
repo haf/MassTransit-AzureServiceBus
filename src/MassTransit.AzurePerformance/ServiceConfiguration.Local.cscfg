@@ -6,10 +6,11 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
 		<Setting name="RampUpCount" value="50"/>
 		<Setting name="SampleSize" value="400"/>
+		<Setting name="WaitForNumberOfSenders" value="4"/>
     </ConfigurationSettings>
   </Role>
   <Role name="MassTransit.AzurePerformance.Sender">
-    <Instances count="1" />
+    <Instances count="4" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
     </ConfigurationSettings>

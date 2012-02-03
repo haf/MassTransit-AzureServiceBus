@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using Magnum.Concurrency;
 using Magnum.Extensions;
 using MassTransit.AzurePerformance.Messages;
 using MassTransit.Pipeline.Inspectors;
@@ -35,7 +36,10 @@ namespace MassTransit.AzurePerformance.Receiver
 			long received = 0;
 			var watch = new Stopwatch();
 			var datapoints = new LinkedList<DataPoint>();
-
+			var senders = new LinkedList<IEndpoint>();
+			var allSendersUp = new CountdownEvent(
+				Convert.ToInt32(RoleEnvironment.GetConfigurationSettingValue("WaitForNumberOfSenders")));
+				
 			using (var sb = ServiceBusFactory.New(sbc =>
 				{
 					sbc.ReceiveFromComponents(AccountDetails.IssuerName,
@@ -48,8 +52,20 @@ namespace MassTransit.AzurePerformance.Receiver
 				}))
 			{
 				UnsubscribeAction unsubscribeMe = null;
+				unsubscribeMe += sb.SubscribeHandler<SenderUp>(su =>
+					{
+						lock (senders) 
+							senders.AddLast(sb.GetEndpoint(su.Source));
+						
+						allSendersUp.Signal();
+					});
+
+				allSendersUp.Wait();
+
+				senders.Each(sender => sender.Send<ReadySetGo>(new {}));
+
 				//unsubscribeMe = sb.SubscribeHandler<IConsumeContext<ZoomZoom>>(consumeContext =>
-				unsubscribeMe = sb.SubscribeHandler<ZoomZoom>(payment =>
+				unsubscribeMe += sb.SubscribeHandler<ZoomZoom>(payment =>
 					{
 						//var payment = consumeContext.Message;
 						
@@ -87,8 +103,6 @@ namespace MassTransit.AzurePerformance.Receiver
 							Trace.WriteLine(string.Format("Logging {0}", point), "Trace");
 						}
 					});
-
-				stopping.WaitOne(1.Seconds());
 
 				PipelineViewer.Trace(sb.InboundPipeline);
 
@@ -129,6 +143,9 @@ data points:
 			
 			while (true)
 				Thread.Sleep(10000);
+
+			// now have a look in Server Explorer, WADLogsTable, w/ Filter similar to "Timestamp gt datetime'2012-02-03T10:06:50Z'" 
+			// (if this isn't your first deployment, or no filter if you feel like that)
 		}
 
 		class DataPoint

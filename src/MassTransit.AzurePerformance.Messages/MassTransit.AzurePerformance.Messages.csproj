@@ -42,6 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ReadySetGo.cs" />
+    <Compile Include="SenderUp.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="ZoomDone.cs" />
     <Compile Include="ZoomZoom.cs" />
