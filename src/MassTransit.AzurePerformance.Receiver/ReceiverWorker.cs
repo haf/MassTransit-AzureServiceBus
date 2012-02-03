@@ -10,7 +10,6 @@ using MassTransit.Pipeline.Inspectors;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using MassTransit.Transports.AzureServiceBus.Configuration;
-using log4net.Config;
 
 namespace MassTransit.AzurePerformance.Receiver
 {
@@ -29,8 +28,8 @@ namespace MassTransit.AzurePerformance.Receiver
 
 			var stopping = new AutoResetEvent(false);
 
-			const long rampUp = 50;
-			const long sampleSize = 300;
+			long rampUp = Convert.ToInt32(RoleEnvironment.GetConfigurationSettingValue("RampUpCount"));
+			long sampleSize = Convert.ToInt32(RoleEnvironment.GetConfigurationSettingValue("SampleSize"));
 
 			long failures = 0;
 			long received = 0;
@@ -80,6 +79,7 @@ namespace MassTransit.AzurePerformance.Receiver
 									Ticks = watch.ElapsedTicks,
 									Failures = localFailures ?? failures,
 									SampleMessage = payment,
+									Instance = DateTime.UtcNow
 									/* assume all prev 100 msgs same size */
 									//Size = consumeContext.BaseContext.BodyStream.Length * 100 
 								};
@@ -103,23 +103,27 @@ string.Format(@"
 Performance Test Done
 =====================
 
-Total messages received:	{0}
-Time taken:					{1}
+Total messages received:  {0}
+Time taken:               {1}
 
 of which:
-	Corrupt messages count:	{2}
-	Valid messages count:	{3}
+  Corrupt messages count: {2}
+  Valid messages count:   {3}
 
 metrics:
-	Message per second:		{4}
-	Total bytes transferred:{5}
-	All samples' data equal:{6}
+  Message per second:     {4}
+  Total bytes transferred:{5}
+  All samples' data equal:{6}
+
+data points:
+{7}
 ",
- received-rampUp, watch.Elapsed, failures,
+ sampleSize, watch.Elapsed, failures,
  sampleSize-failures,
  1000d * sampleSize / (double)watch.ElapsedMilliseconds,
  datapoints.Sum(dp => dp.Size),
- datapoints.Select(x => x.SampleMessage).All(x => x.Payload.Equals(TestData.PayloadMessage, StringComparison.InvariantCulture))));
+ datapoints.Select(x => x.SampleMessage).All(x => x.Payload.Equals(TestData.PayloadMessage, StringComparison.InvariantCulture)),
+ datapoints.Aggregate("", (str, dp) => str + dp.ToString() + Environment.NewLine)));
 
 			Trace.WriteLine("Idling... aka. softar.", "Information");
 			
@@ -137,8 +141,10 @@ metrics:
 
 			public ZoomZoom SampleMessage { get; set; }
 
+			public DateTime Instance { get; set; }
+
 			public override string ToString() {
-				return "DP={{Rec:{0},Fail:{1},Ticks:{2}}}".FormatWith(Received, Failures, Ticks);
+				return "{0} Rec:{1}, Fail:{2},  Ticks:{3}}}".FormatWith(Instance, Received, Failures, Ticks);
 			}
 		}
 

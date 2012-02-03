@@ -4,6 +4,10 @@
 		<Imports>
 			<Import moduleName="Diagnostics" />
 		</Imports>
+		<ConfigurationSettings>
+			<Setting name="RampUpCount"/>
+			<Setting name="SampleSize"/>
+		</ConfigurationSettings>
 	</WorkerRole>
 	<WorkerRole name="MassTransit.AzurePerformance.Sender" vmsize="Small">
 		<Imports>
