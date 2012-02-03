@@ -3,8 +3,10 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using Magnum;
+using Magnum.Extensions;
 using MassTransit.AzurePerformance.Messages;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using log4net.Config;
 
@@ -42,14 +44,21 @@ namespace MassTransit.AzurePerformance.Sender
 						AccountDetails.Key,
 						AccountDetails.Namespace)));
 
+				var count = 0;
+				var watch = Stopwatch.StartNew();
 				while (!_isStopping)
 				{
 					var msg = new ZoomImpl { Id = CombGuid.Generate() };
 					receiver.Send<ZoomZoom>(msg);
+					count++;
 				}
+				watch.Stop();
 
-				Trace.WriteLine("sent nuff zooms for a day, idling again!");
-				while (true) Thread.Sleep(10000);
+				Trace.WriteLine(string.Format("sent nuff zooms {0}, in {1} seconds for a day. Idling again!", 
+					count, 
+					watch.ElapsedMilliseconds / 1000.0));
+
+				while (true) Thread.Sleep(5000);
 			}
 		}
 
@@ -91,18 +100,20 @@ namespace MassTransit.AzurePerformance.Sender
 
 		public override bool OnStart()
 		{
-			// Set the maximum number of concurrent connections 
 			ServicePointManager.DefaultConnectionLimit = 12;
-
-			// For information on handling configuration changes
-			// see the MSDN topic at http://go.microsoft.com/fwlink/?LinkId=166357.
+			
 			ConfigureDiagnostics();
-
+			
 			return base.OnStart();
 		}
 
 		void ConfigureDiagnostics()
 		{
+			var everySecond = 3.Seconds();
+			var dmc = DiagnosticMonitor.GetDefaultInitialConfiguration();
+			dmc.Logs.ScheduledTransferPeriod = everySecond;
+			dmc.Logs.ScheduledTransferLogLevelFilter = LogLevel.Verbose;
+			DiagnosticMonitor.Start("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString", dmc);
 		}
 	}
 }

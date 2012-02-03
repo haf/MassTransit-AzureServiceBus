@@ -7,6 +7,7 @@ using System.Threading;
 using Magnum.Extensions;
 using MassTransit.AzurePerformance.Messages;
 using MassTransit.Pipeline.Inspectors;
+using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using log4net.Config;
@@ -19,7 +20,7 @@ namespace MassTransit.AzurePerformance.Receiver
 
 		public override void Run()
 		{
-			BasicConfigurator.Configure();
+			//BasicConfigurator.Configure();
 			// This is a sample worker implementation. Replace with your logic.
 			Trace.WriteLine("Run Receiver", "Information");
 			RoleEnvironment.Stopping += (sender, args) => _isStopping = true;
@@ -29,7 +30,7 @@ namespace MassTransit.AzurePerformance.Receiver
 			var stopping = new AutoResetEvent(false);
 
 			const long rampUp = 50;
-			const long sampleSize = 1000;
+			const long sampleSize = 300;
 
 			long failures = 0;
 			long received = 0;
@@ -42,6 +43,8 @@ namespace MassTransit.AzurePerformance.Receiver
 						AccountDetails.Key, AccountDetails.Namespace,
 						"receiver");
 
+					sbc.SetPurgeOnStartup(true);
+					
 					sbc.UseAzureServiceBusRouting();
 				}))
 			{
@@ -118,11 +121,10 @@ metrics:
  datapoints.Sum(dp => dp.Size),
  datapoints.Select(x => x.SampleMessage).All(x => x.Payload.Equals(TestData.PayloadMessage, StringComparison.InvariantCulture))));
 
+			Trace.WriteLine("Idling... aka. softar.", "Information");
+			
 			while (true)
-			{
-				Trace.WriteLine("Idling... aka. softar.", "Information");
 				Thread.Sleep(10000);
-			}
 		}
 
 		class DataPoint
@@ -143,15 +145,19 @@ metrics:
 		public override bool OnStart()
 		{
 			ServicePointManager.DefaultConnectionLimit = 12;
-
-			// For information on handling configuration changes
-			// see the MSDN topic at http://go.microsoft.com/fwlink/?LinkId=166357.
+			
+			ConfigureDiagnostics();
 
 			return base.OnStart();
 		}
 
 		void ConfigureDiagnostics()
 		{
+			var everySecond = 1.Seconds();
+			var dmc = DiagnosticMonitor.GetDefaultInitialConfiguration();
+			dmc.Logs.ScheduledTransferPeriod = everySecond;
+			dmc.Logs.ScheduledTransferLogLevelFilter = LogLevel.Verbose;
+			DiagnosticMonitor.Start("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString", dmc);
 		}
 	}
 }
