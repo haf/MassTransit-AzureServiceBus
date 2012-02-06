@@ -219,4 +219,4 @@ The way of sending large messages (over 256K) is to upload it to Azure Blob Stor
 
 ## Thoughts on ServerTooBusyException - retry in 10 seconds
 
-Hmm...
+Hmm... 10 seconds: that's a couple of thousand messages, a long time.
