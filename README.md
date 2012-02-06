@@ -78,6 +78,8 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 
 Place this file in `src\MassTransit.Transports.AzureServiceBus\Configuration`.
 
+## Running Perf-tests
+
 If you wish to run the performance tests, you will have to change `src\MassTransit.AzurePerformance\ServiceConfiguration.Cloud.cscfg` to reflect your own values. This is what it looks for me:
 
 ```
