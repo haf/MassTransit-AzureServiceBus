@@ -1,6 +1,6 @@
 # MassTransit AzureServiceBus Transport
 
-A transport over AppFabric Service Bus in Azure. Currently capable of pub-sub and sending to endpoints. Pre-alpha at the moment.
+A transport over AppFabric Service Bus in Azure. Currently capable of pub-sub and sending to endpoints.
 
 ## So wazzup? 
 
@@ -21,6 +21,7 @@ using (ServiceBusFactory.New(sbc =>
 		sbc.UseAzureServiceBusRouting();
 	}))
 {
+	// use the bus here...
 }
 ```
 
@@ -34,6 +35,7 @@ using (ServiceBusFactory.New(sbc =>
 	sbc.UseAzureServiceBusRouting();
 }))
 {
+	// use the bus here...
 }
 ```
 
@@ -75,6 +77,29 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 ```
 
 Place this file in `src\MassTransit.Transports.AzureServiceBus\Configuration`.
+
+If you wish to run the performance tests, you will have to change `src\MassTransit.AzurePerformance\ServiceConfiguration.Cloud.cscfg` to reflect your own values. This is what it looks for me:
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="MassTransit.AzurePerformance.Sender" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="1" osVersion="*">
+	<Role name="MassTransit.AzurePerformance.Receiver">
+		<Instances count="1" />
+		<ConfigurationSettings>
+			<Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=[YOUR ACCOUNT NAME];AccountKey=[YOUR ACCOUNT KEY]" />
+			<Setting name="RampUpCount" value="50"/>
+			<Setting name="SampleSize" value="5000"/>
+			<Setting name="WaitForNumberOfSenders" value="4"/>
+		</ConfigurationSettings>
+	</Role>
+	<Role name="MassTransit.AzurePerformance.Sender">
+		<Instances count="4" />
+		<ConfigurationSettings>
+			<Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=[YOUR ACCOUNT NAME];AccountKey=[YOUR ACCOUNT KEY]" />
+		</ConfigurationSettings>
+	</Role>
+</ServiceConfiguration>
+```
 
 # Spec
 Aims:
@@ -148,9 +173,30 @@ E.g. `bus.Publish(new B())` instance *b1* causes state:
 
 *App1* subscribes to both these queues because of polymorphic routing. This is problematic because b1 needs to be de-duped at receiver. **Fine** - let's finish the dedup spike and make it an MT service.
 
-### Endpoints
+**Currently Pub/Sub isn't implemented - because of the above I'm trying to decide whether to use topics or the MT subscription service**.
 
-Queue-per-service bus ReceiveFrom(...) call?
+## On communication w/ AzureServiceBus
+
+ * **LockDuration** - default 30 s
+ * **MaxSizeInMegabytes** - default 1024 MiB
+ * **RequiresDuplicateDetection** - defaults to false, duplicates are not vetted on server
+ * **RequiresSession** -  defaults to false, we may have multiple `MessageFactory` instances in a single transport for performance
+ * **DefaultMessageTimeToLive** - default
+ * **EnableDeadLetteringOnMessageExpiration** - default
+ * **EnableBatchedOperations** - non default - **true** - will batch **50 ms** on receive from queue.
+ 
+Further:
+
+ * Currently the project uses async receive and sync send. This is aimed to change to async everything, but requires changes to MT to support the asynchronous flow that is required (with its connection handler and connection policies).
+ * Outbound allows for **100 messages in flight** concurrently on async send.
+ * Outbound retries messages met with **ServerBusyException** after **10 s**.
+ * Transports log to *MassTransit.Messages*.
+ 
+Aiming to bring in log4net appender for Azure.
+
+## Endpoints
+
+Endpoint in MT, tuple: { bus instance, inbound queue/transport, n x outbound queue/transport (one for each target we're sending to) }. In this case the endpoint needs to be, tuple { bus instance, inbound queue, n x inbound subscriptions that is polled round robin, n x outbound queue/transport (`GetEndpoint().Send()`), n x outbound subscription client (send to topic) }
 
 ## Thoughts on encryption
 
