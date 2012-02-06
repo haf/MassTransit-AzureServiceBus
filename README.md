@@ -107,10 +107,6 @@ Aims:
  * Sub-Pub over message types
  * `GetEndpoint(...).Send<T>(this ..., T msg)`. [Done]
 
-# Technical notes
-
-Using the MS service bus: harder than expected. Orchestrations of Tasks is what we've done as an API wrapper over the MS API.
-
 ## How will routing work?
 
 This section deals with how to handle routing.
