@@ -175,7 +175,7 @@ E.g. `bus.Publish(new B())` instance *b1* causes state:
 
  * **LockDuration** - default 30 s
  * **MaxSizeInMegabytes** - default 1024 MiB
- * **RequiresDuplicateDetection** - defaults to false, duplicates are not vetted on server
+ * **RequiresDuplicateDetection** - defaults to false, duplicates are not vetted on message broker
  * **RequiresSession** -  defaults to false, we may have multiple `MessageFactory` instances in a single transport for performance
  * **DefaultMessageTimeToLive** - default
  * **EnableDeadLetteringOnMessageExpiration** - default
