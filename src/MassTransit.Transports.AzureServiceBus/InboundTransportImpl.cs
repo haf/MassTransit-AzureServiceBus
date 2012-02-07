@@ -1,9 +1,24 @@
+// Copyright 2012 Henrik Feldt
+//  
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
+// this file except in compliance with the License. You may obtain a copy of the 
+// License at 
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0 
+// 
+// Unless required by applicable law or agreed to in writing, software distributed 
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// specific language governing permissions and limitations under the License.
+
 using System;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Magnum.Extensions;
 using MassTransit.Context;
+using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
@@ -13,15 +28,15 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class InboundTransportImpl
 		: IInboundTransport
 	{
-		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
-		private readonly AzureServiceBusEndpointAddress _address;
+		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
+		readonly AzureServiceBusEndpointAddress _address;
 
-		private bool _disposed;
-		private Subscription _subsciption;
+		bool _disposed;
+		Subscription _subsciption;
 		static readonly ILog _logger = SpecialLoggers.Messages;
 
 		public InboundTransportImpl(
-			[Util.NotNull] AzureServiceBusEndpointAddress address, 
+			[Util.NotNull] AzureServiceBusEndpointAddress address,
 			[Util.NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
 			if (address == null) throw new ArgumentNullException("address");
@@ -41,54 +56,75 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			_connectionHandler.Use(connection =>
 				{
-					BrokeredMessage message;
-					/* timeout: before any message transmission start */
-					if ((message = connection.Queue.Receive(50.Milliseconds())) == null
-						)//|| ((message = connection.Subscribers.)) == null)
-					{
-						Thread.Sleep(10);
-						return;
-					}
-					
-					using (var body = new MemoryStream(message.GetBody<MessageEnvelope>().ActualBody, false))
-					{
-						var context = ReceiveContext.FromBodyStream(body);
-						context.SetMessageId(message.MessageId);
-						context.SetInputAddress(Address);
-						context.SetCorrelationId(message.CorrelationId);
+					Func<Task<BrokeredMessage>> startGet = () => Task.Factory.FromAsync<BrokeredMessage>(
+						connection.Queue.BeginReceive,
+						connection.Queue.EndReceive, null);
 
-						if (_logger.IsDebugEnabled)
-							TraceMessage(context);
+					startGet().ContinueWith(tmsg =>
+						{
+							if (tmsg.IsFaulted)
+							{
+								if (_logger.IsErrorEnabled)
+									_logger.Error(tmsg.Exception.Flatten());
 
-						var receive = callback(context);
-						if (receive == null)
-						{
-							if (_logger.IsInfoEnabled)
-								_logger.InfoFormat("SKIP:{0}:{1}", Address, context.MessageId);
-							
-							return;
-						}
+								return;
+							}
 
-						if (_logger.IsDebugEnabled)
-							_logger.DebugFormat("RECV:{0}:{1}:{2}", _address, message.Label, message.MessageId);
+							if (tmsg.IsCanceled)
+							{
+								if (_logger.IsInfoEnabled)
+									_logger.Info(string.Format("task was cancelled: {0}", tmsg));
 
-						receive(context);
-						
-						try
-						{
-							message.Complete();
-						}
-						catch (MessageLockLostException ex)
-						{
-							if (_logger.IsErrorEnabled)
-								_logger.Error("Message Lock Lost on message Complete()", ex);
-						}
-						catch (MessagingException ex)
-						{
-							if (_logger.IsErrorEnabled)
-								_logger.Error("Generic MessagingException thrown", ex);
-						}
-					}
+								return;
+							}
+
+							var message = tmsg.Result;
+
+							if (message == null)
+								return;
+
+							using (var body = new MemoryStream(message.GetBody<MessageEnvelope>().ActualBody, false))
+							{
+								var context = ReceiveContext.FromBodyStream(body);
+								context.SetMessageId(message.MessageId);
+								context.SetInputAddress(Address);
+								context.SetCorrelationId(message.CorrelationId);
+
+								if (_logger.IsDebugEnabled)
+									TraceMessage(context);
+
+								var receive = callback(context);
+								if (receive == null)
+								{
+									if (_logger.IsInfoEnabled)
+										_logger.InfoFormat("SKIP:{0}:{1}", Address, context.MessageId);
+
+									return;
+								}
+
+								if (_logger.IsDebugEnabled)
+									_logger.DebugFormat("RECV:{0}:{1}:{2}", _address, message.Label, message.MessageId);
+
+								receive(context);
+
+								try
+								{
+									message.Complete();
+								}
+								catch (MessageLockLostException ex)
+								{
+									if (_logger.IsErrorEnabled)
+										_logger.Error("Message Lock Lost on message Complete()", ex);
+								}
+								catch (MessagingException ex)
+								{
+									if (_logger.IsErrorEnabled)
+										_logger.Error("Generic MessagingException thrown", ex);
+								}
+							}
+						});
+
+					Thread.Sleep(10);
 				});
 		}
 
@@ -102,7 +138,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			}
 		}
 
-		private void AddConsumerBinding()
+		void AddConsumerBinding()
 		{
 			if (_subsciption != null)
 				return;
@@ -111,7 +147,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			_connectionHandler.AddBinding(_subsciption);
 		}
 
-		private void RemoveConsumer()
+		void RemoveConsumer()
 		{
 			if (_subsciption != null)
 			{
@@ -125,7 +161,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			GC.SuppressFinalize(this);
 		}
 
-		private void Dispose(bool disposing)
+		void Dispose(bool disposing)
 		{
 			if (_disposed) return;
 			if (disposing)

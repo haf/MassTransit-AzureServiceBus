@@ -25,6 +25,16 @@ namespace MassTransit.AzurePerformance.Sender
 			BasicConfigurator.Configure(AzureAppender.New(conf =>
 				{
 					conf.Level = "Info";
+
+					conf.ConfigureRepository((repo, mapper) =>
+						{
+							repo.Threshold = mapper("Info"); // root
+						});
+
+					conf.ConfigureAzureDiagnostics(d =>
+						{
+							d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
+						});
 				}));
 
 			_logger.Info("Sender entry point called");
