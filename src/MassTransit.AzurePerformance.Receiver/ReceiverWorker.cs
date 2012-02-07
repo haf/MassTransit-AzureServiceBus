@@ -4,25 +4,32 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
-using Magnum.Concurrency;
 using Magnum.Extensions;
 using MassTransit.AzurePerformance.Messages;
 using MassTransit.Pipeline.Inspectors;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using log4net;
+using log4net.Azure;
+using log4net.Config;
 
 namespace MassTransit.AzurePerformance.Receiver
 {
 	public class ReceiverWorker : RoleEntryPoint
 	{
+		static readonly ILog _logger = LogManager.GetLogger(typeof (ReceiverWorker));
+		
 		volatile bool _isStopping;
 
 		public override void Run()
 		{
-			//BasicConfigurator.Configure();
+			var ta = new AzureAppender();
+			ta.ActivateOptions();
+			BasicConfigurator.Configure(ta);
+
 			// This is a sample worker implementation. Replace with your logic.
-			Trace.WriteLine("Run Receiver", "Information");
+			_logger.Info("starting receiver");
 			RoleEnvironment.Stopping += (sender, args) => _isStopping = true;
 
 			ConfigureDiagnostics();
@@ -100,7 +107,7 @@ namespace MassTransit.AzurePerformance.Receiver
 									//Size = consumeContext.BaseContext.BodyStream.Length * 100 
 								};
 							lock (datapoints) datapoints.AddLast(point);
-							Trace.WriteLine(string.Format("Logging {0}", point), "Trace");
+							_logger.Debug(string.Format("Logging {0}", point));
 						}
 					});
 
@@ -112,7 +119,7 @@ namespace MassTransit.AzurePerformance.Receiver
 					.Send<ZoomDone>(new{});
 			}
 
-			Trace.WriteLine(
+			_logger.Info(
 string.Format(@"
 Performance Test Done
 =====================
@@ -139,7 +146,7 @@ data points:
  datapoints.Select(x => x.SampleMessage).All(x => x.Payload.Equals(TestData.PayloadMessage, StringComparison.InvariantCulture)),
  datapoints.Aggregate("", (str, dp) => str + dp.ToString() + Environment.NewLine)));
 
-			Trace.WriteLine("Idling... aka. softar.", "Information");
+			_logger.Info("Idling... aka. softar.");
 			
 			while (true)
 				Thread.Sleep(10000);

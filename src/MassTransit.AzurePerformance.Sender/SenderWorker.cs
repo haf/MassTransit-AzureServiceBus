@@ -55,7 +55,7 @@ namespace MassTransit.AzurePerformance.Sender
 				var count = 0;
 				var watch = Stopwatch.StartNew();
 				// it sends about 3 x stopcount in the time receiver has to get them
-				while (!_isStopping && count != 2500)
+				while (!_isStopping && count != 300)
 				{
 					var msg = new ZoomImpl { Id = CombGuid.Generate() };
 					receiver.Send<ZoomZoom>(msg);
