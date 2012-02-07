@@ -8,19 +8,29 @@ using MassTransit.AzurePerformance.Messages;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using log4net;
+using log4net.Azure;
 using log4net.Config;
 
 namespace MassTransit.AzurePerformance.Sender
 {
 	public class SenderWorker : RoleEntryPoint
 	{
+		static readonly ILog _logger = LogManager.GetLogger(typeof (SenderWorker));
+
 		volatile bool _isStopping;
 
 		public override void Run()
 		{
-			BasicConfigurator.Configure();
-			Trace.WriteLine("Sender entry point called", "Information");
+			BasicConfigurator.Configure(AzureAppender.New(conf =>
+				{
+					conf.Level = "Info";
+				}));
+
+			_logger.Info("Sender entry point called");
+
 			RoleEnvironment.Stopping += (sender, args) => _isStopping = true;
+
 			var id = RoleEnvironment.CurrentRoleInstance.Id;
 			var myUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}",
 			                                  AccountDetails.IssuerName,
@@ -63,9 +73,9 @@ namespace MassTransit.AzurePerformance.Sender
 				}
 				watch.Stop();
 
-				Trace.WriteLine(string.Format("sent nuff zooms {0}, in {1} seconds for a day. Idling again!", 
+				_logger.InfoFormat("sent nuff zooms {0}, in {1} seconds for a day. Idling again!", 
 					count, 
-					watch.ElapsedMilliseconds / 1000.0));
+					watch.ElapsedMilliseconds / 1000.0);
 
 				while (true) Thread.Sleep(5000);
 			}

@@ -24,9 +24,10 @@ namespace MassTransit.AzurePerformance.Receiver
 
 		public override void Run()
 		{
-			var ta = new AzureAppender();
-			ta.ActivateOptions();
-			BasicConfigurator.Configure(ta);
+			BasicConfigurator.Configure(AzureAppender.New(conf =>
+				{
+					conf.Level = "Info";
+				}));
 
 			// This is a sample worker implementation. Replace with your logic.
 			_logger.Info("starting receiver");
