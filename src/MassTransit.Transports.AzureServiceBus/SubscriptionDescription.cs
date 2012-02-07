@@ -52,6 +52,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			string subscriptionName = null)
 		{
 			if (topicPath == null) throw new ArgumentNullException("topicPath");
+
 			_subscriptionDescription = new Microsoft.ServiceBus.Messaging.SubscriptionDescription(topicPath,
 				subscriptionName ?? Helper.GenerateRandomName());
 		}

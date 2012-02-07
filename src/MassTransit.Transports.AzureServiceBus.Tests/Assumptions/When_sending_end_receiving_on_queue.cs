@@ -16,6 +16,8 @@ using System;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.Transports.AzureServiceBus.Management;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using NUnit.Framework;
 
@@ -41,23 +43,31 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 
 	public class When_sending_end_receiving_on_queue
 	{
-		Tuple<DeleteQueueAction, QueueClient> t;
+		Microsoft.ServiceBus.Messaging.QueueClient t;
 		A message;
+		NamespaceManager nm;
 
 		[SetUp]
 		public void when_I_place_a_message_in_the_queue()
 		{
 			message = MyFactory.AMessage();
-			var setup = ConfigFactory.SetUpQueue("test-queue");
-			setup.Wait();
-			t = setup.Result;
-			t.Item2.Send(new BrokeredMessage(message));
+			var mf = ConfigFactory.CreateMessagingFactory();
+			nm = ConfigFactory.CreateNamespaceManager(mf);
+			nm.TryCreateQueue("test-queue").Wait();
+			t = mf.CreateQueueClient("test-queue");
+			t.Send(new BrokeredMessage(message));
+		}
+
+		[TearDown]
+		public void RemoveQueue()
+		{
+			nm.TryDeleteQueue("test-queue").Wait();
 		}
 
 		[Test]
 		public void there_should_be_a_message_there_first_time_around_and_return_null_second_time()
 		{
-			var msg = t.Item2.Receive();
+			var msg = t.Receive();
 			msg.ShouldNotBeNull();
 			try
 			{
@@ -70,14 +80,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 					msg.Complete();
 			}
 
-			var msg2 = t.Item2.Receive(1000.Milliseconds());
+			var msg2 = t.Receive(1000.Milliseconds());
 			msg2.ShouldBeNull();
-		}
-
-		[TearDown]
-		public void finally_remove_queue()
-		{
-			t.Item1().Wait();
 		}
 	}
 }

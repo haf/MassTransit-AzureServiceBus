@@ -42,13 +42,19 @@ namespace MassTransit.Transports.AzureServiceBus
 		public ConnectionImpl(
 			[NotNull] AzureServiceBusEndpointAddress endpointAddress,
 			[NotNull] TokenProvider tokenProvider,
-			int prefetchCount = 100) // todo: configuration setting
+			int prefetchCount = 1000) // todo: configuration setting
 		{
 			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
 			if (tokenProvider == null) throw new ArgumentNullException("tokenProvider");
 
 			_endpointAddress = endpointAddress;
 			_prefetchCount = prefetchCount;
+
+			/*When using the default lock expiration of 60 seconds, a good value for SubscriptionClient.PrefetchCount
+			 * is 20 times the maximum processing rates of all receivers of the factory. For example,
+			 * a factory creates 3 receivers. Each receiver can process up to 10 messages per second.
+			 * The prefetch count should not exceed 20*3*10 = 600.By default, QueueClient.PrefetchCount
+			 * is set to 0, which means that no additional messages are fetched from the service. */
 
 			var mfs = new MessagingFactorySettings
 				{
@@ -62,7 +68,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			_messagingFactory = MessagingFactory.Create(_endpointAddress.NamespaceManager.Address, mfs);
 
-			_logger.Debug(string.Format("created connection impl for address ('{0}')", endpointAddress));
+			if (_logger.IsDebugEnabled)
+				_logger.DebugFormat("created connection impl for address ('{0}')", endpointAddress);
 		}
 
 		public QueueClient Queue
@@ -112,10 +119,11 @@ namespace MassTransit.Transports.AzureServiceBus
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
 			_queue = _endpointAddress
 						.CreateQueue()
-						.Then(qdesc => _messagingFactory.TryCreateQueueClient(qdesc, _prefetchCount))
+						.Then(qdesc => _messagingFactory.TryCreateQueueClient(_endpointAddress.NamespaceManager, qdesc, _prefetchCount))
 						.Result;
 			
-			if (_queue == null) throw new TransportException(_endpointAddress.Uri, "The create queue client task returned null.");
+			if (_queue == null)
+				throw new TransportException(_endpointAddress.Uri, "The create queue client task returned null.");
 
 		}
 
@@ -127,7 +135,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				{
 					_logger.Info("Disconnecting {0}".FormatWith(_endpointAddress));
 					
-					_queue.Close(); // use Task? Why?
+					_queue.Dispose();
 
 					_subscribers.Clear();
 				}

@@ -35,21 +35,5 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 					TokenProvider = tokenProvider ?? CreateTokenProvider()
 				});
 		}
-
-		public static Task<Tuple<DeleteQueueAction, QueueClient>> SetUpQueue(
-			[NotNull] string queueName,
-			TokenProvider tokenProvider = null,
-			MessagingFactory factory = null)
-		{
-			if (queueName == null) throw new ArgumentNullException("queueName");
-
-			factory = factory ?? CreateMessagingFactory();
-			var nsm = CreateNamespaceManager(factory, tokenProvider);
-
-			return nsm.TryCreateQueue(queueName)
-				.ContinueWith(tQ => Tuple.Create<DeleteQueueAction, QueueClient>(
-					() => Task.Factory.FromAsync(nsm.BeginDeleteQueue, nsm.EndDeleteQueue, queueName, null),
-					factory.CreateQueueClient(queueName)), TaskContinuationOptions.AttachedToParent);
-		}
 	}
 }

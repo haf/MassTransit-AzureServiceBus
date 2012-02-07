@@ -15,10 +15,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Magnum.Extensions;
 using MassTransit.Context;
-using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
@@ -34,6 +31,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		bool _disposed;
 		Subscription _subsciption;
 		static readonly ILog _logger = SpecialLoggers.Messages;
+
+		int _outstandingReceive;
+		int _wait;
 
 		public InboundTransportImpl(
 			[Util.NotNull] AzureServiceBusEndpointAddress address,
@@ -56,32 +56,27 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			_connectionHandler.Use(connection =>
 				{
-					Func<Task<BrokeredMessage>> startGet = () => Task.Factory.FromAsync<BrokeredMessage>(
-						connection.Queue.BeginReceive,
-						connection.Queue.EndReceive, null);
+					SpinWait.SpinUntil(() => _outstandingReceive < 2);
 
-					startGet().ContinueWith(tmsg =>
+					if (_wait != 0)
+						Thread.Sleep(_wait);
+
+					Interlocked.Increment(ref _outstandingReceive);
+					connection.Queue.BeginReceive(timeout, ar =>
 						{
-							if (tmsg.IsFaulted)
-							{
-								if (_logger.IsErrorEnabled)
-									_logger.Error(tmsg.Exception.Flatten());
+							var q = ar.AsyncState as QueueClient;
 
-								return;
-							}
+							Interlocked.Decrement(ref _outstandingReceive);
 
-							if (tmsg.IsCanceled)
-							{
-								if (_logger.IsInfoEnabled)
-									_logger.Info(string.Format("task was cancelled: {0}", tmsg));
-
-								return;
-							}
-
-							var message = tmsg.Result;
+							var message = q.EndReceive(ar);
 
 							if (message == null)
+							{
+								_wait = 30;
 								return;
+							}
+							
+							_wait = 0;
 
 							using (var body = new MemoryStream(message.GetBody<MessageEnvelope>().ActualBody, false))
 							{
@@ -122,9 +117,7 @@ namespace MassTransit.Transports.AzureServiceBus
 										_logger.Error("Generic MessagingException thrown", ex);
 								}
 							}
-						});
-
-					Thread.Sleep(10);
+						}, connection.Queue);
 				});
 		}
 
