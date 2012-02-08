@@ -18,7 +18,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	{
 		const int MaxOutstanding = 100;
 
-		static readonly ILog _logger = LogManager.GetLogger(typeof (OutboundTransportImpl));
+		static readonly ILog _logger = SpecialLoggers.Messages;
 
 		int _messagesInFlight;
 
@@ -64,8 +64,8 @@ namespace MassTransit.Transports.AzureServiceBus
 							if (!string.IsNullOrWhiteSpace(context.MessageId))
 								bm.MessageId = context.MessageId;
 							
-							if (SpecialLoggers.Messages.IsDebugEnabled)
-								SpecialLoggers.Messages.Debug(string.Format("SEND-begin:{0}:{1}:{2}",
+							if (_logger.IsDebugEnabled)
+								_logger.Debug(string.Format("SEND-begin:{0}:{1}:{2}",
 									_address, bm.Label, bm.MessageId));
 
 							TrySendMessage(connection, bm);
@@ -86,8 +86,8 @@ namespace MassTransit.Transports.AzureServiceBus
 					var msg = tuple.Item2;
 					var queueClient = tuple.Item1;
 
-					if (SpecialLoggers.Messages.IsDebugEnabled)
-						SpecialLoggers.Messages.Debug(string.Format("SEND-end:{0}:{1}:{2}",
+					if (_logger.IsDebugEnabled)
+						_logger.Debug(string.Format("SEND-end:{0}:{1}:{2}",
 						                                            _address, msg.Label, msg.MessageId));
 
 					try
@@ -101,8 +101,8 @@ namespace MassTransit.Transports.AzureServiceBus
 					}
 					catch (ServerBusyException serverBusyException)
 					{
-						if (SpecialLoggers.Messages.IsWarnEnabled)
-							SpecialLoggers.Messages.Warn(string.Format("SEND-too-busy:{0}:{1}:{2}",
+						if (_logger.IsWarnEnabled)
+							_logger.Warn(string.Format("SEND-too-busy:{0}:{1}:{2}",
 							                                           _address, msg.Label, msg.MessageId), serverBusyException);
 						
 						RetryLoop(connection, bm);
@@ -121,8 +121,8 @@ namespace MassTransit.Transports.AzureServiceBus
 				{
 					queue.Enqueue(bm);
 
-					if (SpecialLoggers.Messages.IsInfoEnabled)
-						SpecialLoggers.Messages.Info(string.Format("SEND-retry:{0}. Queue count: {1}", _address, queue.Count));
+					if (_logger.IsInfoEnabled)
+						_logger.Info(string.Format("SEND-retry:{0}. Queue count: {1}", _address, queue.Count));
 
 					while (queue.Count > 0)
 						TrySendMessage(connection, queue.Dequeue());
