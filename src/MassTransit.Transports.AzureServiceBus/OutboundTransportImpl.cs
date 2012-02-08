@@ -28,9 +28,13 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		readonly AzureServiceBusEndpointAddress _address;
 
-		public OutboundTransportImpl(AzureServiceBusEndpointAddress address,
-		                             ConnectionHandler<ConnectionImpl> connectionHandler)
+		public OutboundTransportImpl(
+			[Util.NotNull] AzureServiceBusEndpointAddress address,
+			[Util.NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
+			if (address == null) throw new ArgumentNullException("address");
+			if (connectionHandler == null) throw new ArgumentNullException("connectionHandler");
+
 			_connectionHandler = connectionHandler;
 			_address = address;
 
@@ -49,6 +53,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		// http://msdn.microsoft.com/en-us/library/windowsazure/hh528527.aspx
 		public void Send(ISendContext context)
 		{
+			if (context == null) throw new ArgumentNullException("context");
+
 			_connectionHandler
 				.Use(connection =>
 					{
