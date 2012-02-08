@@ -96,8 +96,8 @@ namespace MassTransit.Transports.AzureServiceBus
 						// at the moment; I have to extend the connection handler with an asynchronous
 						// API to let it re-initialize the queue and hence maybe even the full transport...
 						// MessagingEntityNotFoundException.
-						queueClient.EndSend(ar);
 						Interlocked.Decrement(ref _messagesInFlight);
+						queueClient.EndSend(ar);
 					}
 					catch (ServerBusyException serverBusyException)
 					{
