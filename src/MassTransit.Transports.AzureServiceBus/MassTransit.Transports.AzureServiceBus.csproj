@@ -61,6 +61,7 @@
     <Compile Include="Configuration\EndpointFactoryConfiguratorExtensions.cs" />
     <Compile Include="Configuration\AzureServiceBusServiceBusExtensions.cs" />
     <Compile Include="Configuration\AzureServiceBusFactoryConfiguratorImpl.cs" />
+    <Compile Include="AsyncInboundTransportImpl.cs" />
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Internal\TaskEx.cs" />

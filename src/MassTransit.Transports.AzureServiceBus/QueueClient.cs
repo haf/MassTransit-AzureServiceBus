@@ -18,16 +18,24 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
+	/// <summary>
+	/// Queue/endpoint consumer.
+	/// </summary>
 	public interface QueueClient : IDisposable
 	{
 		ReceiveMode Mode { get; }
 		int PrefetchCount { get; }
 		string Path { get; }
 
+		/// <summary>
+		/// Start receiving a message (possibly null).
+		/// </summary>
+		/// <returns></returns>
 		Task<BrokeredMessage> Receive();
+
+
 		Task<BrokeredMessage> Receive(TimeSpan serverWaitTime);
 		Task Send(BrokeredMessage message);
-
 		
 		/// <summary>
 		/// Drains the queue by deleting and re-creating it.

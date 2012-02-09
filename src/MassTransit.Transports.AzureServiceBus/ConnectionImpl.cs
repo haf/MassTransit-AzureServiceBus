@@ -100,9 +100,11 @@ namespace MassTransit.Transports.AzureServiceBus
 				                                  "is already disposed and cannot be disposed twice.");
 			try
 			{
-				Disconnect();
+				if (_queue != null)
+					_queue.Dispose();
 
-				_messagingFactory.Close();
+				if (_messagingFactory != null && !_messagingFactory.IsClosed)
+					_messagingFactory.Close();
 			}
 			finally
 			{
@@ -129,21 +131,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Disconnect()
 		{
-			try
-			{
-				if (_queue != null)
-				{
-					_logger.Info("Disconnecting {0}".FormatWith(_endpointAddress));
-					
-					_queue.Dispose();
-
-					_subscribers.Clear();
-				}
-			}
-			catch (Exception ex)
-			{
-				_logger.Warn("Failed to close AppFabric ServiceBus connection.", ex);
-			}
+			_logger.Info("Disconnecting {0}".FormatWith(_endpointAddress));
 		}
 	}
 }
