@@ -7,8 +7,13 @@ namespace MassTransit.Transports.AzureServiceBus
 	/// <summary>
 	/// A consumer that consumes published messages.
 	/// </summary>
-	public interface Subscriber
+	public interface Subscriber : IDisposable
 	{
+		/// <summary>
+		/// Gets the subscription id for this subscriber.
+		/// </summary>
+		Guid SubscriptionId { get; }
+
 		/// <summary>
 		/// 
 		/// </summary>

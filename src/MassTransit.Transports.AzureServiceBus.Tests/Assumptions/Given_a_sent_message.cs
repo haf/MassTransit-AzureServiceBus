@@ -33,7 +33,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 			createTopic.Wait();
 			topic = createTopic.Result;
 
-			var client = topic.CreateClient(autoSubscribe:false);
+			var client = topic.CreateSubscriber();
 			client.Wait();
 			topicClient = client.Result.Item1;
 			_logger.Debug("[Given] done");

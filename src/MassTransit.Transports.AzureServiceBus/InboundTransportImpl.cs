@@ -19,7 +19,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		private readonly AzureServiceBusEndpointAddress _address;
 
 		private bool _disposed;
-		private Subscription _subsciption;
 		static readonly ILog _logger = SpecialLoggers.Messages;
 
 		public InboundTransportImpl(
@@ -28,8 +27,12 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			if (address == null) throw new ArgumentNullException("address");
 			if (connectionHandler == null) throw new ArgumentNullException("connectionHandler");
+
 			_connectionHandler = connectionHandler;
 			_address = address;
+
+			if (_logger.IsDebugEnabled)
+				_logger.Debug(string.Format("created new inbound transport for {0}", address));
 		}
 
 		public IEndpointAddress Address
@@ -39,8 +42,6 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
 		{
-			AddConsumerBinding();
-
 			_connectionHandler.Use(connection =>
 				{
 					/* timeout: before any message transmission start */
@@ -58,11 +59,11 @@ namespace MassTransit.Transports.AzureServiceBus
 						return;
 					}
 
-					found.Each(message => TreatMessage(callback, message.Result));
+					found.Each(message => ReceiveMessage(callback, message.Result));
 				});
 		}
 
-		void TreatMessage(Func<IReceiveContext, Action<IReceiveContext>> callback, BrokeredMessage message)
+		void ReceiveMessage(Func<IReceiveContext, Action<IReceiveContext>> callback, BrokeredMessage message)
 		{
 			using (var body = new MemoryStream(message.GetBody<MessageEnvelope>().ActualBody, false))
 			{
@@ -115,23 +116,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			}
 		}
 
-		private void AddConsumerBinding()
-		{
-			if (_subsciption != null)
-				return;
-
-			_subsciption = new Subscription(_address);
-			_connectionHandler.AddBinding(_subsciption);
-		}
-
-		private void RemoveConsumer()
-		{
-			if (_subsciption != null)
-			{
-				_connectionHandler.RemoveBinding(_subsciption);
-			}
-		}
-
 		public void Dispose()
 		{
 			Dispose(true);
@@ -143,7 +127,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (_disposed) return;
 			if (disposing)
 			{
-				RemoveConsumer();
 			}
 
 			_disposed = true;

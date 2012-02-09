@@ -44,7 +44,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				.ContinueWith(tSend => _logger.Debug("end send"));
 		}
 
-		public Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe([NotNull] Topic topic,
+		public Task<Subscriber> Subscribe([NotNull] Topic topic,
 			SubscriptionDescription description,
 			ReceiveMode mode,
 			string subscriberName)
@@ -63,14 +63,12 @@ namespace MassTransit.Transports.AzureServiceBus
 				.ContinueWith(tMsgR =>
 					{
 						_logger.Debug(string.Format("end create message receiver @ {0}", description));
-						return Tuple.Create(
-							new UnsubscribeAction(() =>
-								{
-									_logger.Debug(string.Format("begin delete subscription @ {0}", description));
-									return _namespaceManager.TryDeleteSubscription(description)
-										.ContinueWith(tDeleteSub =>  _logger.Debug(string.Format("end delete subscription @ {0}", description)));
-								}), 
-							new SubscriberImpl(tMsgR.Result) as Subscriber);
+						return new SubscriberImpl(tMsgR.Result, description.SubscriptionId,
+							() => {
+								_logger.Debug(string.Format("begin delete subscription @ {0}", description));
+								return _namespaceManager.TryDeleteSubscription(description)
+									.ContinueWith(tDeleteSub =>  _logger.Debug(string.Format("end delete subscription @ {0}", description)));
+							}) as Subscriber;
 					});
 		}
 

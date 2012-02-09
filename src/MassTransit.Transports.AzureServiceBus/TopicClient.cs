@@ -13,7 +13,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		/// <param name="topic"> </param>
 		Task Send(BrokeredMessage msg, Topic topic);
 
-		Task<Tuple<UnsubscribeAction, Subscriber>> Subscribe(
+		Task<Subscriber> Subscribe(
 			Topic subscriptionTopic,
 			SubscriptionDescription description = null,
 		    ReceiveMode mode = ReceiveMode.PeekLock,

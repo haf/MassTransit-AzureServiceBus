@@ -13,12 +13,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using log4net;
+using Magnum.Extensions;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -26,7 +26,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	/// 	Monitors the subscriptions from the local bus and subscribes the topics with topic clients when subscriptions occurr: when they do; create the appropriate topics for them.
 	/// </summary>
 	public class TopicSubscriptionObserver
-		: SubscriptionObserver
+		: SubscriptionObserver, ConnectionBinding<ConnectionImpl>
 	{
 		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicSubscriptionObserver));
 
@@ -37,8 +37,17 @@ namespace MassTransit.Transports.AzureServiceBus
 			[NotNull] AzureServiceBusEndpointAddress address)
 		{
 			if (address == null) throw new ArgumentNullException("address");
+
 			_address = address;
 			_bindings = new Dictionary<Guid, Topic>();
+
+			if (_logger.IsDebugEnabled)
+				_logger.Debug(string.Format("new subscription observer on address {0}", address));
+		}
+
+		public void Bind(ConnectionImpl connection)
+		{
+			_bindings.Each(kv => connection.SignalSubscription(kv.Key, kv.Value));
 		}
 
 		public void OnSubscriptionAdded(SubscriptionAdded message)
@@ -52,9 +61,14 @@ namespace MassTransit.Transports.AzureServiceBus
 			var topicName = messageName.ToString();
 
 			var t = _address.NamespaceManager.TryCreateTopic(_address.MessagingFactory, topicName);
+
 			t.Wait();
 
 			_bindings[message.SubscriptionId] = t.Result;
+		}
+
+		public void Unbind(ConnectionImpl connection)
+		{
 		}
 
 		public void OnSubscriptionRemoved(SubscriptionRemoved message)
@@ -72,7 +86,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			}
 		}
 
-		static MessageName GetMessageName(Subscriptions.Messages.Subscription message)
+		static MessageName GetMessageName(Subscription message)
 		{
 			var messageType = Type.GetType(message.MessageName);
 			var messageName = new MessageName(messageType);

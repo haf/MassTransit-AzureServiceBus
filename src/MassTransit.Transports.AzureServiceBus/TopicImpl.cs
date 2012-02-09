@@ -41,10 +41,10 @@ namespace MassTransit.Transports.AzureServiceBus
 		Task Topic.DrainBestEffort(TimeSpan timeout)
 		{
 			var retryFiveTimes = ExceptionPolicy.InCaseOf<TimeoutException>().Retry(5);
-			return _self.CreateClient(ReceiveMode.ReceiveAndDelete)
+			return _self.CreateSubscriber(ReceiveMode.ReceiveAndDelete)
 				.Then(tuple =>
 					{
-						var subscriber = tuple.Item2.Item2;
+						var subscriber = tuple.Item2;
 						while (true)
 						{
 							try
@@ -75,28 +75,21 @@ namespace MassTransit.Transports.AzureServiceBus
 						}
 
 						_logger.Debug("unsubscribe action wait start");
-						tuple.Item2.Item1().Wait();
+						tuple.Item2.Dispose();
 						_logger.Debug("unsubscribe action wait end");
 					});
 		}
-
-		Task<Tuple<TopicClient, Tuple<UnsubscribeAction, Subscriber>>> Topic.CreateClient(
+		
+		Task<Tuple<TopicClient, Subscriber>> Topic.CreateSubscriber(
 			ReceiveMode mode,
-			string subscriberName, 
-			bool autoSubscribe,
+			string subscriberName,
 			int prefetch)
 		{
-			_logger.Debug(string.Format("create client called( mode: PeekMode.{0}, name: '{1}', autoSub: {2})",
-			              mode, subscriberName, autoSubscribe));
+			_logger.Debug(string.Format("create client called( mode: PeekMode.{0}, name: '{1}')",
+			              mode, subscriberName));
 
 			var client = _messagingFactory.TryCreateTopicClient(_namespaceManager, this);
 			subscriberName = subscriberName ?? Helper.GenerateRandomName();
-
-			if (!autoSubscribe)
-				return client
-					.ContinueWith(tClient => 
-						Tuple.Create<TopicClient, Tuple<UnsubscribeAction, Subscriber>>(
-							client.Result, null));
 
 			return client.Then(topicClient =>
 				{

@@ -16,8 +16,11 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			LocalUri = new Uri(string.Format("azure-sb://owner:{0}@{1}/rat_hole", AccountDetails.Key, AccountDetails.Namespace));
 			RemoteUri = new Uri(string.Format("azure-sb://owner:{0}@{1}/hungry_cat", AccountDetails.Key, AccountDetails.Namespace));
+		}
 
-			ConfigureEndpointFactory(c => c.UseJsonSerializer());
+		protected override void ConfigureServiceBus(Uri uri, BusConfigurators.ServiceBusConfigurator configurator)
+		{
+			configurator.UseAzureServiceBusRouting();
 		}
 
 		/// <summary>Alias for local bus</summary>

@@ -25,11 +25,11 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Then]
 		public void by_calling_BeginReceive_EndReceive()
 		{
-			var client = topic.CreateClient(ReceiveMode.PeekLock, autoSubscribe: false).Result;
+			var client = topic.CreateSubscriber().Result;
 			client.ShouldNotBeNull();
 			var subscriber = client.Item1.Subscribe(topic).Result;
 			subscriber.ShouldNotBeNull();
-			subscriber.Item2.Receive(20.Milliseconds()).Result.ShouldBeNull();
+			subscriber.Receive(20.Milliseconds()).Result.ShouldBeNull();
 		}
 	}
 }

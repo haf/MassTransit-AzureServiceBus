@@ -11,7 +11,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 	{
 		static readonly ILog _logger = LogManager.GetLogger(typeof (When_sending_to_topic_with_subscriber));
 		
-		UnsubscribeAction unsubscribe;
 		Subscriber subscriber;
 
 		protected override void BeforeSend(BrokeredMessage msg)
@@ -27,8 +26,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 
 			awaitSub.Wait();
 
-			unsubscribe = awaitSub.Result.Item1;
-			subscriber = awaitSub.Result.Item2;
+			subscriber = awaitSub.Result;
 		}
 
 		[Test]
@@ -45,8 +43,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[TearDown]
 		public void unsubscribe_subscriber()
 		{
-			if (unsubscribe != null)
-				unsubscribe();
+			if (subscriber != null) subscriber.Dispose();
 		}
 	}
 }

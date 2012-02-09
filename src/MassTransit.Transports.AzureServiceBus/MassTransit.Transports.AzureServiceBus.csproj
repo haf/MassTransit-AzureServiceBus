@@ -75,7 +75,6 @@
     <Compile Include="QueueClient.cs" />
     <Compile Include="QueueDescription.cs" />
     <Compile Include="QueueDescriptionImpl.cs" />
-    <Compile Include="Subscription.cs" />
     <Compile Include="TopicSubscriptionObserver.cs" />
     <Compile Include="TransportFactoryImpl.cs" />
     <Compile Include="Subscriber.cs" />

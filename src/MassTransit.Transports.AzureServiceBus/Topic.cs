@@ -20,9 +20,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		/// <returns>The hot computation of the drain</returns>
 		Task DrainBestEffort(TimeSpan timeout);
 		
-		Task<Tuple<TopicClient, Tuple<UnsubscribeAction, Subscriber>>>
-			CreateClient(ReceiveMode mode = ReceiveMode.PeekLock, string subscriberName = null,
-			bool autoSubscribe = true,
+		Task<Tuple<TopicClient, Subscriber>>
+			CreateSubscriber(ReceiveMode mode = ReceiveMode.PeekLock, string subscriberName = null,
 			int prefetch = 100);
 
 		Task Delete();

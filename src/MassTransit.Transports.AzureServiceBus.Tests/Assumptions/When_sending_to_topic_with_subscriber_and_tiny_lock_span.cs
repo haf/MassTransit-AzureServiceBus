@@ -8,7 +8,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 	public class When_sending_to_topic_with_subscriber_and_tiny_lock_span
 		: Given_a_sent_message
 	{
-		UnsubscribeAction unsubscribe;
 		Subscriber subscriber;
 		BrokeredMessage msg1;
 
@@ -21,8 +20,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 					MaxDeliveryCount = 1
 				};
 			var subscribe = topicClient.Subscribe(topic, subDesc).Result;
-			unsubscribe = subscribe.Item1;
-			subscriber = subscribe.Item2;
+			subscriber = subscribe;
 		}
 
 		[SetUp]
@@ -36,7 +34,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[TearDown]
 		public void Finally_TearDown()
 		{
-			if (unsubscribe != null) unsubscribe();
+			if (subscriber != null) subscriber.Dispose();
 		}
 
 		[Test]

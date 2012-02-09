@@ -32,7 +32,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly AzureServiceBusEndpointAddress _address;
 
 		bool _disposed;
-		Subscription _subsciption;
 		static readonly ILog _logger = SpecialLoggers.Messages;
 
 		int _outstandingReceive;
@@ -55,8 +54,6 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
 		{
-			AddConsumerBinding();
-
 			_connectionHandler.Use(connection =>
 				{
 					SpinWait.SpinUntil(() => _outstandingReceive < 2);
@@ -134,23 +131,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			}
 		}
 
-		void AddConsumerBinding()
-		{
-			if (_subsciption != null)
-				return;
-
-			_subsciption = new Subscription(_address);
-			_connectionHandler.AddBinding(_subsciption);
-		}
-
-		void RemoveConsumer()
-		{
-			if (_subsciption != null)
-			{
-				_connectionHandler.RemoveBinding(_subsciption);
-			}
-		}
-
 		public void Dispose()
 		{
 			Dispose(true);
@@ -160,9 +140,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		void Dispose(bool disposing)
 		{
 			if (_disposed) return;
+			
 			if (disposing)
 			{
-				RemoveConsumer();
 			}
 
 			_disposed = true;

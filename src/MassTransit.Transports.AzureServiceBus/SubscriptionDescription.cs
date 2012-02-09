@@ -33,6 +33,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		int MaxDeliveryCount { get; set; }
 		bool EnableBatchedOperations { get; set; }
 
+		Guid SubscriptionId { get; }
+
 		/// <summary>
 		/// Don't touch
 		/// </summary>
@@ -43,6 +45,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		: SubscriptionDescription
 	{
 		readonly Microsoft.ServiceBus.Messaging.SubscriptionDescription _subscriptionDescription;
+		Guid _subscriptionId;
 
 		/// <summary>
 		/// Create a new subscription description instance with a required
@@ -125,6 +128,12 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			get { return _subscriptionDescription.EnableBatchedOperations; }
 			set { _subscriptionDescription.EnableBatchedOperations = value; }
+		}
+
+		public Guid SubscriptionId
+		{
+			get { return _subscriptionId; }
+			set { _subscriptionId = value; }
 		}
 
 		public Microsoft.ServiceBus.Messaging.SubscriptionDescription IDareYou

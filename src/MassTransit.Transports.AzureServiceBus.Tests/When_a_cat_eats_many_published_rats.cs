@@ -17,50 +17,62 @@ using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
 using MassTransit.Transports.AzureServiceBus.Util;
+using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	public class Cat_eating_rats_spec
+	public class When_a_cat_eats_many_published_rats
 		: given_a_rat_hole_and_a_cat
 	{
 		Guid dinner_id;
+		Future<SmallRat> _receivedSmallRat;
+		Future<LargeRat> _receivedLargeRat;
+
+		protected override void ConfigureServiceBus(Uri uri, BusConfigurators.ServiceBusConfigurator configurator)
+		{
+			base.ConfigureServiceBus(uri, configurator);
+
+			_receivedSmallRat = new Future<SmallRat>();
+			_receivedLargeRat = new Future<LargeRat>();
+
+			configurator.Subscribe(s =>
+				{
+					s.Handler<SmallRat>(_receivedSmallRat.Complete);
+					s.Handler<LargeRat>(_receivedLargeRat.Complete);
+				});
+		}
 
 		[When]
-		public void a_lot_of_rats_are_sent_to_a_cat()
+		public void a_large_rat_is_published()
 		{
-			Consumer = new ConsumerOf<Rat>(r => Console.WriteLine(string.Format("Received rat: {0}!", r.Sound)));
-
-			_unsubscribeAction = RemoteBus.SubscribeInstance(Consumer);
-			RemoteBus.ShouldHaveSubscriptionFor<Rat>();
-
 			dinner_id = CombGuid.Generate();
-
-			LocalBus.Publish<Rat>(new Ratty("peep", dinner_id));
-			LocalBus.Publish<Rat>(new Ratty("eeky", dinner_id));
+			LocalBus.Publish<Rat>(new LargeRat("peep", dinner_id));
 		}
 
 		[Then]
-		public void The_cat_should_have_consumed_two_rats()
+		public void cat_ate_small_rat()
 		{
-			new Rat[] {new Ratty("peep", dinner_id), new Ratty("eeky", dinner_id)}
-				.Each(rat => 
-				      Consumer.ShouldHaveReceived(rat, 8.Seconds()));
+			_receivedSmallRat.WaitUntilCompleted(8.Seconds()).ShouldBeTrue();
+			_receivedSmallRat.Value.ShouldEqual(new SmallRat("peep", dinner_id));
 		}
 
-		MassTransit.UnsubscribeAction _unsubscribeAction;
-
-		protected ConsumerOf<Rat> Consumer { get; private set; }
-
-		[Finally]
-		public void Finally()
+		[Then, Description("As big as they get")]
+		public void cat_are_polymorphically_large_rat()
 		{
-			_unsubscribeAction();
+			_receivedLargeRat.WaitUntilCompleted(8.Seconds()).ShouldBeTrue("Should have received large rat message");
+			_receivedLargeRat.Value.ShouldEqual(new LargeRat("peep", dinner_id));
 		}
 
-		// eq-impl of a rat
-		class Ratty : Rat, IEquatable<Rat>
+		class LargeRat : SmallRat
 		{
-			public Ratty(string sound, Guid correlationId)
+			public LargeRat(string sound, Guid correlationId) : base(sound, correlationId)
+			{
+			}
+		}
+
+		class SmallRat : Rat, IEquatable<Rat>
+		{
+			public SmallRat(string sound, Guid correlationId)
 			{
 				CorrelationId = correlationId;
 				Sound = sound;

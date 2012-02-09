@@ -13,7 +13,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Magnum.Extensions;
+using Magnum.Threading;
 using MassTransit.Exceptions;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;
@@ -37,7 +39,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		bool _disposed;
 		QueueClient _queue;
 
-		readonly List<Subscriber> _subscribers = new List<Subscriber>();
+		readonly ReaderWriterLockedDictionary<Guid, Tuple<TopicClient, Subscriber>> _subscribers
+			= new ReaderWriterLockedDictionary<Guid, Tuple<TopicClient, Subscriber>>();
 		
 		public ConnectionImpl(
 			[NotNull] AzureServiceBusEndpointAddress endpointAddress,
@@ -77,9 +80,16 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _queue; }
 		}
 
+		public void SignalSubscription(Guid subscriptionId, Topic topic)
+		{
+			topic.CreateSubscriber()
+				.Then(tuple => _subscribers.Add(subscriptionId, tuple));
+		}
+
 		public IEnumerable<Subscriber> Subscribers
 		{
-			get { return _subscribers; }
+			// is this a performance issue?
+			get { return _subscribers.Values.Select(x => x.Item2); }
 		}
 
 		public void Dispose()
