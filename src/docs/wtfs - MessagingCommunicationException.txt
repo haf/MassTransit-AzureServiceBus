@@ -1,0 +1,324 @@
+Receiver, getting MessagingCommunicationException:
+
+What am I supposed to do now??? Who and what owns the TCP connection that is failing?
+
+[fabric] Role Instance: deployment16(56).MassTransit.MassTransit.AzurePerformance.Receiver.0
+[fabric] Role state Unknown
+[fabric] Role state Busy
+[Diagnostics]: UpdateState(Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorStartupInfo, Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorConfiguration, )
+[Diagnostics]: Acquired mutex
+[Diagnostics] Information: C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor
+[Diagnostics] Information: D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.AzurePerformance\csx\Debug\roles\MassTransit.AzurePerformance.Receiver\diagnostics\x64\monitor\MonAgentHost.exe -LocalPath "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor" -StaticConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\mastaticconfig.xml" -ConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\maconfig.xml" -ShutDownEvent WADDM-ShutDown-c4bf2b2b81af4975b25f173f7ed464cb -InitializedEvent WADM-StartUp-c4bf2b2b81af4975b25f173f7ed464cb -parent 3136 -events
+[Diagnostics]: Creating config channel server
+[MonAgentHost] Output: Agent will exit when WADDM-ShutDown-c4bf2b2b81af4975b25f173f7ed464cb is signaled.
+[MonAgentHost] Output: Will signal WADM-StartUp-c4bf2b2b81af4975b25f173f7ed464cb after the agent is initialized.
+[MonAgentHost] Output: Registered as an event consumer.
+[MonAgentHost] Output: Agent will exit when parent process 3136 exits.
+[MonAgentHost] Output: Monitoring Agent Started
+[Diagnostics]: Starting configuration channel polling
+[fabric] Role state Started
+[runtime] Role entrypoint . CALLING   OnStart()
+[Diagnostics]: UpdateState(Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorStartupInfo, Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorConfiguration, )
+[Diagnostics]: Mutex already taken
+[Diagnostics]: Creating config channel client
+[Diagnostics]: Attempting to connect to server...
+[Diagnostics]: Connection sucessful, sending config
+[Diagnostics]: Config request received
+[Diagnostics]: Signalling process restart on event = WADDM-ShutDown-c4bf2b2b81af4975b25f173f7ed464cb
+[runtime] Role entrypoint . COMPLETED OnStart()
+[MonAgentHost] Output: Exiting the monitoring agent 3236 after the shutdown event was signaled.
+[MonAgentHost] Output: Monitoring Agent Stopped
+[Diagnostics] Information: Diagnostic process exited with code: 0
+[runtime] Role entrypoint . CALLING   Run()
+[Diagnostics]: UpdateState(Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorStartupInfo, Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorConfiguration, )
+[Diagnostics]: Mutex already taken
+[Diagnostics]: Attempting to connect to server...
+[Diagnostics] Information: C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor
+[Diagnostics] Information: D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.AzurePerformance\csx\Debug\roles\MassTransit.AzurePerformance.Receiver\diagnostics\x64\monitor\MonAgentHost.exe -LocalPath "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor" -StaticConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\mastaticconfig.xml" -ConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\maconfig.xml" -ShutDownEvent WADDM-ShutDown-a7bb1588873348898a7e7bb54b9810d9 -InitializedEvent WADM-StartUp-a7bb1588873348898a7e7bb54b9810d9 -parent 3136 -events
+[MonAgentHost] Output: Agent will exit when WADDM-ShutDown-a7bb1588873348898a7e7bb54b9810d9 is signaled.
+[MonAgentHost] Output: Will signal WADM-StartUp-a7bb1588873348898a7e7bb54b9810d9 after the agent is initialized.
+[MonAgentHost] Output: Registered as an event consumer.
+[MonAgentHost] Output: Agent will exit when parent process 3136 exits.
+[MonAgentHost] Output: Monitoring Agent Started
+[Diagnostics]: Starting configuration channel polling
+[Diagnostics]: Connection sucessful, sending config
+[Diagnostics]: Config request received
+[Diagnostics]: Signalling process restart on event = WADDM-ShutDown-a7bb1588873348898a7e7bb54b9810d9
+[MonAgentHost] Output: Exiting the monitoring agent 4792 after the shutdown event was signaled.
+[MonAgentHost] Output: Monitoring Agent Stopped
+[Diagnostics] Information: Diagnostic process exited with code: 0
+[Diagnostics]: UpdateState(Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorStartupInfo, Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorConfiguration, )
+[Diagnostics]: Mutex already taken
+[Diagnostics]: Attempting to connect to server...
+[Diagnostics] Information: C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor
+[Diagnostics] Information: D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.AzurePerformance\csx\Debug\roles\MassTransit.AzurePerformance.Receiver\diagnostics\x64\monitor\MonAgentHost.exe -LocalPath "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor" -StaticConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\mastaticconfig.xml" -ConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\maconfig.xml" -ShutDownEvent WADDM-ShutDown-adb6f73b01584a59a1cfc4c2cbd3b4c6 -InitializedEvent WADM-StartUp-adb6f73b01584a59a1cfc4c2cbd3b4c6 -parent 3136 -events
+[MonAgentHost] Output: Agent will exit when WADDM-ShutDown-adb6f73b01584a59a1cfc4c2cbd3b4c6 is signaled.
+[MonAgentHost] Output: Will signal WADM-StartUp-adb6f73b01584a59a1cfc4c2cbd3b4c6 after the agent is initialized.
+[MonAgentHost] Output: Registered as an event consumer.
+[MonAgentHost] Output: Agent will exit when parent process 3136 exits.
+[MonAgentHost] Output: Monitoring Agent Started
+[Diagnostics]: Starting configuration channel polling
+[Diagnostics]: Connection sucessful, sending config
+[Diagnostics]: Config request received
+[Diagnostics]: Signalling process restart on event = WADDM-ShutDown-adb6f73b01584a59a1cfc4c2cbd3b4c6
+11548 [Role Start Thread] INFO MassTransit.AzurePerformance.Receiver.ReceiverWorker - starting receiver
+[MonAgentHost] Output: Exiting the monitoring agent 12908 after the shutdown event was signaled.
+[MonAgentHost] Output: Monitoring Agent Stopped
+[Diagnostics] Information: Diagnostic process exited with code: 0
+[Diagnostics]: UpdateState(Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorStartupInfo, Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorConfiguration, )
+[Diagnostics]: Mutex already taken
+[Diagnostics]: Attempting to connect to server...
+[Diagnostics] Information: C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor
+[Diagnostics] Information: D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.AzurePerformance\csx\Debug\roles\MassTransit.AzurePerformance.Receiver\diagnostics\x64\monitor\MonAgentHost.exe -LocalPath "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor" -StaticConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\mastaticconfig.xml" -ConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\maconfig.xml" -ShutDownEvent WADDM-ShutDown-3bd38f73ecc14df2884e07672e274f1b -InitializedEvent WADM-StartUp-3bd38f73ecc14df2884e07672e274f1b -parent 3136 -events
+[MonAgentHost] Output: Agent will exit when WADDM-ShutDown-3bd38f73ecc14df2884e07672e274f1b is signaled.
+[MonAgentHost] Output: Will signal WADM-StartUp-3bd38f73ecc14df2884e07672e274f1b after the agent is initialized.
+[MonAgentHost] Output: Registered as an event consumer.
+[MonAgentHost] Output: Agent will exit when parent process 3136 exits.
+[MonAgentHost] Output: Monitoring Agent Started
+[Diagnostics]: Starting configuration channel polling
+[Diagnostics]: Connection sucessful, sending config
+[Diagnostics]: Config request received
+[Diagnostics]: Signalling process restart on event = WADDM-ShutDown-3bd38f73ecc14df2884e07672e274f1b
+[MonAgentHost] Output: Exiting the monitoring agent 2868 after the shutdown event was signaled.
+[MonAgentHost] Output: Monitoring Agent Stopped
+[Diagnostics] Information: Diagnostic process exited with code: 0
+15365 [Role Start Thread] INFO MassTransit.BusConfigurators.ServiceBusConfiguratorImpl - MassTransit v2.0.6.0, .NET Framework v4.0.30319.239
+[Diagnostics] Information: C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor
+[Diagnostics] Information: D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.AzurePerformance\csx\Debug\roles\MassTransit.AzurePerformance.Receiver\diagnostics\x64\monitor\MonAgentHost.exe -LocalPath "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor" -StaticConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\mastaticconfig.xml" -ConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\maconfig.xml" -ShutDownEvent WADDM-ShutDown-bcebb7a0c2d44f36b7850d5229b54879 -InitializedEvent WADM-StartUp-bcebb7a0c2d44f36b7850d5229b54879 -parent 3136 -events
+[MonAgentHost] Output: Agent will exit when WADDM-ShutDown-bcebb7a0c2d44f36b7850d5229b54879 is signaled.
+[MonAgentHost] Output: Will signal WADM-StartUp-bcebb7a0c2d44f36b7850d5229b54879 after the agent is initialized.
+[MonAgentHost] Output: Registered as an event consumer.
+[MonAgentHost] Output: Agent will exit when parent process 3136 exits.
+[MonAgentHost] Output: Monitoring Agent Started
+[Diagnostics]: Starting configuration channel polling
+22150 [14] INFO MassTransit.Transports.AzureServiceBus.ConnectionImpl - Connecting azure-sb://owner:bjOAWQJfORnqTqOIlna2HCN+Ww4mAHwKZUJ1jKwTLdc=@mt-client/receiver
+25926 [14] INFO MassTransit.Transports.AzureServiceBus.Subscription - Subscribing to /receiver
+29006 [10] INFO MassTransit.Messages - RECV:azure-sb://owner:bjOAWQJfORnqTqOIlna2HCN+Ww4mAHwKZUJ1jKwTLdc=@mt-client/receiver:MassTransit.AzurePerformance.Messages.SenderUp, MassTransit.AzurePerformance.Messages:376f720dbf5e433e959827b7e5c0c731
+[Diagnostics]: Checking for configuration updates 2012-02-07 16:39:08.
+[Diagnostics]: Signalling process restart on event = WADDM-ShutDown-bcebb7a0c2d44f36b7850d5229b54879
+[MonAgentHost] Output: Exiting the monitoring agent 10376 after the shutdown event was signaled.
+[MonAgentHost] Output: Monitoring Agent Stopped
+[Diagnostics] Information: Diagnostic process exited with code: 0
+[Diagnostics] Information: C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor
+[Diagnostics] Information: D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.AzurePerformance\csx\Debug\roles\MassTransit.AzurePerformance.Receiver\diagnostics\x64\monitor\MonAgentHost.exe -LocalPath "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor" -StaticConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\mastaticconfig.xml" -ConfigFile "C:\Users\xyz\AppData\Local\dftmp\Resources\c88e974e-6906-457e-a313-45b215454047\directory\DiagnosticStore\Monitor\Configuration\maconfig.xml" -ShutDownEvent WADDM-ShutDown-74900dd0333940a384ab3ae81db0cb97 -InitializedEvent WADM-StartUp-74900dd0333940a384ab3ae81db0cb97 -parent 3136 -events
+[MonAgentHost] Output: Agent will exit when WADDM-ShutDown-74900dd0333940a384ab3ae81db0cb97 is signaled.
+[MonAgentHost] Output: Will signal WADM-StartUp-74900dd0333940a384ab3ae81db0cb97 after the agent is initialized.
+[MonAgentHost] Output: Registered as an event consumer.
+[MonAgentHost] Output: Agent will exit when parent process 3136 exits.
+[MonAgentHost] Output: Monitoring Agent Started
+[Diagnostics]: Starting configuration channel polling
+[Diagnostics]: Checking for configuration updates 2012-02-07 16:40:11.
+[Diagnostics]: Checking for configuration updates 2012-02-07 16:41:11.
+165297 [34] ERROR MassTransit.Messages - System.AggregateException: One or more errors occurred. ---> Microsoft.ServiceBus.Messaging.MessagingCommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.IO.IOException: The write operation failed, see inner exception. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.Net.Sockets.SocketException: An existing connection was forcibly closed by the remote host
+   at System.Net.Sockets.Socket.BeginSend(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.DelegatingConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.BufferedConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.ConnectionStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
+   at System.Net.Security._SslStream.StartWriting(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   --- End of inner exception stack trace ---
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.Net.Security.SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult.WriteCore()
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult..ctor(FramingDuplexSessionChannel channel, Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.OnBeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.OutputChannel.BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult..ctor(DuplexRequestSessionChannel parent, Message wcfRequest, TimeSpan timeout, AsyncCallback callback, Object state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult.End(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.RequestAsyncResult.<GetAsyncSteps>b__13(RequestAsyncResult thisPtr, IAsyncResult r)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [1]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.ReceiveAsyncResult.<GetAsyncSteps>b__33(ReceiveAsyncResult thisPtr, IAsyncResult a)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.OnEndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndReceive(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.QueueClient.EndReceive(IAsyncResult result)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endMethod, TaskCompletionSource`1 tcs)
+   --- End of inner exception stack trace ---
+---> (Inner Exception #0) Microsoft.ServiceBus.Messaging.MessagingCommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.IO.IOException: The write operation failed, see inner exception. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.Net.Sockets.SocketException: An existing connection was forcibly closed by the remote host
+   at System.Net.Sockets.Socket.BeginSend(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.DelegatingConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.BufferedConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.ConnectionStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
+   at System.Net.Security._SslStream.StartWriting(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   --- End of inner exception stack trace ---
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.Net.Security.SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult.WriteCore()
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult..ctor(FramingDuplexSessionChannel channel, Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.OnBeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.OutputChannel.BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult..ctor(DuplexRequestSessionChannel parent, Message wcfRequest, TimeSpan timeout, AsyncCallback callback, Object state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult.End(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.RequestAsyncResult.<GetAsyncSteps>b__13(RequestAsyncResult thisPtr, IAsyncResult r)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [1]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.ReceiveAsyncResult.<GetAsyncSteps>b__33(ReceiveAsyncResult thisPtr, IAsyncResult a)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.OnEndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndReceive(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.QueueClient.EndReceive(IAsyncResult result)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endMethod, TaskCompletionSource`1 tcs)<---
+
+165297 [34] ERROR MassTransit.Messages - System.AggregateException: One or more errors occurred. ---> Microsoft.ServiceBus.Messaging.MessagingCommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.IO.IOException: The write operation failed, see inner exception. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.Net.Sockets.SocketException: An existing connection was forcibly closed by the remote host
+   at System.Net.Sockets.Socket.BeginSend(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.DelegatingConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.BufferedConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.ConnectionStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
+   at System.Net.Security._SslStream.StartWriting(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   --- End of inner exception stack trace ---
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.Net.Security.SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult.WriteCore()
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult..ctor(FramingDuplexSessionChannel channel, Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.OnBeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.OutputChannel.BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult..ctor(DuplexRequestSessionChannel parent, Message wcfRequest, TimeSpan timeout, AsyncCallback callback, Object state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult.End(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.RequestAsyncResult.<GetAsyncSteps>b__13(RequestAsyncResult thisPtr, IAsyncResult r)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [1]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.ReceiveAsyncResult.<GetAsyncSteps>b__33(ReceiveAsyncResult thisPtr, IAsyncResult a)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.OnEndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndReceive(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.QueueClient.EndReceive(IAsyncResult result)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endMethod, TaskCompletionSource`1 tcs)
+   --- End of inner exception stack trace ---
+---> (Inner Exception #0) Microsoft.ServiceBus.Messaging.MessagingCommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.IO.IOException: The write operation failed, see inner exception. ---> System.ServiceModel.CommunicationException: The socket connection was aborted. This could be caused by an error processing your message or a receive timeout being exceeded by the remote host, or an underlying network resource issue. Local socket timeout was '00:00:19.9900000'. ---> System.Net.Sockets.SocketException: An existing connection was forcibly closed by the remote host
+   at System.Net.Sockets.Socket.BeginSend(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+   at System.ServiceModel.Channels.SocketConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.DelegatingConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.BufferedConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.ConnectionStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
+   at System.Net.Security._SslStream.StartWriting(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   --- End of inner exception stack trace ---
+   at System.Net.Security._SslStream.ProcessWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncProtocolRequest asyncRequest)
+   at System.Net.Security._SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.Net.Security.SslStream.BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback asyncCallback, Object asyncState)
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at System.ServiceModel.Channels.StreamConnection.BeginWrite(Byte[] buffer, Int32 offset, Int32 size, Boolean immediate, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult.WriteCore()
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.SendAsyncResult..ctor(FramingDuplexSessionChannel channel, Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.FramingDuplexSessionChannel.OnBeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at System.ServiceModel.Channels.OutputChannel.BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, Object state)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult..ctor(DuplexRequestSessionChannel parent, Message wcfRequest, TimeSpan timeout, AsyncCallback callback, Object state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.DuplexCorrelationAsyncResult.End(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.RequestAsyncResult.<GetAsyncSteps>b__13(RequestAsyncResult thisPtr, IAsyncResult r)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [1]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.EndRequest(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   --- End of inner exception stack trace ---
+
+Server stack trace: 
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.EndReceiveCommand(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.ReceiveAsyncResult.<GetAsyncSteps>b__33(ReceiveAsyncResult thisPtr, IAsyncResult a)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.End(IAsyncResult asyncResult)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessageReceiver.OnEndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndTryReceive(IAsyncResult result, IEnumerable`1& messages)
+   at Microsoft.ServiceBus.Messaging.MessageReceiver.EndReceive(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.QueueClient.EndReceive(IAsyncResult result)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endMethod, TaskCompletionSource`1 tcs)<---
+
+[Diagnostics]: Checking for configuration updates 2012-02-07 16:42:11.

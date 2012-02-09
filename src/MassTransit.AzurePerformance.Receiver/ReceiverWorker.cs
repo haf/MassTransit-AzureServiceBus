@@ -13,6 +13,7 @@ using MassTransit.Transports.AzureServiceBus.Configuration;
 using log4net;
 using log4net.Azure;
 using log4net.Config;
+using log4net.Repository.Hierarchy;
 
 namespace MassTransit.AzurePerformance.Receiver
 {
@@ -27,10 +28,23 @@ namespace MassTransit.AzurePerformance.Receiver
 			BasicConfigurator.Configure(AzureAppender.New(conf =>
 				{
 					conf.Level = "Info";
-				}));
+					
+					conf.ConfigureRepository((repo, mapper) =>
+						{
+							repo.Threshold = mapper("Info"); // root
 
+							((Logger) ((Hierarchy) repo).GetLogger("MassTransit.Messages")).Level = mapper("Warn");
+						});
+
+					conf.ConfigureAzureDiagnostics(d =>
+						{
+							d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
+						});
+				}));
+			
 			// This is a sample worker implementation. Replace with your logic.
 			_logger.Info("starting receiver");
+
 			RoleEnvironment.Stopping += (sender, args) => _isStopping = true;
 
 			ConfigureDiagnostics();

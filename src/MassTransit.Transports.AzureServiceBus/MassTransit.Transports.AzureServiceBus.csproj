@@ -71,6 +71,9 @@
     <Compile Include="AzureServiceBusEndpointAddress.cs" />
     <Compile Include="AzureServiceBusEndpointAddressImpl.cs" />
     <Compile Include="ConnectionImpl.cs" />
+    <Compile Include="QueueClient.cs" />
+    <Compile Include="QueueDescription.cs" />
+    <Compile Include="QueueDescriptionImpl.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="TopicSubscriptionObserver.cs" />
     <Compile Include="TransportFactoryImpl.cs" />

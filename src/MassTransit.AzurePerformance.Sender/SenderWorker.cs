@@ -25,6 +25,16 @@ namespace MassTransit.AzurePerformance.Sender
 			BasicConfigurator.Configure(AzureAppender.New(conf =>
 				{
 					conf.Level = "Info";
+
+					conf.ConfigureRepository((repo, mapper) =>
+						{
+							repo.Threshold = mapper("Info"); // root
+						});
+
+					conf.ConfigureAzureDiagnostics(d =>
+						{
+							d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
+						});
 				}));
 
 			_logger.Info("Sender entry point called");
@@ -65,7 +75,7 @@ namespace MassTransit.AzurePerformance.Sender
 				var count = 0;
 				var watch = Stopwatch.StartNew();
 				// it sends about 3 x stopcount in the time receiver has to get them
-				while (!_isStopping && count != 300)
+				while (!_isStopping && count != 1500)
 				{
 					var msg = new ZoomImpl { Id = CombGuid.Generate() };
 					receiver.Send<ZoomZoom>(msg);

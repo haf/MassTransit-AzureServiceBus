@@ -19,6 +19,10 @@ using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using SBQDesc = Microsoft.ServiceBus.Messaging.QueueDescription;
+using SBTDesc = Microsoft.ServiceBus.Messaging.TopicDescription;
+using SBSDesc = Microsoft.ServiceBus.Messaging.SubscriptionDescription;
+using SBQClient = Microsoft.ServiceBus.Messaging.QueueClient;
 using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus.Management
@@ -34,7 +38,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 		                                         [NotNull] SubscriptionDescription description)
 		{
 			return Task.Factory
-				.FromAsync<Microsoft.ServiceBus.Messaging.SubscriptionDescription, Microsoft.ServiceBus.Messaging.SubscriptionDescription>(
+				.FromAsync<SBSDesc, SBSDesc>(
 					namespaceManager.BeginCreateSubscription,
 					namespaceManager.EndCreateSubscription,
 					description.IDareYou, null);
@@ -110,7 +114,8 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 		}
 
 		public static Task<QueueClient> TryCreateQueueClient(
-			[NotNull] this MessagingFactory mf, 
+			[NotNull] this MessagingFactory mf,
+			[NotNull] NamespaceManager nm,
 			[NotNull] QueueDescription description,
 			int prefetchCount)
 		{
@@ -122,11 +127,24 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 			//    mf.EndCreateMessageReceiver,
 			//    description.Path, null);
 			// where's the BeginCreateQueueClient??!
+
 			return Task.Factory.StartNew(() =>
 				{
-					var qc = mf.CreateQueueClient(description.Path);
-					qc.PrefetchCount = prefetchCount;
-					return qc;
+					Func<SBQClient> queue_client = () =>
+						{
+							var qc = mf.CreateQueueClient(description.Path);
+							qc.PrefetchCount = prefetchCount;
+							return qc;
+						};
+
+					Func<Task<SBQClient>> drain = () =>
+						{
+							return nm.TryDeleteQueue(description.Path)
+								.ContinueWith(tDel => nm.TryCreateQueue(description.Path)).Unwrap()
+								.ContinueWith(tCreate => queue_client());
+						};
+
+					return new QueueClientImpl(queue_client(), drain) as QueueClient;
 				});
 		}
 
@@ -136,42 +154,68 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 			// bugs out http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/6ce20f60-915a-4519-b7e3-5af26fc31e35
 			// says it'll give null, but throws!
 
+			var description = new QueueDescriptionImpl(queueName)
+				{
+					EnableBatchedOperations = true
+				};
+
+			return ExistsQueue(nsm, queueName)
+				.Then(doesExist => doesExist ? GetQueue(nsm, queueName) 
+											 : CreateQueue(nsm, queueName, description));
+		}
+
+		public static Task TryDeleteQueue(this NamespaceManager nm, string queueName)
+		{
+			return ExistsQueue(nm, queueName)
+				.Then(doesExist => doesExist ? DeleteQueue(nm, queueName) 
+											 : Task.Factory.StartNew(() => { }));
+		}
+
+		static Task<bool> ExistsQueue(NamespaceManager nsm, string queueName)
+		{
 			_logger.Debug(string.Format("being queue exists @ '{0}'", queueName));
-			var exists = Task.Factory.FromAsync<string, bool>(
+			return Task.Factory.FromAsync<string, bool>(
 				nsm.BeginQueueExists, nsm.EndQueueExists, queueName, null)
 				.ContinueWith(tExists =>
 					{
 						_logger.Debug(string.Format("end queue exists @ '{0}'", queueName));
 						return tExists.Result;
 					});
-
-			Func<Task<QueueDescription>> create = () =>
-				{
-					_logger.Debug(string.Format("being create queue @ '{0}'", queueName));
-					return Task.Factory.FromAsync<string, QueueDescription>(
-						nsm.BeginCreateQueue, nsm.EndCreateQueue, queueName, null)
-						.ContinueWith(tCreate =>
-							{
-								_logger.Debug(string.Format("end create queue @ '{0}'", queueName));
-								return tCreate.Result;
-							});
-				};
-
-			Func<Task<QueueDescription>> get = () =>
-				{
-					_logger.Debug(string.Format("begin get queue @ '{0}'", queueName));
-					return Task.Factory.FromAsync<string, QueueDescription>(
-						nsm.BeginGetQueue, nsm.EndGetQueue, queueName, null)
-						.ContinueWith(tGet =>
-							{
-								_logger.Debug(string.Format("end get queue @ '{0}'", queueName));
-								return tGet.Result;
-							});
-				};
-
-			return exists.Then(doesExist => doesExist ? get() : create());
 		}
 
+		static Task<QueueDescription> CreateQueue(NamespaceManager nsm, string queueName, QueueDescriptionImpl description)
+		{
+			_logger.Debug(string.Format("being create queue @ '{0}'", queueName));
+			return Task.Factory.FromAsync<SBQDesc, SBQDesc>(
+				nsm.BeginCreateQueue, nsm.EndCreateQueue, description.Inner, null)
+				.ContinueWith(tCreate =>
+					{
+						_logger.Debug(string.Format("end create queue @ '{0}'", queueName));
+						return new QueueDescriptionImpl(tCreate.Result) as QueueDescription;
+					});
+		}
+
+		static Task<QueueDescription> GetQueue(NamespaceManager nsm, string queueName)
+		{
+			_logger.Debug(string.Format("begin get queue @ '{0}'", queueName));
+			return Task.Factory.FromAsync<string, SBQDesc>(
+				nsm.BeginGetQueue, nsm.EndGetQueue, queueName, null)
+				.ContinueWith(tGet =>
+					{
+						_logger.Debug(string.Format("end get queue @ '{0}'", queueName));
+						return new QueueDescriptionImpl(tGet.Result) as QueueDescription;
+					});
+		}
+
+		static Task DeleteQueue(NamespaceManager nm, string queueName)
+		{
+			_logger.Debug(string.Format("being delete queue @ '{0}'", queueName));
+			return Task.Factory.FromAsync(
+				nm.BeginDeleteQueue, 
+				nm.EndDeleteQueue, queueName, null)
+				.ContinueWith(tDel => _logger.Debug(string.Format("end delete queue @ '{0}'", queueName)));
+		}
+		
 		/// <returns> the topic description </returns>
 		public static Task<Topic> TryCreateTopic(this NamespaceManager nm,
 		                                         MessagingFactory factory,
@@ -189,7 +233,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 			Func<Task<Topic>> create = () =>
 				{
 					_logger.Debug(string.Format("begin create topic @ '{0}'", topicName));
-					return Task.Factory.FromAsync<string, Microsoft.ServiceBus.Messaging.TopicDescription>(
+					return Task.Factory.FromAsync<string, SBTDesc>(
 						nm.BeginCreateTopic, nm.EndCreateTopic, topicName, null)
 						.ContinueWith(tCreate =>
 							{
@@ -201,7 +245,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 			Func<Task<Topic>> get = () =>
 				{
 					_logger.Debug(string.Format("begin get topic @ '{0}'", topicName));
-					return Task.Factory.FromAsync<string, Microsoft.ServiceBus.Messaging.TopicDescription>(
+					return Task.Factory.FromAsync<string, SBTDesc>(
 						nm.BeginGetTopic, nm.EndGetTopic, topicName, null)
 						.ContinueWith(tGet =>
 							{
