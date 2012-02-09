@@ -18,6 +18,7 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
+	[Scenario]
 	public class Should_be_possible_to_delete_and_recreate_queue
 	{
 		QueueClient client;
