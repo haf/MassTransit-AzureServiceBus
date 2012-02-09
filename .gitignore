@@ -5,6 +5,7 @@ obj/
 *resharper*
 packages/
 AccountDetails.cs
+AccountDetails.fs
 csx/
 Profiles/
 ServiceConfiguration.Cloud.cscfg
