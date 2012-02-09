@@ -94,7 +94,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 					if (_logger.IsDebugEnabled)
 						_logger.Debug(string.Format("SEND-end:{0}:{1}:{2}",
-						                                            _address, msg.Label, msg.MessageId));
+							_address, msg.Label, msg.MessageId));
 
 					try
 					{
@@ -109,7 +109,7 @@ namespace MassTransit.Transports.AzureServiceBus
 					{
 						if (_logger.IsWarnEnabled)
 							_logger.Warn(string.Format("SEND-too-busy:{0}:{1}:{2}",
-							                                           _address, msg.Label, msg.MessageId), serverBusyException);
+								_address, msg.Label, msg.MessageId), serverBusyException);
 						
 						RetryLoop(connection, bm);
 					}
@@ -128,7 +128,8 @@ namespace MassTransit.Transports.AzureServiceBus
 					queue.Enqueue(bm);
 
 					if (_logger.IsInfoEnabled)
-						_logger.Info(string.Format("SEND-retry:{0}. Queue count: {1}", _address, queue.Count));
+						_logger.Info(string.Format("SEND-retry:{0}. Queue count: {1}", 
+							_address, queue.Count));
 
 					while (queue.Count > 0)
 						TrySendMessage(connection, queue.Dequeue());
