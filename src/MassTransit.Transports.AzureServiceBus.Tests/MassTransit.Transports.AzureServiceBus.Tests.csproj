@@ -93,7 +93,7 @@
     <Compile Include="ConfigFactory.cs" />
     <Compile Include="ContextSetup.cs" />
     <Compile Include="given_a_bus.cs" />
-    <Compile Include="Cat_eating_rat_spec.cs" />
+    <Compile Include="When_cat_eats_rat.cs" />
     <Compile Include="AzureServiceBusAddress_Specs.cs" />
     <Compile Include="given_a_rat_hole_and_a_cat.cs" />
     <Compile Include="When_a_message_is_published.cs" />
@@ -108,9 +108,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="tests.log4net.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="tests.log4net.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus\MassTransit.Transports.AzureServiceBus.csproj">

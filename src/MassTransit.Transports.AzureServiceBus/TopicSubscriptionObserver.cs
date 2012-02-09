@@ -23,7 +23,7 @@ using Magnum.Extensions;
 namespace MassTransit.Transports.AzureServiceBus
 {
 	/// <summary>
-	/// 	Monitors the subscriptions from the local bus and subscribes the topics with topic clients when subscriptions occurr: when they do; create the appropriate topics for them.
+	/// 	Monitors the subscriptions from the local bus and subscribes the topics with topic clients when subscriptions occur: when they do; create the appropriate topics for them.
 	/// </summary>
 	public class TopicSubscriptionObserver
 		: SubscriptionObserver, ConnectionBinding<ConnectionImpl>
@@ -47,7 +47,10 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Bind(ConnectionImpl connection)
 		{
-			_bindings.Each(kv => connection.SignalSubscription(kv.Key, kv.Value));
+			if (_logger.IsDebugEnabled)
+				_logger.Debug(string.Format("connection {0} BOUND to {1}", connection, _address));
+
+			_bindings.Each(kv => connection.SignalBoundSubscription(kv.Key /* subId */, kv.Value /* topic */));
 		}
 
 		public void OnSubscriptionAdded(SubscriptionAdded message)
@@ -69,6 +72,10 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Unbind(ConnectionImpl connection)
 		{
+			if (_logger.IsDebugEnabled)
+				_logger.Debug(string.Format("connection {0} UNBOUND to {1}", connection, _address));
+
+			_bindings.Each(kv => connection.SignalUnboundSubscription(kv.Key /* subId */, kv.Value /* topic */));
 		}
 
 		public void OnSubscriptionRemoved(SubscriptionRemoved message)

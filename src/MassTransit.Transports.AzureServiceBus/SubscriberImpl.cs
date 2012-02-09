@@ -24,10 +24,10 @@ namespace MassTransit.Transports.AzureServiceBus
 	{
 		static readonly ILog _logger = LogManager.GetLogger(typeof (SubscriberImpl));
 
-		readonly SubscriptionClient _client;
-		readonly Guid _subscriptionId;
-		readonly UnsubscribeAction _action;
 		bool _disposed;
+		readonly SubscriptionClient _client;
+		readonly UnsubscribeAction _action;
+		readonly Guid _subscriptionId;
 
 		public SubscriberImpl([NotNull] SubscriptionClient client,
 		                      Guid subscriptionId, [NotNull] UnsubscribeAction action)
@@ -56,6 +56,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			try
 			{
 				_client.Close();
+				_action().Wait();
 			}
 			finally
 			{

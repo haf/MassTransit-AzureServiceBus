@@ -26,7 +26,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		{
 			string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-			string file = Path.Combine(path, "test.log4net.xml");
+			string file = Path.Combine(path, "tests.log4net.xml");
 
 			XmlConfigurator.Configure(new FileInfo(file));
 		}

@@ -27,7 +27,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	             "from a local bus to a remote endpoint. In this case, we're sending " +
 	             "a rat to a hungry cat."),
 	 Scenario]
-	public class Cat_eating_rat_spec
+	public class When_cat_eats_rat
 		: given_a_rat_hole_and_a_cat
 	{
 		Action<string> cat_sounds = Console.WriteLine,
@@ -72,9 +72,9 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		// well behaved cats wear napkins
 		void cat_prepares_with_napkin()
 		{
-			take_nap = Cat.SubscribeInstance(the_cat_is);
-			Cat.ShouldHaveSubscriptionFor<Rat>();
-			RatHole.ShouldHaveSubscriptionFor<Rat>();
+			take_nap = RemoteBus.SubscribeInstance(the_cat_is);
+			RemoteBus.ShouldHaveSubscriptionFor<Rat>();
+			LocalBus.ShouldHaveSubscriptionFor<Rat>();
 		}
 
 		[Then]

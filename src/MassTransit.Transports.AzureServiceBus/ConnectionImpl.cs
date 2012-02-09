@@ -80,10 +80,20 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _queue; }
 		}
 
-		public void SignalSubscription(Guid subscriptionId, Topic topic)
+		public void SignalBoundSubscription(Guid subscriptionId, Topic topic)
 		{
 			topic.CreateSubscriber()
-				.Then(tuple => _subscribers.Add(subscriptionId, tuple));
+				.Then(tClientAndSub => _subscribers.Add(subscriptionId, tClientAndSub));
+		}
+
+		public void SignalUnboundSubscription(Guid key, Topic topic)
+		{
+			Tuple<TopicClient, Subscriber> tuple;
+			if (_subscribers.TryGetValue(key, out tuple))
+			{
+				tuple.Item1.Dispose();
+				tuple.Item2.Dispose();
+			}
 		}
 
 		public IEnumerable<Subscriber> Subscribers
