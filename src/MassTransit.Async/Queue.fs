@@ -15,9 +15,8 @@ module Queue =
   
   let recv (client : MessageReceiver) timeout =
     let bRecv = client.BeginReceive : TimeSpan * AsyncCallback * obj -> IAsyncResult
-    async { 
-      let! res = Async.FromBeginEnd(timeout, bRecv, client.EndReceive)
-      return res }
+    async {
+      return! Async.FromBeginEnd(client.BeginReceive, client.EndReceive) }
   
   let send (client : MessageSender) message =
     async {
@@ -30,7 +29,7 @@ module Queue =
                       (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
                       mf.EndCreateMessageReceiver) }
   
-  let exists ( nm : NamespaceManager ) (desc : QueueDescription) = 
+  let exists (nm : NamespaceManager ) (desc : QueueDescription) = 
     async { return! Async.FromBeginEnd((desc.Path), nm.BeginQueueExists, nm.EndQueueExists) }
 
   let create (nm : NamespaceManager) (desc : QueueDescription) =
@@ -43,8 +42,9 @@ module Queue =
 
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =
     async {
-      let! exists = desc |> exists nm
-      while exists |> not do desc |> create nm |> ignore
+      let! exists = desc |> exists nm 
+      if exists |> not then desc |> create nm |> ignore
+      printfn "starting receiver"
       return! Async.FromBeginEnd((desc.Path),
                       mf.BeginCreateMessageSender,
                       mf.EndCreateMessageSender) }

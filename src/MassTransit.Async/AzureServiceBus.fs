@@ -13,7 +13,7 @@ open MassTransit.Async.Queue
 open MassTransit.Async.AsyncRetry
 
 /// Messages that can be passed to the server
-type private message  = Faster | Slower | Quit
+type private message  = Faster | Slower | Stop
 type private actor    = MailboxProcessor<message>
 
 /// Create a new receiver
@@ -44,23 +44,33 @@ type Receiver<'T>(desc   : QueueDescription,
         return! loop client mf }
 
     and loop client mf =
-      printfn "loop enter"
       async {
         let! bmsg = timeout |> recv client
-        if bmsg <> null then
+//        printfn "got msg from asb"
+        if bmsg <> null && inbox.CurrentQueueLength = 0 then
+//          printfn "got brokered msg"
           let! msg = deserializer bmsg
+//          printfn "adding to buffer"
           do! messages.AsyncAdd msg
-        printfn "no messages in ASB"
-        let! msg = inbox.TryReceive 0
-        match msg with
-        | Some(m) -> match m with
-                     | Faster -> return! start <| newMf ()
-                     | Slower -> return stop mf client
-                     | Quit   ->
-                       Async.CancelDefaultToken ()
-                       return ()
-        | None    -> return! loop client mf }
+//          printfn "calling complete on msg"
+          do! Async.FromBeginEnd(bmsg.BeginComplete, bmsg.EndComplete)
+          return! loop client mf
+        else
+          printfn "no messages in ASB"
+          let! msg = inbox.TryReceive 0
+          match msg with
+          | Some(m) -> match m with
+                       | Faster -> return! start <| newMf ()
+                       | Slower -> return stop mf client
+                       | Stop   ->
+                         printfn "stopping"
+                         Async.CancelDefaultToken ()
+                         return ()
+          | None    ->
+            printfn "nothing in inbox, looping"
+            return! loop client mf }
 
+    printfn "**** CALLING START ****"
     start <| newMf ())
 
   /// Starts a basic router server, binding to the Address property
@@ -72,6 +82,12 @@ type Receiver<'T>(desc   : QueueDescription,
       consumer.Error.Add error.Trigger
       consumer.Start ()
 
+  member self.Faster() =
+    if started |> not 
+      then invalidOp "not started"
+    else
+      consumer.Post Faster
+
   member self.AsyncGet(?timeout) = 
     let timeout = defaultArg timeout <| TimeSpan.FromMilliseconds 50.0
     if started |> not
@@ -81,7 +97,7 @@ type Receiver<'T>(desc   : QueueDescription,
 
   interface IDisposable with
     member x.Dispose() =
-      server.Post Quit
+      consumer.Post Stop
 
 //type InboundTransport(address, connectionHandler) =
 //  interface IDisposable with
