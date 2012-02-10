@@ -1,51 +1,71 @@
-﻿#load "AccountDetails.fs"
-#r @"..\packages\FSharpx.Core.1.4.120207\lib\FSharpx.Async.dll"
-#r @"..\packages\WindowsAzure.ServiceBus.1.6.0.0\lib\net40-full\Microsoft.ServiceBus.dll"
+﻿#r @"..\packages\FSharpx.Core.1.4.120207\lib\FSharpx.Async.dll"
+#r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
+#r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
+
+#time "on"
+
+#load "AccountDetails.fs"
+#load "AsyncRetry.fs"
+open MassTransit.Async.AsyncRetry
+#load "Queue.fs"
+open MassTransit.Async.Queue
 #load "AzureServiceBus.fs"
 
+open MassTransit.Async
 open AccountDetails
+
 open FSharp.Control
-
-let buffer = new BlockingQueueAgent<int>(3)
-
+open System
+open System.Runtime.Serialization
 open Microsoft.ServiceBus
 open Microsoft.ServiceBus.Messaging
 
 // Let's do some service bus hacking
 let tp = TokenProvider.CreateSharedSecretTokenProvider(issuer_name, key)
 let asb_uri = ServiceBusEnvironment.CreateServiceUri("sb", ns, "")
-let mf = MessagingFactory.Create(asb_uri, tp)
 let nm = NamespaceManager(asb_uri, NamespaceManagerSettings(TokenProvider = tp))
 
-module Queue =
-  let queueDescription name = async {
-    let! exists = Async.FromBeginEnd(name, nm.BeginQueueExists, nm.EndQueueExists)
-    return! if exists then Async.FromBeginEnd(name, nm.BeginGetQueue, nm.EndGetQueue)
-            else Async.FromBeginEnd(name, nm.BeginCreateQueue, nm.EndCreateQueue)
-    }
+[<Serializable>]
+type A(item : int) =
+  member x.Item = item
 
+let mfFac = (fun () -> MessagingFactory.Create(asb_uri, tp))
+let qdesc = QueueDescription("fsharp-testing")
+qdesc.MaxSizeInMegabytes <- 1024L*5L
 
-    
-// The sample uses two workflows that add/take elements
-// from the buffer with the following timeouts. When the producer
-// timout is larger, consumer will be blocked. Otherwise, producer
-// will be blocked.
-//let prod_interval = 500
-//let cons_interval = 1000
-//
-//async {
-//  for i in 0 .. 10 do
-//    // Sleep for some time and then add value
-//    do! Async.Sleep(prod_interval)
-//    do! buffer.AsyncAdd(i)
-//    printfn "Added %d" i }
-//|> Async.Start
-//
-//async {
-//  while true do
-//    // Sleep for some time and then get value
-//    do! Async.Sleep(cons_interval)
-//    let! v = buffer.AsyncGet()
-//    printfn "Got %d" v }
-//|> Async.Start
+let deserializer (message : BrokeredMessage) = 
+  printfn "Deserializing message: %s" <| message.ToString()
+  async { return message.GetBody<A>() }
 
+let handler token msg = printfn "%A" msg
+let prod_interval = 500
+let recv_interval = 1000
+let random = Random()
+
+//let qexists = Async.RunSynchronously(  qdesc |> exists nm )
+//let newDesc = Async.RunSynchronously( qdesc |> create nm )
+//let ns = Async.RunSynchronously( qdesc |> newSender (mfFac()) nm)
+//let del = Async.RunSynchronously( qdesc |> delete nm )
+
+// Producer:
+async {
+  let mf = mfFac ()
+  printfn "producer: created mf"
+  let! sender = qdesc |> newSender mf nm
+  while true do
+    let next = random.Next(0, 25)
+    printfn "producer: sending"
+    do! A(next) |> send sender
+    printfn "producer: in test sent %d" next
+    do! Async.Sleep(prod_interval) }
+|> Async.Start
+
+// Receiver:
+async {
+  while true do
+    use r = new Receiver<A>(qdesc, mfFac, handler, deserializer, 1000)
+    do r.Start()
+    let! v = async { try return! r.AsyncGet() with | :? TimeoutException -> return A(-1) }
+    printfn "receiver in test sleeping..."
+    do! Async.Sleep(recv_interval) }
+|> Async.Start

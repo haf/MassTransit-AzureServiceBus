@@ -71,7 +71,10 @@
     <None Include="Script.fsx" />
     <None Include="packages.config" />
     <None Include="app.config" />
+    <Compile Include="Retry.fs" />
+    <Compile Include="AsyncRetry.fs" />
     <Compile Include="AccountDetails.fs" />
+    <Compile Include="Queue.fs" />
     <Compile Include="AzureServiceBus.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
