@@ -17,14 +17,17 @@ open System.Runtime.Serialization
 open Microsoft.ServiceBus
 open Microsoft.ServiceBus.Messaging
 
-// Let's do some service bus hacking
 let tp = TokenProvider.CreateSharedSecretTokenProvider(issuer_name, key)
 let asb_uri = ServiceBusEnvironment.CreateServiceUri("sb", ns, "")
 let nm = NamespaceManager(asb_uri, NamespaceManagerSettings(TokenProvider = tp))
+
 let qdesc = QueueDescription("WhereUWent")
 qdesc.MaxSizeInMegabytes <- 1024L*5L
+qdesc.EnableBatchedOperations <- true
 
-let mfFac = (fun () -> MessagingFactory.Create(asb_uri, tp))
+let mfFac = (fun () -> let mfs = MessagingFactorySettings(TokenProvider = tp,
+                                   NetMessagingTransportSettings = NetMessagingTransportSettings(BatchFlushInterval = TimeSpan.FromMilliseconds 50.0))
+                       MessagingFactory.Create(nm.Address, mfs))
 [<Serializable>]
 type A(item : int) =
   member x.Item = item

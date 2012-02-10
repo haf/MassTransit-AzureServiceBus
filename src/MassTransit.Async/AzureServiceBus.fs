@@ -30,6 +30,7 @@ type Receiver<'T>(desc   : QueueDescription,
   let cancel = Async.DefaultCancellationToken
   let error  = new Event<System.Exception>()
   let timeout = TimeSpan.FromMilliseconds 50.0
+  let maxFlushInterval = TimeSpan.FromMilliseconds 50.0
 
   let consumer = new actor (fun inbox ->
   
@@ -46,7 +47,6 @@ type Receiver<'T>(desc   : QueueDescription,
     and loop client mf =
       async {
         let! bmsg = timeout |> recv client
-//        printfn "got msg from asb"
         if bmsg <> null && inbox.CurrentQueueLength = 0 then
 //          printfn "got brokered msg"
           let! msg = deserializer bmsg
@@ -56,7 +56,7 @@ type Receiver<'T>(desc   : QueueDescription,
           do! Async.FromBeginEnd(bmsg.BeginComplete, bmsg.EndComplete)
           return! loop client mf
         else
-          printfn "no messages in ASB"
+          printfn "got consumer internal msg or nothing to receive from ASB"
           let! msg = inbox.TryReceive 0
           match msg with
           | Some(m) -> match m with
@@ -64,7 +64,7 @@ type Receiver<'T>(desc   : QueueDescription,
                        | Slower -> return stop mf client
                        | Stop   ->
                          printfn "stopping"
-                         Async.CancelDefaultToken ()
+                         //Async.CancelDefaultToken ()
                          return ()
           | None    ->
             printfn "nothing in inbox, looping"
@@ -88,12 +88,20 @@ type Receiver<'T>(desc   : QueueDescription,
     else
       consumer.Post Faster
 
+  member self.Slower() =
+    consumer.Post Slower
+
   member self.AsyncGet(?timeout) = 
     let timeout = defaultArg timeout <| TimeSpan.FromMilliseconds 50.0
     if started |> not
       then invalidOp "not started"
     else
       messages.AsyncGet(timeout.Milliseconds)
+
+  member self.Stop () =
+    printfn "sending stop msg"
+    started <- false
+    consumer.Post Stop
 
   interface IDisposable with
     member x.Dispose() =

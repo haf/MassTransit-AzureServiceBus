@@ -24,7 +24,7 @@ module Queue =
       do! Async.FromBeginEnd(bm, client.BeginSend, client.EndSend) : Async<unit> }
   
   let newReceiver (mf : MessagingFactory) (desc : QueueDescription) =
-    async { 
+    async {
       return! Async.FromBeginEnd((desc.Path),
                       (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
                       mf.EndCreateMessageReceiver) }
