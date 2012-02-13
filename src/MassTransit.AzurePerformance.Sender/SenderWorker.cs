@@ -8,15 +8,14 @@ using MassTransit.AzurePerformance.Messages;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using log4net;
-using log4net.Azure;
-using log4net.Config;
+using NLog;
+using LogLevel = Microsoft.WindowsAzure.Diagnostics.LogLevel;
 
 namespace MassTransit.AzurePerformance.Sender
 {
 	public class SenderWorker : RoleEntryPoint
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (SenderWorker));
+		static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
 		volatile bool _isStopping;
 

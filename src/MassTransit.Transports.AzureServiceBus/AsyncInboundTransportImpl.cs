@@ -16,9 +16,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using MassTransit.Context;
-using MassTransit.Util;
+using MassTransit.Logging;
 using Microsoft.ServiceBus.Messaging;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -32,7 +31,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly AzureServiceBusEndpointAddress _address;
 
 		bool _disposed;
-		static readonly ILog _logger = SpecialLoggers.Messages;
+		static readonly ILog _logger = Logger.Get(typeof(AsyncInboundTransportImpl));
 
 		int _outstandingReceive;
 		int _wait;

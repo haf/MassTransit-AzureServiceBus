@@ -2,7 +2,7 @@ using System;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
-using MassTransit.Util;
+using MassTransit.Transports.AzureServiceBus.Util;
 using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
@@ -29,6 +29,11 @@ namespace MassTransit.Transports.AzureServiceBus
 		public string Scheme
 		{
 			get { return "azure-sb"; }
+		}
+
+		public IMessageNameFormatter MessageNameFormatter
+		{
+			get { throw new NotImplementedException(); }
 		}
 
 		/// <summary>

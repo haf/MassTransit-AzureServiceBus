@@ -1,15 +1,15 @@
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.Logging;
 using Microsoft.ServiceBus.Messaging;
 using NUnit.Framework;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
 	public class When_sending_to_topic_with_subscriber
 		: Given_a_sent_message
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (When_sending_to_topic_with_subscriber));
+		static readonly ILog _logger = Logger.Get(typeof (When_sending_to_topic_with_subscriber));
 		
 		Subscriber subscriber;
 

@@ -4,9 +4,11 @@ using System.IO;
 using System.Threading;
 using Magnum.Extensions;
 using Magnum.Threading;
+using MassTransit.Logging;
 using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
 using log4net;
+using ILog = MassTransit.Logging.ILog;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -17,8 +19,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		: IOutboundTransport
 	{
 		const int MaxOutstanding = 100;
-
-		static readonly ILog _logger = SpecialLoggers.Messages;
+		static readonly ILog _logger = Logger.Get(typeof(OutboundTransportImpl));
 
 		int _messagesInFlight;
 

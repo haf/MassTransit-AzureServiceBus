@@ -1,12 +1,10 @@
 using Magnum.Extensions;
 using Magnum.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using NUnit.Framework;
-using log4net;
-using log4net.Config;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
@@ -23,7 +21,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Given]
 		public void a_drained_topic_and_a_message()
 		{
-			BasicConfigurator.Configure();
 			message = MyFactory.AMessage();
 
 			var mf = ConfigFactory.CreateMessagingFactory();

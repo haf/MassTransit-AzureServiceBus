@@ -10,16 +10,14 @@ using MassTransit.Pipeline.Inspectors;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using MassTransit.Transports.AzureServiceBus.Configuration;
-using log4net;
-using log4net.Azure;
-using log4net.Config;
-using log4net.Repository.Hierarchy;
+using NLog;
+using LogLevel = Microsoft.WindowsAzure.Diagnostics.LogLevel;
 
 namespace MassTransit.AzurePerformance.Receiver
 {
 	public class ReceiverWorker : RoleEntryPoint
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (ReceiverWorker));
+		static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 		
 		volatile bool _isStopping;
 

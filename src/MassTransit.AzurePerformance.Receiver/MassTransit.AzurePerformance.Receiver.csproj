@@ -34,21 +34,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net.Azure, Version=0.2.4.3816, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\log4net.Azure.0.2.4.03816\lib\net40\log4net.Azure.dll</HintPath>
-    </Reference>
     <Reference Include="Magnum">
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
     </Reference>
     <Reference Include="MassTransit">
-      <HintPath>..\packages\MassTransit.2.0.7.0\lib\net40\MassTransit.dll</HintPath>
+      <HintPath>..\packages\MassTransit.2.0.3\lib\net40\MassTransit.dll</HintPath>
     </Reference>
-    <Reference Include="MassTransit.Transports.MSMQ">
-      <HintPath>..\packages\MassTransit.2.0.7.0\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
+    <Reference Include="MassTransit.NLogIntegration">
+      <HintPath>..\packages\MassTransit.NLog.2.0.3\lib\net40\MassTransit.NLogIntegration.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=1.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.ServiceBus.1.6.0.0\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
@@ -56,6 +49,9 @@
     <Reference Include="Microsoft.WindowsAzure.Diagnostics, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.2.0.0.2000\lib\net20\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />

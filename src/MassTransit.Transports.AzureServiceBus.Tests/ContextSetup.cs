@@ -13,7 +13,6 @@
 
 using System.IO;
 using System.Reflection;
-using log4net.Config;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
@@ -28,6 +27,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			string file = Path.Combine(path, "tests.log4net.xml");
 
+			MassTransit.Logging.Logger.UseLogger(
+				);
 			XmlConfigurator.Configure(new FileInfo(file));
 		}
 	}

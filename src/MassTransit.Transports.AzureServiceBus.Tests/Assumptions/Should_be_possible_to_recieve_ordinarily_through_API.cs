@@ -1,9 +1,6 @@
 using Magnum.Extensions;
 using Magnum.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Management;
-using Microsoft.ServiceBus.Messaging;
-using log4net.Config;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
@@ -14,7 +11,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Given]
 		public void nsm_mf_and_topic()
 		{
-			BasicConfigurator.Configure();
 			var tp = ConfigFactory.CreateTokenProvider();
 			var mf = ConfigFactory.CreateMessagingFactory(tp);
 			var nm = ConfigFactory.CreateNamespaceManager(mf, tp);
