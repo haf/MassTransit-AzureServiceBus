@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using NLog;
 using LogLevel = Microsoft.WindowsAzure.Diagnostics.LogLevel;
+using MassTransit.NLogIntegration;
 
 namespace MassTransit.AzurePerformance.Receiver
 {
@@ -23,22 +24,22 @@ namespace MassTransit.AzurePerformance.Receiver
 
 		public override void Run()
 		{
-			BasicConfigurator.Configure(AzureAppender.New(conf =>
-				{
-					conf.Level = "Info";
+			//BasicConfigurator.Configure(AzureAppender.New(conf =>
+			//    {
+			//        conf.Level = "Info";
 					
-					conf.ConfigureRepository((repo, mapper) =>
-						{
-							repo.Threshold = mapper("Info"); // root
+			//        conf.ConfigureRepository((repo, mapper) =>
+			//            {
+			//                repo.Threshold = mapper("Info"); // root
 
-							((Logger) ((Hierarchy) repo).GetLogger("MassTransit.Messages")).Level = mapper("Warn");
-						});
+			//                ((Logger) ((Hierarchy) repo).GetLogger("MassTransit.Messages")).Level = mapper("Warn");
+			//            });
 
-					conf.ConfigureAzureDiagnostics(d =>
-						{
-							d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
-						});
-				}));
+			//        conf.ConfigureAzureDiagnostics(d =>
+			//            {
+			//                d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
+			//            });
+			//    }));
 			
 			// This is a sample worker implementation. Replace with your logic.
 			_logger.Info("starting receiver");
@@ -67,6 +68,7 @@ namespace MassTransit.AzurePerformance.Receiver
 						"receiver");
 
 					sbc.SetPurgeOnStartup(true);
+					sbc.UseNLog();
 					
 					sbc.UseAzureServiceBusRouting();
 				}))

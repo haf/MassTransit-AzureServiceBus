@@ -23,6 +23,10 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 			return configurator;
 		}
 
+		/// <summary>
+		/// Configure the service bus to use the queues and topics routing semantics with
+		/// Azure ServiceBus.
+		/// </summary>
 		public static T UseAzureServiceBusRouting<T>(this T configurator)
 			where T : ServiceBusConfigurator
 		{

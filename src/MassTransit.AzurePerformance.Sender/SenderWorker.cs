@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NLog;
 using LogLevel = Microsoft.WindowsAzure.Diagnostics.LogLevel;
+using MassTransit.NLogIntegration;
 
 namespace MassTransit.AzurePerformance.Sender
 {
@@ -21,20 +22,20 @@ namespace MassTransit.AzurePerformance.Sender
 
 		public override void Run()
 		{
-			BasicConfigurator.Configure(AzureAppender.New(conf =>
-				{
-					conf.Level = "Info";
+			//BasicConfigurator.Configure(AzureAppender.New(conf =>
+			//    {
+			//        conf.Level = "Info";
 
-					conf.ConfigureRepository((repo, mapper) =>
-						{
-							repo.Threshold = mapper("Info"); // root
-						});
+			//        conf.ConfigureRepository((repo, mapper) =>
+			//            {
+			//                repo.Threshold = mapper("Info"); // root
+			//            });
 
-					conf.ConfigureAzureDiagnostics(d =>
-						{
-							d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
-						});
-				}));
+			//        conf.ConfigureAzureDiagnostics(d =>
+			//            {
+			//                d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
+			//            });
+			//    }));
 
 			_logger.Info("Sender entry point called");
 
@@ -54,6 +55,7 @@ namespace MassTransit.AzurePerformance.Sender
 					sbc.ReceiveFrom(myUri);
 
 					sbc.UseAzureServiceBusRouting();
+					sbc.UseNLog();
 
 					sbc.Subscribe(s =>
 						{
