@@ -84,7 +84,7 @@ namespace MassTransit.AzurePerformance.Sender
 				}
 				watch.Stop();
 
-				_logger.InfoFormat("sent nuff zooms {0}, in {1} seconds for a day. Idling again!", 
+				_logger.Info("sent nuff zooms {0}, in {1} seconds for a day. Idling again!",
 					count, 
 					watch.ElapsedMilliseconds / 1000.0);
 
