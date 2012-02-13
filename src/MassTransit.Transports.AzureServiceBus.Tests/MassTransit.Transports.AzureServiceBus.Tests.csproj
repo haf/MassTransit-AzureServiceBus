@@ -40,9 +40,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
     </Reference>
-    <Reference Include="Magnum.TestFramework">
-      <HintPath>..\lib\Tests\Magnum.TestFramework.dll</HintPath>
-    </Reference>
     <Reference Include="MassTransit, Version=2.0.7.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MassTransit.2.0.7.0\lib\net40\MassTransit.dll</HintPath>

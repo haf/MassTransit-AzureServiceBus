@@ -71,6 +71,7 @@
     <None Include="Script.fsx" />
     <None Include="packages.config" />
     <None Include="app.config" />
+    <Compile Include="Counter.fs" />
     <Compile Include="Retry.fs" />
     <Compile Include="AsyncRetry.fs" />
     <Compile Include="AccountDetails.fs" />

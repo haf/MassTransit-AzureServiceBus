@@ -32,19 +32,31 @@ module Queue =
   let exists (nm : NamespaceManager ) (desc : QueueDescription) = 
     async { return! Async.FromBeginEnd((desc.Path), nm.BeginQueueExists, nm.EndQueueExists) }
 
-  let create (nm : NamespaceManager) (desc : QueueDescription) =
-    async { 
-      let create = nm.BeginCreateQueue : QueueDescription * AsyncCallback * obj -> IAsyncResult
-      return! Async.FromBeginEnd(desc, create, nm.EndCreateQueue) }
+  let rec create (nm : NamespaceManager) (desc : QueueDescription) =
+    async {
+      let! exists = desc |> exists nm
+      if exists then return ()
+      try
+        let beginCreate = nm.BeginCreateQueue : QueueDescription * AsyncCallback * obj -> IAsyncResult
+        let! ndesc = Async.FromBeginEnd(desc, beginCreate, nm.EndCreateQueue)
+        return! desc |> create nm
+      with
+      | :? MessagingEntityAlreadyExistsException -> return () }
 
-  let delete (nm : NamespaceManager) (desc : QueueDescription) =
-    async { do! Async.FromBeginEnd((desc.Path), nm.BeginDeleteQueue, nm.EndDeleteQueue) }
+  let rec delete (nm : NamespaceManager) (desc : QueueDescription) =
+    async {
+      let! exists = desc |> exists nm
+      if exists then return ()
+      try
+        do! Async.FromBeginEnd((desc.Path), nm.BeginDeleteQueue, nm.EndDeleteQueue)
+        return! desc |> delete nm
+      with
+      | :? MessagingEntityNotFoundException -> return () }
 
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =
     async {
-      let! exists = desc |> exists nm 
-      if exists |> not then desc |> create nm |> ignore
-      printfn "starting receiver"
+      do! desc |> create nm
+      printfn "starting sender"
       return! Async.FromBeginEnd((desc.Path),
                       mf.BeginCreateMessageSender,
                       mf.EndCreateMessageSender) }

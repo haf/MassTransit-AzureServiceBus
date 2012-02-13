@@ -17,61 +17,28 @@ type private message  = Faster | Slower | Stop
 type private actor    = MailboxProcessor<message>
 
 /// Create a new receiver
-type Receiver<'T>(desc   : QueueDescription,
-                  newMf  : (unit -> MessagingFactory),
-                  handler: (CancellationToken -> 'T -> unit),
-                  deserializer : (BrokeredMessage -> Async<'T>),
-                  ?maxReceived : int) =
+type Receiver(desc   : QueueDescription,
+              newMf  : (unit -> MessagingFactory),
+              ?maxReceived : int,
+              ?concurrency : int) =
   
   let mutable started = false
   
   let queueSize = defaultArg maxReceived 50
-  let messages = new BlockingQueueAgent<'T>(queueSize)
+  let messages = new BlockingQueueAgent<_>(queueSize)
   let cancel = Async.DefaultCancellationToken
   let error  = new Event<System.Exception>()
   let timeout = TimeSpan.FromMilliseconds 50.0
   let maxFlushInterval = TimeSpan.FromMilliseconds 50.0
+  let concurrency = defaultArg concurrency 10
 
-  let consumer = new actor (fun inbox ->
-  
-    let stop (mf : MessagingFactory) (client : MessageReceiver) = 
-      client.Close()
-      mf.Close()
-
-    let rec start mf =
-      printfn "started receiver"
+  let worker client =
       async {
-        let! client = desc |> newReceiver mf
-        return! loop client mf }
-
-    and loop client mf =
-      async {
-        let! bmsg = timeout |> recv client
-        if bmsg <> null && inbox.CurrentQueueLength = 0 then
-//          printfn "got brokered msg"
-          let! msg = deserializer bmsg
-//          printfn "adding to buffer"
-          do! messages.AsyncAdd msg
-//          printfn "calling complete on msg"
-          do! Async.FromBeginEnd(bmsg.BeginComplete, bmsg.EndComplete)
-          return! loop client mf
-        else
-          printfn "got consumer internal msg or nothing to receive from ASB"
-          let! msg = inbox.TryReceive 0
-          match msg with
-          | Some(m) -> match m with
-                       | Faster -> return! start <| newMf ()
-                       | Slower -> return stop mf client
-                       | Stop   ->
-                         printfn "stopping"
-                         //Async.CancelDefaultToken ()
-                         return ()
-          | None    ->
-            printfn "nothing in inbox, looping"
-            return! loop client mf }
-
-    printfn "**** CALLING START ****"
-    start <| newMf ())
+        let! cancelled = Async.CancellationToken
+        while cancelled.IsCancellationRequested |> not do
+          let! bmsg = timeout |> recv client
+          if bmsg <> null then
+            do! messages.AsyncAdd bmsg }
 
   /// Starts a basic router server, binding to the Address property
   member self.Start () =
@@ -79,17 +46,12 @@ type Receiver<'T>(desc   : QueueDescription,
       then invalidOp "already started"
     else 
       started <- true
-      consumer.Error.Add error.Trigger
-      consumer.Start ()
-
-  member self.Faster() =
-    if started |> not 
-      then invalidOp "not started"
-    else
-      consumer.Post Faster
-
-  member self.Slower() =
-    consumer.Post Slower
+      Async.RunSynchronously(
+        async {
+          for i in 1 .. concurrency do
+            let mf = newMf ()
+            let! client = desc |> newReceiver mf
+            worker client |> Async.Start })
 
   member self.AsyncGet(?timeout) = 
     let timeout = defaultArg timeout <| TimeSpan.FromMilliseconds 50.0
@@ -98,14 +60,16 @@ type Receiver<'T>(desc   : QueueDescription,
     else
       messages.AsyncGet(timeout.Milliseconds)
 
+  member self.AsyncConsume() =
+    asyncSeq {
+      while true do
+        let! res = messages.AsyncGet()
+        yield res }
+
   member self.Stop () =
     printfn "sending stop msg"
     started <- false
-    consumer.Post Stop
-
-  interface IDisposable with
-    member x.Dispose() =
-      consumer.Post Stop
+    Async.CancelDefaultToken ()
 
 //type InboundTransport(address, connectionHandler) =
 //  interface IDisposable with
