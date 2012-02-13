@@ -13,11 +13,11 @@
 
 using System;
 using System.Collections.Generic;
+using MassTransit.Logging;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
-using log4net;
 using Magnum.Extensions;
 
 namespace MassTransit.Transports.AzureServiceBus
@@ -28,7 +28,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class TopicSubscriptionObserver
 		: SubscriptionObserver, ConnectionBinding<ConnectionImpl>
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicSubscriptionObserver));
+		static readonly ILog _logger = Logger.Get(typeof (TopicSubscriptionObserver));
 
 		readonly AzureServiceBusEndpointAddress _address;
 		readonly Dictionary<Guid, Topic> _bindings;

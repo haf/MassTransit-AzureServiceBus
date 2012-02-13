@@ -17,12 +17,12 @@ using System.Linq;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -34,7 +34,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly int _prefetchCount;
 		readonly MessagingFactory _messagingFactory;
 
-		static readonly ILog _logger = LogManager.GetLogger(typeof (ConnectionImpl));
+		static readonly ILog _log = Logger.Get(typeof (ConnectionImpl));
 	
 		bool _disposed;
 		QueueClient _queue;
@@ -71,8 +71,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			_messagingFactory = MessagingFactory.Create(_endpointAddress.NamespaceManager.Address, mfs);
 
-			if (_logger.IsDebugEnabled)
-				_logger.DebugFormat("created connection impl for address ('{0}')", endpointAddress);
+			_log.Debug(() => "created connection impl for address ('{0}')".FormatWith(endpointAddress));
 		}
 
 		public QueueClient Queue
@@ -136,7 +135,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			Disconnect();
 
-			_logger.Info("Connecting {0}".FormatWith(_endpointAddress));
+			_log.Info(() => "Connecting {0}".FormatWith(_endpointAddress));
 
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
 			_queue = _endpointAddress
@@ -146,12 +145,11 @@ namespace MassTransit.Transports.AzureServiceBus
 			
 			if (_queue == null)
 				throw new TransportException(_endpointAddress.Uri, "The create queue client task returned null.");
-
 		}
 
 		public void Disconnect()
 		{
-			_logger.Info("Disconnecting {0}".FormatWith(_endpointAddress));
+			_log.Info(() => "Disconnecting {0}".FormatWith(_endpointAddress));
 		}
 	}
 }

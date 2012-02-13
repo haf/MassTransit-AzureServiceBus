@@ -2,15 +2,15 @@ using System;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Util;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
 	public class TransportFactoryImpl
 		: ITransportFactory
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (TransportFactoryImpl));
+		static readonly ILog _logger = Logger.Get(typeof (TransportFactoryImpl));
 
 		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connectionCache;
 		private readonly ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress> _addresses;

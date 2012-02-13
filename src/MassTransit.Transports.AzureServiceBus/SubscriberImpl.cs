@@ -13,16 +13,16 @@
 
 using System;
 using System.Threading.Tasks;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
 	public class SubscriberImpl
 		: Subscriber
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (SubscriberImpl));
+		static readonly ILog _logger = Logger.Get(typeof (SubscriberImpl));
 
 		bool _disposed;
 		readonly SubscriptionClient _client;

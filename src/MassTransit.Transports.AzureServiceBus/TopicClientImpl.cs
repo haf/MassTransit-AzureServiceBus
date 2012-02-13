@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -13,7 +13,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	// handles subscribers
 	public class TopicClientImpl : TopicClient
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicClientImpl));
+		static readonly ILog _logger = Logger.Get(typeof (TopicClientImpl));
 		
 		readonly MessagingFactory _messagingFactory;
 		readonly NamespaceManager _namespaceManager;

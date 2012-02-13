@@ -1,18 +1,19 @@
 using Magnum.Extensions;
 using Magnum.TestFramework;
-using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using NLog;
 using NUnit.Framework;
+using Logger = NLog.Logger;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
 	[Scenario, Category("NegativeTests")]
 	public abstract class Given_a_sent_message
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (Given_a_sent_message));
-		
+		static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
 		protected A message;
 		protected NamespaceManager nm;
 		protected Topic topic;

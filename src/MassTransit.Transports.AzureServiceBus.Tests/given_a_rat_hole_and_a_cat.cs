@@ -2,7 +2,6 @@ using System;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using NUnit.Framework;
-using log4net.Config;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {

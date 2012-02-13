@@ -11,8 +11,7 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
 
-using System.IO;
-using System.Reflection;
+using MassTransit.NLogIntegration;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
@@ -23,13 +22,9 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[SetUp]
 		public void Before_any()
 		{
-			string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-			string file = Path.Combine(path, "tests.log4net.xml");
-
-			MassTransit.Logging.Logger.UseLogger(
-				);
-			XmlConfigurator.Configure(new FileInfo(file));
+			//string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			//string file = Path.Combine(path, "tests.log4net.xml");
+			Logging.Logger.UseLogger(new NLogLogger());
 		}
 	}
 }

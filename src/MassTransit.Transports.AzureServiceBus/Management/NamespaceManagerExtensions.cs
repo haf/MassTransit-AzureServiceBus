@@ -15,6 +15,7 @@ using System;
 using System.Threading.Tasks;
 using Magnum.Extensions;
 using Magnum.Policies;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
@@ -23,7 +24,6 @@ using SBQDesc = Microsoft.ServiceBus.Messaging.QueueDescription;
 using SBTDesc = Microsoft.ServiceBus.Messaging.TopicDescription;
 using SBSDesc = Microsoft.ServiceBus.Messaging.SubscriptionDescription;
 using SBQClient = Microsoft.ServiceBus.Messaging.QueueClient;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus.Management
 {
@@ -32,7 +32,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 	/// </summary>
 	public static class NamespaceManagerExtensions
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (NamespaceManagerExtensions));
+		static readonly ILog _logger = Logger.Get(typeof (NamespaceManagerExtensions));
 
 		public static Task TryCreateSubscription([NotNull] this NamespaceManager namespaceManager,
 		                                         [NotNull] SubscriptionDescription description)

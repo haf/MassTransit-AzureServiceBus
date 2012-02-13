@@ -1,18 +1,18 @@
 using System;
 using System.Threading.Tasks;
 using Magnum.Policies;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
 	public class TopicImpl : Topic
 	{
-		static readonly ILog _logger = LogManager.GetLogger(typeof (TopicImpl));
+		static readonly ILog _logger = Logger.Get(typeof (TopicImpl));
 		
 		readonly NamespaceManager _namespaceManager;
 		readonly MessagingFactory _messagingFactory;

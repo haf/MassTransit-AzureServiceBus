@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Magnum.Extensions;
 using MassTransit.Context;
+using MassTransit.Logging;
 using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
-using log4net;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -19,7 +19,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		private readonly AzureServiceBusEndpointAddress _address;
 
 		private bool _disposed;
-		static readonly ILog _logger = SpecialLoggers.Messages;
+
+		static readonly ILog _logger = Logger.Get(typeof (InboundTransportImpl));
 
 		public InboundTransportImpl(
 			[Util.NotNull] AzureServiceBusEndpointAddress address, 
@@ -31,8 +32,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			_connectionHandler = connectionHandler;
 			_address = address;
 
-			if (_logger.IsDebugEnabled)
-				_logger.Debug(string.Format("created new inbound transport for {0}", address));
+			_logger.Debug(() => string.Format("created new inbound transport for {0}", address));
 		}
 
 		public IEndpointAddress Address
