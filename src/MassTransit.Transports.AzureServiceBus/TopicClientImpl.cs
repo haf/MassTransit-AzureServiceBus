@@ -80,13 +80,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		void Dispose(bool managed)
 		{
-			if (!managed) return;
-
+			if (!managed || _isDisposed) return;
 			_logger.Debug("dispose called");
-
-			if (_isDisposed)
-				throw new ObjectDisposedException("TopicClientImpl", "cannot dispose twice");
-
 			_isDisposed = true;
 		}
 	}

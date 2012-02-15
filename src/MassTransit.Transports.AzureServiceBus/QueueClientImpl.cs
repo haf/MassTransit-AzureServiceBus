@@ -26,8 +26,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		protected virtual void Dispose(bool managed)
 		{
-			if (!managed) return;
-			if (_disposed) throw new ObjectDisposedException("QueueClientImpl", "Cannot dispose QueueClient twice");
+			if (!managed || _disposed) 
+				return;
 
 			try
 			{

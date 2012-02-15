@@ -47,12 +47,9 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		void Dispose(bool managed)
 		{
-			if (!managed)
+			if (!managed || _disposed)
 				return;
-
-			if (_disposed)
-				throw new ObjectDisposedException("SubscriberImpl");
-
+			
 			try
 			{
 				_client.Close();

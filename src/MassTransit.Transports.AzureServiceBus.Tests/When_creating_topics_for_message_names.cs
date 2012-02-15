@@ -1,6 +1,5 @@
 using System;
 using Magnum.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Configuration;
 using Microsoft.ServiceBus;
 using NUnit.Framework;
 
@@ -10,12 +9,19 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	public class When_creating_topics_for_message_names
 	{
 		NamespaceManager nm;
+		MessageNameFormatter _formatter;
 
 		[When]
-		public void given_a_namespace_manager()
+		public void theres_a_namespace_manager_available()
 		{
 			var mf = ConfigFactory.CreateMessagingFactory();
 			nm = ConfigFactory.CreateNamespaceManager(mf);
+		}
+
+		[Given]
+		public void a_message_name_formatter()
+		{
+			_formatter = new MessageNameFormatter();
 		}
 
 		[Then]
@@ -27,16 +33,15 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[TestCase(typeof(NameDoubleGeneric<NameGeneric<double>, NameEasy>))]
 		public void app_fabric_service_bus_accepts_these_names(Type messageType)
 		{
-			var topicPath = new MessageName(messageType);
-			var path = topicPath.ToString();
+			var mname = _formatter.GetMessageName(messageType);
 			try
 			{
-				nm.CreateTopic(path);
+				nm.CreateTopic(mname.Name);
 			}
 			finally
 			{
-				if (nm.TopicExists(path))
-					nm.DeleteTopic(path);
+				if (nm.TopicExists(mname.Name))
+					nm.DeleteTopic(mname.Name);
 			}
 		}
 

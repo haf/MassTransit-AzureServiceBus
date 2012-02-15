@@ -31,14 +31,16 @@ namespace MassTransit.Transports.AzureServiceBus
 		static readonly ILog _logger = Logger.Get(typeof (TopicSubscriptionObserver));
 
 		readonly AzureServiceBusEndpointAddress _address;
+		readonly IMessageNameFormatter _formatter;
 		readonly Dictionary<Guid, Topic> _bindings;
 
-		public TopicSubscriptionObserver(
-			[NotNull] AzureServiceBusEndpointAddress address)
+		public TopicSubscriptionObserver([NotNull] AzureServiceBusEndpointAddress address, [NotNull] IMessageNameFormatter formatter)
 		{
 			if (address == null) throw new ArgumentNullException("address");
+			if (formatter == null) throw new ArgumentNullException("formatter");
 
 			_address = address;
+			_formatter = formatter;
 			_bindings = new Dictionary<Guid, Topic>();
 
 			if (_logger.IsDebugEnabled)
@@ -93,11 +95,10 @@ namespace MassTransit.Transports.AzureServiceBus
 			}
 		}
 
-		static MessageName GetMessageName(Subscription message)
+		MessageName GetMessageName(Subscription message)
 		{
 			var messageType = Type.GetType(message.MessageName);
-			var messageName = new MessageName(messageType);
-			return messageName;
+			return _formatter.GetMessageName(messageType);
 		}
 
 		public void OnComplete()

@@ -35,7 +35,8 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 			configurator.SetSubscriptionObserver((sb, router) =>
 				{
 					var inboundTransport = sb.Endpoint.InboundTransport.CastAs<InboundTransportImpl>();
-					return new TopicSubscriptionObserver(inboundTransport.Address.CastAs<AzureServiceBusEndpointAddress>());
+					return new TopicSubscriptionObserver(inboundTransport.Address.CastAs<AzureServiceBusEndpointAddress>(),
+						inboundTransport.MessageNameFormatter);
 				});
 
 			configurator.UseAzureServiceBus();

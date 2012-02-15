@@ -109,14 +109,9 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		void Dispose(bool managed)
 		{
-			if (!managed)
+			if (!managed || _disposed)
 				return;
 
-			if (_disposed)
-				throw new ObjectDisposedException("ServiceBusQueueConnection for {0}".FormatWith(
-					_endpointAddress),
-				                                  "The connection instance to AppFabric ServiceBus Queues, " +
-				                                  "is already disposed and cannot be disposed twice.");
 			try
 			{
 				if (_queue != null)

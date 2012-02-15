@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Magnum.Extensions;
 using MassTransit.Context;
 using MassTransit.Logging;
-using MassTransit.Util;
+using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.AzureServiceBus
@@ -16,6 +16,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		: IInboundTransport
 	{
 		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
+		readonly IMessageNameFormatter _formatter;
 		private readonly AzureServiceBusEndpointAddress _address;
 
 		private bool _disposed;
@@ -23,13 +24,16 @@ namespace MassTransit.Transports.AzureServiceBus
 		static readonly ILog _logger = Logger.Get(typeof (InboundTransportImpl));
 
 		public InboundTransportImpl(
-			[Util.NotNull] AzureServiceBusEndpointAddress address, 
-			[Util.NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
+			[NotNull] AzureServiceBusEndpointAddress address, 
+			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler, 
+			[NotNull] IMessageNameFormatter formatter)
 		{
 			if (address == null) throw new ArgumentNullException("address");
 			if (connectionHandler == null) throw new ArgumentNullException("connectionHandler");
+			if (formatter == null) throw new ArgumentNullException("formatter");
 
 			_connectionHandler = connectionHandler;
+			_formatter = formatter;
 			_address = address;
 
 			_logger.Debug(() => string.Format("created new inbound transport for {0}", address));
@@ -39,6 +43,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			get { return _address; }
 		}
+
+		public IMessageNameFormatter MessageNameFormatter { get { return _formatter; } }
 
 		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
 		{
