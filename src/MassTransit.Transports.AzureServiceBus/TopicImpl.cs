@@ -89,11 +89,11 @@ namespace MassTransit.Transports.AzureServiceBus
 			              mode, subscriberName));
 
 			var client = _messagingFactory.TryCreateTopicClient(_namespaceManager, this);
-			subscriberName = subscriberName ?? Helper.GenerateRandomName();
+			subscriberName = subscriberName ?? NameHelper.GenerateRandomName();
 
 			return client.Then(topicClient =>
 				{
-					var subDesc = new SubscriptionDescriptionImpl(_description.Path, Helper.GenerateRandomName())
+					var subDesc = new SubscriptionDescriptionImpl(_description.Path, NameHelper.GenerateRandomName())
 						{
 							EnableBatchedOperations = true,
 							MaxDeliveryCount = prefetch

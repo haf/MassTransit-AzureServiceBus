@@ -15,9 +15,16 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			RemoteUri = new Uri(string.Format("azure-sb://owner:{0}@{1}/hungry_cat", AccountDetails.Key, AccountDetails.Namespace));
 		}
 
-		protected override void ConfigureServiceBus(Uri uri, BusConfigurators.ServiceBusConfigurator configurator)
+		protected override void ConfigureLocalBus(BusConfigurators.ServiceBusConfigurator configurator)
 		{
-			configurator.UseAzureServiceBusRouting();
+			//configurator.UseAzureServiceBusRouting();
+			base.ConfigureLocalBus(configurator);
+		}
+
+		protected override void ConfigureRemoteBus(BusConfigurators.ServiceBusConfigurator configurator)
+		{
+			//configurator.UseAzureServiceBusRouting();
+			base.ConfigureRemoteBus(configurator);
 		}
 	}
 }

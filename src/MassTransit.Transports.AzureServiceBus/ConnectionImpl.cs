@@ -130,7 +130,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			Disconnect();
 
-			_log.Info(() => "Connecting {0}".FormatWith(_endpointAddress));
+			_log.Debug(() => "Connecting {0}".FormatWith(_endpointAddress));
 
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
 			_queue = _endpointAddress
@@ -144,7 +144,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Disconnect()
 		{
-			_log.Info(() => "Disconnecting {0}".FormatWith(_endpointAddress));
+			_log.Debug(() => "Disconnecting {0}".FormatWith(_endpointAddress));
 		}
 	}
 }

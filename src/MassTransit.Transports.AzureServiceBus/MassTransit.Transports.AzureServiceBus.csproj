@@ -66,7 +66,7 @@
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Internal\EndpointAsyncLoggerExtensions.cs" />
-    <Compile Include="Internal\TaskEx.cs" />
+    <Compile Include="Internal\TaskExtensions.cs" />
     <Compile Include="MessageEnvelope.cs" />
     <Compile Include="MessageNameFormatter.cs" />
     <Compile Include="OutboundTransportImpl.cs" />
@@ -90,7 +90,7 @@
     <Compile Include="TopicDescription.cs" />
     <Compile Include="TopicDescriptionImpl.cs" />
     <Compile Include="TopicImpl.cs" />
-    <Compile Include="Internal\Helper.cs" />
+    <Compile Include="Internal\NameHelper.cs" />
     <Compile Include="Util\JetbrainsCodeAnnotations.cs" />
     <Compile Include="Management\NamespaceManagerExtensions.cs" />
   </ItemGroup>

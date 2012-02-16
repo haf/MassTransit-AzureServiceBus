@@ -20,6 +20,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			public string Application { get; set; }
 		}
 
+		readonly Uri _friendlyUri;
 		readonly Uri _rebuiltUri;
 		readonly Data _data;
 		readonly TokenProvider _tp;
@@ -44,7 +45,12 @@ namespace MassTransit.Transports.AzureServiceBus
 			_rebuiltUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}", 
 				data.UsernameIssuer,
 				data.PasswordSharedSecret,
-				data.Namespace, data.Application));
+				data.Namespace, 
+				data.Application));
+
+			_friendlyUri = new Uri(string.Format("azure-sb://{0}/{1}",
+				data.Namespace,
+				data.Application));
 		}
 
 		[NotNull]
@@ -102,7 +108,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public override string ToString()
 		{
-			return _rebuiltUri.ToString();
+			return _friendlyUri.ToString();
 		}
 
 		public static AzureServiceBusEndpointAddressImpl Parse([NotNull] Uri uri)

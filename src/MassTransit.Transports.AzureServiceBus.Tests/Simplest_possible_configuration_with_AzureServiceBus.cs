@@ -13,6 +13,7 @@
 
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using NUnit.Framework;
+using MassTransit.NLogIntegration;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
@@ -24,6 +25,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			using (ServiceBusFactory.New(sbc =>
 				{
 					sbc.ReceiveFrom(string.Format("azure-sb://owner:{0}@myNamespace/my-application", AccountDetails.Key));
+					sbc.UseNLog();
 					sbc.UseAzureServiceBusRouting();
 				}))
 			{
@@ -36,6 +38,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			using (ServiceBusFactory.New(sbc =>
 			{
 				sbc.ReceiveFromComponents("owner", AccountDetails.Key, "myNamespace", "my-application");
+				sbc.UseNLog();
 				sbc.UseAzureServiceBusRouting();
 			}))
 			{

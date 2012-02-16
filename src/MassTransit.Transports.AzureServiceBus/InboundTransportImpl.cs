@@ -48,7 +48,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
 		{
-			_logger.Debug(() => "Receive(callback, timeout) called");
+			_logger.Debug(() => "Receive({0}, timeout) called".FormatWith(_address));
 
 			_connectionHandler.Use(connection =>
 				{

@@ -40,7 +40,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		}
 
 		/// <summary>
-		/// 	Builds the loopback.
+		/// 	Builds the duplex transport.
 		/// </summary>
 		/// <param name="settings"> The settings. </param>
 		/// <returns> </returns>
@@ -49,7 +49,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (settings == null) 
 				throw new ArgumentNullException("settings");
 
-			_logger.Debug("building loopback");
+			_logger.Debug("building duplex transport");
 
 			return new Transport(settings.Address, () => BuildInbound(settings), () => BuildOutbound(settings));
 		}
@@ -58,11 +58,11 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
-			_logger.Debug(
-				() => string.Format("building inbound transport for address '{0}'", settings.Address));
-
 			var address = _addresses.Retrieve(settings.Address.Uri, () => AzureServiceBusEndpointAddressImpl.Parse(settings.Address.Uri));
+			_logger.Debug(() => string.Format("building inbound transport for address '{0}'", address));
+
 			var client = GetConnection(address);
+
 			return new InboundTransportImpl(address, client, MessageNameFormatter);
 		}
 
@@ -70,10 +70,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
-			_logger.Debug(() =>
-				string.Format("building outbound transport for address '{0}'", settings.Address));
-
 			var address = _addresses.Retrieve(settings.Address.Uri, () => AzureServiceBusEndpointAddressImpl.Parse(settings.Address.Uri));
+			_logger.Debug(() => string.Format("building outbound transport for address '{0}'", address));
+
 			var client = GetConnection(address);
 
 			return new OutboundTransportImpl(address, client);
@@ -83,10 +82,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
-			_logger.Debug(
-				() => string.Format("building error transport for address '{0}'", settings.Address));
-
 			var address = _addresses.Retrieve(settings.Address.Uri, () => AzureServiceBusEndpointAddressImpl.Parse(settings.Address.Uri));
+			_logger.Debug(() => string.Format("building error transport for address '{0}'", address));
+
 			var client = GetConnection(address);
 			return new OutboundTransportImpl(address, client);
 		}
