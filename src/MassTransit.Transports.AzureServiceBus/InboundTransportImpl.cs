@@ -24,8 +24,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		static readonly ILog _logger = Logger.Get(typeof (InboundTransportImpl));
 
 		public InboundTransportImpl(
-			[NotNull] AzureServiceBusEndpointAddress address, 
-			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler, 
+			[NotNull] AzureServiceBusEndpointAddress address,
+			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler,
 			[NotNull] IMessageNameFormatter formatter)
 		{
 			if (address == null) throw new ArgumentNullException("address");

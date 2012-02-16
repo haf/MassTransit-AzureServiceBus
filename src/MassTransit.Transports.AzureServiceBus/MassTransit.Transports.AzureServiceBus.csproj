@@ -100,6 +100,12 @@
   <ItemGroup>
     <Folder Include="Partition\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MassTransit.Async\MassTransit.Async.fsproj">
+      <Project>{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}</Project>
+      <Name>MassTransit.Async</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
