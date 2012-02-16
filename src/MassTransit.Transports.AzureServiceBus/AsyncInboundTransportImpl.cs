@@ -90,14 +90,9 @@ namespace MassTransit.Transports.AzureServiceBus
 								var receive = callback(context);
 								if (receive == null)
 								{
-									if (_logger.IsInfoEnabled)
-										_logger.InfoFormat("SKIP:{0}:{1}", Address, context.MessageId);
-
+									Address.LogSkipped(message.MessageId);
 									return;
 								}
-
-								if (_logger.IsDebugEnabled)
-									_logger.DebugFormat("RECV:{0}:{1}:{2}", _address, message.Label, message.MessageId);
 
 								receive(context);
 

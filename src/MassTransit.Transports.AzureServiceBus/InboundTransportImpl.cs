@@ -16,7 +16,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		: IInboundTransport
 	{
 		private readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
-		readonly IMessageNameFormatter _formatter;
+		private readonly IMessageNameFormatter _formatter;
 		private readonly AzureServiceBusEndpointAddress _address;
 
 		private bool _disposed;
@@ -48,6 +48,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
 		{
+			_logger.Debug(() => "Receive(callback, timeout) called");
+
 			_connectionHandler.Use(connection =>
 				{
 					/* timeout: before any message transmission start */
@@ -84,14 +86,9 @@ namespace MassTransit.Transports.AzureServiceBus
 				var receive = callback(context);
 				if (receive == null)
 				{
-					if (_logger.IsInfoEnabled)
-						_logger.InfoFormat("SKIP:{0}:{1}", Address, context.MessageId);
-
+					Address.LogSkipped(message.MessageId);
 					return;
 				}
-
-				if (_logger.IsDebugEnabled)
-					_logger.DebugFormat("RECV:{0}:{1}:{2}", _address, message.Label, message.MessageId);
 
 				receive(context);
 

@@ -65,6 +65,7 @@
     <Compile Include="AsyncInboundTransportImpl.cs" />
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
+    <Compile Include="Internal\EndpointAsyncLoggerExtensions.cs" />
     <Compile Include="Internal\TaskEx.cs" />
     <Compile Include="MessageEnvelope.cs" />
     <Compile Include="MessageNameFormatter.cs" />

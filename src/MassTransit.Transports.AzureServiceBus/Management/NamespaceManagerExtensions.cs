@@ -32,7 +32,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 	/// </summary>
 	public static class NamespaceManagerExtensions
 	{
-		static readonly ILog _logger = Logger.Get(typeof (NamespaceManagerExtensions));
+		static readonly ILog _logger = Logger.Get("MassTransit.Transports.AzureServiceBus.Management");
 
 		public static Task TryCreateSubscription([NotNull] this NamespaceManager namespaceManager,
 		                                         [NotNull] SubscriptionDescription description)
