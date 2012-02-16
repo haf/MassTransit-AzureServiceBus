@@ -1,4 +1,4 @@
-﻿#r @"..\packages\FSharpx.Core.1.4.120207\lib\FSharpx.Async.dll"
+﻿#r @"..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll"
 #r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
 #r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
 #time "on"
@@ -38,14 +38,14 @@ let mfFac = (fun () -> let mfs = MessagingFactorySettings(TokenProvider = tp,
 
 let deserializer (message : BrokeredMessage) = printfn "Deserializing message: %s" <| message.ToString() ; message.GetBody<A>()
 let handler token msg = printfn "%A" msg
-let concurrency = 50
+let concurrency = 200 // concurrent outstanding messages
 let counter = counter ()
 
 // Producer:
 Async.RunSynchronously( qdesc |> delete nm )
 let random = Random()
+let mf = mfFac ()
 for i in 1 .. concurrency do
-  let mf = mfFac ()
   async {
     let! sender = qdesc |> newSender mf nm
     counter.Post Start

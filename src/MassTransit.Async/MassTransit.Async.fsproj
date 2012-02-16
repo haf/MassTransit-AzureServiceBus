@@ -35,19 +35,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FSharpx.Async">
-      <HintPath>..\packages\FSharpx.Core.1.4.120207\lib\FSharpx.Async.dll</HintPath>
+      <HintPath>..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharpx.Core">
-      <HintPath>..\packages\FSharpx.Core.1.4.120207\lib\FSharpx.Core.dll</HintPath>
+      <HintPath>..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharpx.Http">
-      <HintPath>..\packages\FSharpx.Core.1.4.120207\lib\FSharpx.Http.dll</HintPath>
+      <HintPath>..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Http.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharpx.Observable">
-      <HintPath>..\packages\FSharpx.Core.1.4.120207\lib\FSharpx.Observable.dll</HintPath>
+      <HintPath>..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Observable.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Magnum">

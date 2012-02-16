@@ -37,11 +37,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
     </Reference>
-    <Reference Include="MassTransit">
-      <HintPath>..\packages\MassTransit.2.0.3\lib\net40\MassTransit.dll</HintPath>
+    <Reference Include="MassTransit, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MassTransit.2.0.4\lib\net40\MassTransit.dll</HintPath>
     </Reference>
-    <Reference Include="MassTransit.Transports.MSMQ">
-      <HintPath>..\packages\MassTransit.2.0.3\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
+    <Reference Include="MassTransit.Transports.MSMQ, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MassTransit.2.0.4\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=1.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.ServiceBus.1.6.0.0\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
