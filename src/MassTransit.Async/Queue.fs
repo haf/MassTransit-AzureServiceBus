@@ -1,12 +1,32 @@
-﻿namespace MassTransit.Async
+﻿(* 
+ Copyright 2012 Henrik Feldt
+  
+ Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+ this file except in compliance with the License. You may obtain a copy of the 
+ License at 
+ 
+     http://www.apache.org/licenses/LICENSE-2.0 
+ 
+ Unless required by applicable law or agreed to in writing, software distributed
+ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+ specific language governing permissions and limitations under the License.
+*)
+namespace MassTransit.Async
 
 module Queue =
   
   open System
   open Microsoft.ServiceBus
   open Microsoft.ServiceBus.Messaging
+  open MassTransit.Logging
+  open MassTransit.AzureServiceBus
   
-  let desc (nm : NamespaceManager) name = 
+  let logger = Logger.Get("MassTransit.Async.Queue")
+
+  type AQD = Microsoft.ServiceBus.Messaging.QueueDescription
+
+  let desc (nm : NamespaceManager) name =
     async {
       let! exists = Async.FromBeginEnd(name, nm.BeginQueueExists, nm.EndQueueExists)
       let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
@@ -37,8 +57,8 @@ module Queue =
       let! exists = desc |> exists nm
       if exists then return ()
       try
-        let beginCreate = nm.BeginCreateQueue : QueueDescription * AsyncCallback * obj -> IAsyncResult
-        let! ndesc = Async.FromBeginEnd(desc, beginCreate, nm.EndCreateQueue)
+        let beginCreate = nm.BeginCreateQueue : AQD * AsyncCallback * obj -> IAsyncResult
+        let! ndesc = Async.FromBeginEnd((desc.Inner), beginCreate, nm.EndCreateQueue)
         return! desc |> create nm
       with
       | :? MessagingEntityAlreadyExistsException -> return () }

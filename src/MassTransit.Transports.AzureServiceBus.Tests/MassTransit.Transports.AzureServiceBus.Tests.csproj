@@ -117,6 +117,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
+      <Project>{CCD26EDA-5048-4752-863D-4301173DCC93}</Project>
+      <Name>MassTransit.AzureServiceBus</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus\MassTransit.Transports.AzureServiceBus.csproj">
       <Project>{0E9F5DB7-3FA0-444F-BF82-74947525AE62}</Project>
       <Name>MassTransit.Transports.AzureServiceBus</Name>

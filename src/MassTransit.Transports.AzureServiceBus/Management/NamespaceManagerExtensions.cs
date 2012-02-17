@@ -20,6 +20,7 @@ using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
 using SBQDesc = Microsoft.ServiceBus.Messaging.QueueDescription;
 using SBTDesc = Microsoft.ServiceBus.Messaging.TopicDescription;
 using SBSDesc = Microsoft.ServiceBus.Messaging.SubscriptionDescription;
@@ -140,7 +141,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 					Func<Task<SBQClient>> drain = () =>
 						{
 							return nm.TryDeleteQueue(description.Path)
-								.ContinueWith(tDel => nm.TryCreateQueue(description.Path)).Unwrap()
+								.ContinueWith(tDel => nm.TryCreateQueue(description)).Unwrap()
 								.ContinueWith(tCreate => queue_client());
 						};
 
@@ -150,18 +151,17 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 
 		public static Task<QueueDescription> TryCreateQueue(this NamespaceManager nsm, string queueName)
 		{
+			return TryCreateQueue(nsm, new QueueDescriptionImpl(queueName));
+		}
+		public static Task<QueueDescription> TryCreateQueue(this NamespaceManager nsm, QueueDescription queueDescription)
+		{
 			//if (nsm.GetQueue(queueName) == null) 
 			// bugs out http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/6ce20f60-915a-4519-b7e3-5af26fc31e35
 			// says it'll give null, but throws!
-
-			var description = new QueueDescriptionImpl(queueName)
-				{
-					EnableBatchedOperations = true
-				};
-
-			return ExistsQueue(nsm, queueName)
-				.Then(doesExist => doesExist ? GetQueue(nsm, queueName) 
-											 : CreateQueue(nsm, queueName, description));
+			
+			return ExistsQueue(nsm, queueDescription.Path)
+				.Then(doesExist => doesExist ? GetQueue(nsm, queueDescription.Path) 
+											 : CreateQueue(nsm, queueDescription));
 		}
 
 		public static Task TryDeleteQueue(this NamespaceManager nm, string queueName)
@@ -183,14 +183,14 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 					});
 		}
 
-		static Task<QueueDescription> CreateQueue(NamespaceManager nsm, string queueName, QueueDescriptionImpl description)
+		static Task<QueueDescription> CreateQueue(NamespaceManager nsm, QueueDescription description)
 		{
-			_logger.Debug(string.Format("being create queue @ '{0}'", queueName));
+			_logger.Debug(string.Format("being create queue @ '{0}'", description.Path));
 			return Task.Factory.FromAsync<SBQDesc, SBQDesc>(
 				nsm.BeginCreateQueue, nsm.EndCreateQueue, description.Inner, null)
 				.ContinueWith(tCreate =>
 					{
-						_logger.Debug(string.Format("end create queue @ '{0}'", queueName));
+						_logger.Debug(string.Format("end create queue @ '{0}'", description.Path));
 						return new QueueDescriptionImpl(tCreate.Result) as QueueDescription;
 					});
 		}

@@ -6,6 +6,7 @@ using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -26,6 +27,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly TokenProvider _tp;
 		readonly MessagingFactory _mf;
 		readonly NamespaceManager _nm;
+		QueueDescription _queueDescription;
 
 		AzureServiceBusEndpointAddressImpl([NotNull] Data data)
 		{
@@ -51,6 +53,8 @@ namespace MassTransit.Transports.AzureServiceBus
 			_friendlyUri = new Uri(string.Format("azure-sb://{0}/{1}",
 				data.Namespace,
 				data.Application));
+
+			_queueDescription = new QueueDescriptionImpl(data.Application);
 		}
 
 		[NotNull]
@@ -71,16 +75,22 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _nm; }
 		}
 
+		public Task<QueueDescription> CreateQueue()
+		{
+			return _nm.TryCreateQueue(QueueDescription);
+		}
+
+		public MassTransit.AzureServiceBus.QueueDescription QueueDescription
+		{
+			get { return _queueDescription; }
+		}
+
 		[NotNull]
 		internal Data Details
 		{
 			get { return _data; }
 		}
 
-		public Task<QueueDescription> CreateQueue()
-		{
-			return _nm.TryCreateQueue(_data.Application);
-		}
 
 		/// <summary>
 		/// This uri is MT-schemed, not AzureSB-schemed

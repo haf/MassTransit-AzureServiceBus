@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.AzurePerformanc
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MassTransit.Async", "MassTransit.Async\MassTransit.Async.fsproj", "{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.AzureServiceBus", "MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj", "{CCD26EDA-5048-4752-863D-4301173DCC93}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCD26EDA-5048-4752-863D-4301173DCC93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCD26EDA-5048-4752-863D-4301173DCC93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCD26EDA-5048-4752-863D-4301173DCC93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCD26EDA-5048-4752-863D-4301173DCC93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

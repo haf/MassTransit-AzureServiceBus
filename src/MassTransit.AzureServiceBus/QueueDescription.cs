@@ -14,7 +14,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace MassTransit.Transports.AzureServiceBus
+namespace MassTransit.AzureServiceBus
 {
 	public interface QueueDescription
 	{
@@ -32,5 +32,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		bool EnableBatchedOperations { get; }
 		long SizeInBytes { get; }
 		long MessageCount { get; }
+
+		Microsoft.ServiceBus.Messaging.QueueDescription Inner { get; }
 	}
 }

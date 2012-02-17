@@ -13,6 +13,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using MassTransit.AzureServiceBus;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -20,6 +21,10 @@ namespace MassTransit.Transports.AzureServiceBus
 	{
 		readonly Microsoft.ServiceBus.Messaging.QueueDescription _inner;
 
+		/// <summary>
+		/// Creates a new queue description and enables batched operations.
+		/// </summary>
+		/// <param name="queueName"></param>
 		public QueueDescriptionImpl(string queueName)
 		{
 			_inner = new Microsoft.ServiceBus.Messaging.QueueDescription(queueName);

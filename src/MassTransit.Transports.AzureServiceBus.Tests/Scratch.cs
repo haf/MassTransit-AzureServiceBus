@@ -35,7 +35,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				{
 					first.Set();
 					throw new ApplicationException();
-					return -5;
+					//return -5;
 				})
 				.ContinueWith(tStart =>
 					{
