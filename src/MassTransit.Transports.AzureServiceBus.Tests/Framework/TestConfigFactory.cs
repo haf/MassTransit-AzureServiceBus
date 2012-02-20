@@ -4,7 +4,7 @@ using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.AzureServiceBus.Tests
+namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
 {
 	// in general their API should be using interfaces that carry both data and operations
 	public static class TestConfigFactory

@@ -14,10 +14,10 @@
 using MassTransit.NLogIntegration.Logging;
 using NUnit.Framework;
 
-namespace MassTransit.Transports.AzureServiceBus.Tests
+namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
 {
 	[SetUpFixture]
-	public class ContextSetup
+	public class NLogContextSetup
 	{
 		[SetUp]
 		public void SetUpLogging()

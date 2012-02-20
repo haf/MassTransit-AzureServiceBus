@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Scenario]
-	public class When_converting_a_type_to_a_message_name
+	public class Message_name_spec
 	{
 		MessageNameFormatter _f;
 

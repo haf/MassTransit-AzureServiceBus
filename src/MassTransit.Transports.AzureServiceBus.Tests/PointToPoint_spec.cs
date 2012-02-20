@@ -19,6 +19,7 @@ using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
+using MassTransit.Transports.AzureServiceBus.Tests.Contexts;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
@@ -27,8 +28,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	             "from a local bus to a remote endpoint. In this case, we're sending " +
 	             "a rat to a hungry cat."),
 	 Scenario]
-	public class When_cat_eats_rat
-		: given_a_rat_hole_and_a_cat_context
+	public class PointToPoint_spec
+		: Given_two_buses_context
 	{
 		Action<string> cat_sounds = Console.WriteLine,
 					   rat_sounds = Console.WriteLine;

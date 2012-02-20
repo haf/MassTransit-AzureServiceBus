@@ -1,12 +1,13 @@
 using System;
 using Magnum.TestFramework;
+using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using Microsoft.ServiceBus;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Scenario]
-	public class When_creating_topics_for_message_names
+	public class Interop_topic_spec
 	{
 		NamespaceManager nm;
 		MessageNameFormatter _formatter;

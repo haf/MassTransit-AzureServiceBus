@@ -16,13 +16,14 @@ using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
+using MassTransit.Transports.AzureServiceBus.Tests.Contexts;
 using MassTransit.Transports.AzureServiceBus.Util;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	public class When_a_cat_eats_many_published_rats
-		: given_a_rat_hole_and_a_cat_context
+	public class Publish_spec
+		: Given_two_buses_context
 	{
 		Guid dinner_id;
 		Future<SmallRat> _receivedSmallRat;

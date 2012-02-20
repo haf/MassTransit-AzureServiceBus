@@ -17,12 +17,13 @@ using Magnum.TestFramework;
 using MassTransit.BusConfigurators;
 using MassTransit.Pipeline.Inspectors;
 using MassTransit.TestFramework;
+using MassTransit.Transports.AzureServiceBus.Tests.Contexts;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Scenario]
-	public class When_a_message_is_published
-		: given_a_bus_context
+	public class Publish_roundtrip_spec
+		: Given_a_bus_context
 	{
 		private Future<A> _received;
 

@@ -16,18 +16,18 @@ using Magnum.Extensions;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 
-namespace MassTransit.Transports.AzureServiceBus.Tests
+namespace MassTransit.Transports.AzureServiceBus.Tests.Contexts
 {
-	public abstract class given_a_bus_context
+	public abstract class Given_a_bus_context
 		: LocalTestFixture<TransportFactoryImpl>
 	{
-		protected given_a_bus_context()
+		protected Given_a_bus_context()
 		{
 			LocalUri = new Uri("azure-sb://{0}:{1}@{2}/test-client"
-			                   	.FormatWith(
-			                   		AccountDetails.IssuerName, // username
-			                   		AccountDetails.Key, // password
-			                   		AccountDetails.Namespace)); // namespace
+								.FormatWith(
+									AccountDetails.IssuerName, // username
+									AccountDetails.Key, // password
+									AccountDetails.Namespace)); // namespace
 
 			ConfigureEndpointFactory(x => x.UseAzureServiceBus());
 		}
@@ -35,7 +35,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		protected override void ConfigureServiceBus(Uri uri, BusConfigurators.ServiceBusConfigurator configurator)
 		{
 			base.ConfigureServiceBus(uri, configurator);
-
 			configurator.UseAzureServiceBusRouting();
 		}
 	}

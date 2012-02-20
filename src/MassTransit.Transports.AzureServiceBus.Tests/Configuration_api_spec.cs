@@ -17,7 +17,7 @@ using MassTransit.NLogIntegration;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	public class When_configuring_azure_service_bus_with_masstransit
+	public class Configuration_api_spec
 	{
 		[Test]
 		public void configuring_the_message_bus()
