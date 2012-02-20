@@ -13,7 +13,8 @@
 namespace MassTransit.AzureServiceBus
 {
 	/// <summary>
-	/// F# interop; similar to C#'s void return "type".
+	/// F# interop; similar to C#'s void return "type". If you get a task of this type,
+	/// all you can do is wait for it, check for cancellation and then check for faults.
 	/// </summary>
 	public struct Unit
 	{

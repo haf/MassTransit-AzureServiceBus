@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MassTransit.Logging;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
@@ -64,10 +65,18 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			var messageName = GetMessageName(message);
 			var topicName = messageName.ToString();
+			var mf = _address.MessagingFactoryFactory();
+			Task<Topic> t;
+			try
+			{
+				t = _address.NamespaceManager.TryCreateTopic(mf, topicName);
+				t.Wait();
+			}
+			finally
+			{
+				mf.Close();
+			}
 
-			var t = _address.NamespaceManager.TryCreateTopic(_address.MessagingFactory, topicName);
-
-			t.Wait();
 
 			_bindings[message.SubscriptionId] = t.Result;
 		}

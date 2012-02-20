@@ -27,31 +27,23 @@ open MassTransit.AzureServiceBus
 open MassTransit.Async.Queue
 open MassTransit.Async.AsyncRetry
 
-/// Messages that can be passed to the server
-type private message  = Faster | Slower | Stop
-type private actor    = MailboxProcessor<message>
-
-/// Create a new receiver, with a queue description, 
+/// Create a new receiver, with a queue description,
 /// a factory for messaging factories and some control flow data
 type Receiver(desc   : QueueDescription,
               newMf  : (unit -> MessagingFactory),
               ?maxReceived : int,
               ?concurrency : int,
               ?mfEveryNthConcurrentAsync : int) =
-  
+  /// Field denoting whether the receiver is in the started state or, if false, in the stopped state.
   let mutable started = false
-
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
   
   let queueSize = defaultArg maxReceived 50
   let messages = new BlockingCollection<_>(queueSize)
-  let cancel = Async.DefaultCancellationToken
-  let error  = new Event<System.Exception>()
   
   let timeout = TimeSpan.FromMilliseconds 50.0
-  let maxFlushInterval = TimeSpan.FromMilliseconds 50.0
   let concurrency = defaultArg concurrency 250
-  let nthAsync = defaultArg mfEveryNthConcurrentAsync 100
+  let nthAsync = defaultArg mfEveryNthConcurrentAsync 100 // in initAsyncs
 
   let azQDesc = desc.Inner
 
@@ -85,7 +77,7 @@ type Receiver(desc   : QueueDescription,
 
   /// Closes the receivers and message factories created
   let closeColl () =
-    logger.Info("closing all message factories and receivers")
+    logger.InfoFormat("closing all ({0} of them) message factories and receivers", mfAndRecvsColl.Length)
     for (mf, recv) in mfAndRecvsColl do
       if not(mf.IsClosed) then
         try
@@ -134,7 +126,9 @@ type Receiver(desc   : QueueDescription,
         yield messages.Take() }
 
   interface System.IDisposable with
-    member x.Dispose () = x.Stop() ; closeColl ()
+    member x.Dispose () = 
+      logger.DebugFormat("dispose called for receiver on '{0}'", desc.Path)
+      x.Stop() ; closeColl ()
 
 [<Extension>]
 type ReceiverModule =

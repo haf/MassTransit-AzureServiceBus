@@ -117,6 +117,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				if (_queue != null)
 					_queue.Dispose();
 
+				// this bugs out
 				//if (_messagingFactory != null && !_messagingFactory.IsClosed)
 				//    _messagingFactory.Close();
 			}
@@ -135,16 +136,18 @@ namespace MassTransit.Transports.AzureServiceBus
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
 			_queue = _endpointAddress
 						.CreateQueue()
-						.Then(qdesc => _messagingFactory.TryCreateQueueClient(_endpointAddress.NamespaceManager, qdesc, _prefetchCount))
+						.Then(_ => 
+							_messagingFactory.TryCreateQueueClient(_endpointAddress.NamespaceManager,
+								_endpointAddress.QueueDescription, _prefetchCount))
 						.Result;
-			
+
 			if (_queue == null)
 				throw new TransportException(_endpointAddress.Uri, "The create queue client task returned null.");
 		}
 
 		public void Disconnect()
 		{
-			_log.Debug(() => "Disconnecting {0}".FormatWith(_endpointAddress));
+			_log.Debug(() => "Disconnecting (nop) {0}".FormatWith(_endpointAddress));
 		}
 	}
 }

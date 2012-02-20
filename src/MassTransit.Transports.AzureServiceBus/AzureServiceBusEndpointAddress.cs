@@ -13,6 +13,7 @@
 
 using System;
 using System.Threading.Tasks;
+using MassTransit.AzureServiceBus;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
@@ -33,7 +34,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		/// <summary>
 		/// 	Gets a per-transport messaging factory. Warning: Don't use from connection! (http://msdn.microsoft.com/en-us/library/windowsazure/hh528527.aspx)
 		/// </summary>
-		MessagingFactory MessagingFactory { get; }
+		Func<MessagingFactory> MessagingFactoryFactory { get; }
 
 		/// <summary>
 		/// 	Gets the namespace manager in use for this transport/bus.
@@ -44,7 +45,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		/// 	Creates a new queue.
 		/// </summary>
 		/// <returns> </returns>
-		Task<QueueDescription> CreateQueue();
+		Task<Unit> CreateQueue();
 
 		QueueDescription QueueDescription { get; }
 	}

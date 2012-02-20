@@ -114,7 +114,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (_r == null)
 				lock (_rSem)
 					if (_r == null)
-						_r = ReceiverModule.StartReceiver(_address.QueueDescription, () => _address.MessagingFactory, 1000, 30);
+						_r = ReceiverModule.StartReceiver(_address.QueueDescription, _address.MessagingFactoryFactory, 1000, 30);
 		}
 
 		static void TraceMessage(ReceiveContext context)
@@ -135,7 +135,10 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		void Dispose(bool disposing)
 		{
-			if (_disposed) return;
+			if (_disposed) 
+				return;
+
+			_logger.Debug(string.Format("disposing transport for {0}", Address));
 
 			if (disposing)
 			{

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MassTransit.AzureServiceBus;
 using MassTransit.Configurators;
-using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
+using QDesc = MassTransit.AzureServiceBus.QueueDescription;
 using MassTransit.Async;
 
 namespace MassTransit.Transports.AzureServiceBus
@@ -26,9 +26,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly Uri _rebuiltUri;
 		readonly Data _data;
 		readonly TokenProvider _tp;
-		readonly MessagingFactory _mf;
+		readonly Func<MessagingFactory> _mff;
 		readonly NamespaceManager _nm;
-		QueueDescription _queueDescription;
+		QDesc _queueDescription;
 
 		AzureServiceBusEndpointAddressImpl([NotNull] Data data)
 		{
@@ -41,7 +41,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			                                                    _data.PasswordSharedSecret);
 
 			var sbUri = ServiceBusEnvironment.CreateServiceUri("sb", _data.Namespace, string.Empty);
-			_mf = MessagingFactory.Create(sbUri, _tp);
+			_mff = () => Microsoft.ServiceBus.Messaging.MessagingFactory.Create(sbUri, _tp);
 
 			_nm = new NamespaceManager(sbUri, _tp);
 
@@ -65,9 +65,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		}
 
 		[NotNull]
-		public MessagingFactory MessagingFactory
+		public Func<MessagingFactory> MessagingFactoryFactory
 		{
-			get { return _mf; }
+			get { return _mff; }
 		}
 
 		[NotNull]
@@ -76,12 +76,12 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _nm; }
 		}
 
-		public Task<QueueDescription> CreateQueue()
+		public Task<Unit> CreateQueue()
 		{
 			return _nm.CreateAsync(QueueDescription);
 		}
 
-		public QueueDescription QueueDescription
+		public QDesc QueueDescription
 		{
 			get { return _queueDescription; }
 		}
@@ -91,7 +91,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			get { return _data; }
 		}
-
 
 		/// <summary>
 		/// This uri is MT-schemed, not AzureSB-schemed
@@ -113,8 +112,6 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Dispose()
 		{
-			if (!_mf.IsClosed) _mf.Close();
-			GC.SuppressFinalize(this);
 		}
 
 		public override string ToString()
