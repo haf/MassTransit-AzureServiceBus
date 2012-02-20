@@ -14,8 +14,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[When]
 		public void theres_a_namespace_manager_available()
 		{
-			var mf = ConfigFactory.CreateMessagingFactory();
-			nm = ConfigFactory.CreateNamespaceManager(mf);
+			var mf = TestConfigFactory.CreateMessagingFactory();
+			nm = TestConfigFactory.CreateNamespaceManager(mf);
 		}
 
 		[Given]

@@ -12,8 +12,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[SetUp]
 		public void given_a_messaging_factory()
 		{
-			mf = ConfigFactory.CreateMessagingFactory();
-			var nm = ConfigFactory.CreateNamespaceManager(mf);
+			mf = TestConfigFactory.CreateMessagingFactory();
+			var nm = TestConfigFactory.CreateNamespaceManager(mf);
 
 			nm.TopicExists("my.topic.here").ShouldBeFalse();
 		}

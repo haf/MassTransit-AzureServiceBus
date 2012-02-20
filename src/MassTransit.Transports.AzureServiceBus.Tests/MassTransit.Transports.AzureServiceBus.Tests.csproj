@@ -96,16 +96,15 @@
     <Compile Include="Assumptions\Should_be_possible_to_drain.cs" />
     <Compile Include="Scratch.cs" />
     <Compile Include="When_a_cat_eats_many_published_rats.cs" />
-    <Compile Include="ConfigFactory.cs" />
-    <Compile Include="ContextSetup.cs" />
-    <Compile Include="given_a_bus.cs" />
+    <Compile Include="Framework\TestConfigFactory.cs" />
+    <Compile Include="Framework\ContextSetup.cs" />
+    <Compile Include="Contexts\given_a_bus_context.cs" />
     <Compile Include="When_cat_eats_rat.cs" />
     <Compile Include="AzureServiceBusAddress_Specs.cs" />
-    <Compile Include="given_a_rat_hole_and_a_cat.cs" />
+    <Compile Include="Contexts\given_a_rat_hole_and_a_cat_context.cs" />
     <Compile Include="When_a_message_is_published.cs" />
-    <Compile Include="message_publishing_with_a_subscriptionservice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Simplest_possible_configuration_with_AzureServiceBus.cs" />
+    <Compile Include="When_configuring_azure_service_bus_with_masstransit.cs" />
     <Compile Include="When_converting_a_type_to_a_message_name.cs" />
     <Compile Include="When_creating_topics_for_message_names.cs" />
   </ItemGroup>
@@ -130,6 +129,7 @@
       <Name>MassTransit.Transports.AzureServiceBus</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

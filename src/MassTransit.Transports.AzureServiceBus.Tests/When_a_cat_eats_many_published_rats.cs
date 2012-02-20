@@ -22,7 +22,7 @@ using NUnit.Framework;
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	public class When_a_cat_eats_many_published_rats
-		: given_a_rat_hole_and_a_cat
+		: given_a_rat_hole_and_a_cat_context
 	{
 		Guid dinner_id;
 		Future<SmallRat> _receivedSmallRat;

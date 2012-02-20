@@ -1,17 +1,13 @@
 using System;
-using System.Threading.Tasks;
 using MassTransit.Transports.AzureServiceBus.Configuration;
-using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	public delegate Task DeleteQueueAction();
-
 	// in general their API should be using interfaces that carry both data and operations
-	public static class ConfigFactory
+	public static class TestConfigFactory
 	{
 		public static TokenProvider CreateTokenProvider()
 		{

@@ -13,7 +13,6 @@
 
 using Magnum.Extensions;
 using Magnum.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Management;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
@@ -25,9 +24,9 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Given]
 		public void nsm_mf_and_topic()
 		{
-			var tp = ConfigFactory.CreateTokenProvider();
-			var mf = ConfigFactory.CreateMessagingFactory(tp);
-			var nm = ConfigFactory.CreateNamespaceManager(mf, tp);
+			var tp = TestConfigFactory.CreateTokenProvider();
+			var mf = TestConfigFactory.CreateMessagingFactory(tp);
+			var nm = TestConfigFactory.CreateNamespaceManager(mf, tp);
 			topic = nm.TryCreateTopic(mf, "non-existing").Result;
 			topic.ShouldNotBeNull();
 		}

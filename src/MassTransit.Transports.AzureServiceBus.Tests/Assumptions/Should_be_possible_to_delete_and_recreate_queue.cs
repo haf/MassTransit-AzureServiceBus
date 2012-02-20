@@ -26,9 +26,9 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Given]
 		public void nsm_mf_and_topic()
 		{
-			var tp = ConfigFactory.CreateTokenProvider();
-			var mf = ConfigFactory.CreateMessagingFactory(tp);
-			var nm = ConfigFactory.CreateNamespaceManager(mf, tp);
+			var tp = TestConfigFactory.CreateTokenProvider();
+			var mf = TestConfigFactory.CreateMessagingFactory(tp);
+			var nm = TestConfigFactory.CreateNamespaceManager(mf, tp);
 			var qd = nm.TryCreateQueue("to-be-drained").Result;
 			client = mf.TryCreateQueueClient(nm, qd, 1).Result;
 

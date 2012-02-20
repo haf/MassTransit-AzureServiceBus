@@ -51,8 +51,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		public void when_I_place_a_message_in_the_queue()
 		{
 			message = MyFactory.AMessage();
-			var mf = ConfigFactory.CreateMessagingFactory();
-			nm = ConfigFactory.CreateNamespaceManager(mf);
+			var mf = TestConfigFactory.CreateMessagingFactory();
+			nm = TestConfigFactory.CreateNamespaceManager(mf);
 			nm.TryCreateQueue("test-queue").Wait();
 			t = mf.CreateQueueClient("test-queue");
 			t.Send(new BrokeredMessage(message));

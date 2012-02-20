@@ -11,8 +11,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Given]
 		public void nsm_mf_and_topic()
 		{
-			var tp = ConfigFactory.CreateTokenProvider();
-			mf = ConfigFactory.CreateMessagingFactory(tp);
+			var tp = TestConfigFactory.CreateTokenProvider();
+			mf = TestConfigFactory.CreateMessagingFactory(tp);
 		}
 
 		[Then]

@@ -18,6 +18,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		: IOutboundTransport
 	{
 		const int MaxOutstanding = 100;
+		const string BusyRetriesKey = "busy-retries";
 		static readonly ILog _logger = Logger.Get(typeof(OutboundTransportImpl));
 
 		bool _disposed;
@@ -113,9 +114,18 @@ namespace MassTransit.Transports.AzureServiceBus
 					}
 					catch (ServerBusyException ex)
 					{
-						_logger.Warn("Server Too Busy", ex);
+						object val;
+						var hasVal = msg.Properties.TryGetValue(BusyRetriesKey, out val);
+						if (!hasVal) val = msg.Properties[BusyRetriesKey] = 1;
+						_logger.Warn(string.Format("Server Too Busy, for {0}'(st|nd|th) time", val), ex);
 
-						RetryLoop(connection, message);
+						RetryLoop(connection, msg);
+					}
+					catch (Exception)
+					{
+						// dispose the message if it's not possible to send it
+						msg.Dispose();
+						throw;
 					}
 				}, Tuple.Create(connection.Queue, message));
 		}

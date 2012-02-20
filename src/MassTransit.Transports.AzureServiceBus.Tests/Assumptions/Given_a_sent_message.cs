@@ -24,8 +24,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		{
 			message = MyFactory.AMessage();
 
-			var mf = ConfigFactory.CreateMessagingFactory();
-			nm = ConfigFactory.CreateNamespaceManager(mf);
+			var mf = TestConfigFactory.CreateMessagingFactory();
+			nm = TestConfigFactory.CreateNamespaceManager(mf);
 
 			var createTopic = nm.TryCreateTopic(mf, "my.topic.here");
 			createTopic.Wait();

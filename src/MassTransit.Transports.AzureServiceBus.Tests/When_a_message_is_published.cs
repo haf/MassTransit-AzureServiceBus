@@ -22,7 +22,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Scenario]
 	public class When_a_message_is_published
-		: given_a_bus
+		: given_a_bus_context
 	{
 		private Future<A> _received;
 

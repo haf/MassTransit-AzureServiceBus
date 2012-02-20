@@ -21,7 +21,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	public class Scratch
 	{
-		[Test]
+		[Test, Explicit]
 		public void continuation_error_handling_then_completion()
 		{
 			ManualResetEventSlim first = new ManualResetEventSlim(false),

@@ -28,7 +28,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	             "a rat to a hungry cat."),
 	 Scenario]
 	public class When_cat_eats_rat
-		: given_a_rat_hole_and_a_cat
+		: given_a_rat_hole_and_a_cat_context
 	{
 		Action<string> cat_sounds = Console.WriteLine,
 					   rat_sounds = Console.WriteLine;

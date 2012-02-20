@@ -20,10 +20,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	public class ContextSetup
 	{
 		[SetUp]
-		public void Before_any()
+		public void SetUpLogging()
 		{
-			//string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-			//string file = Path.Combine(path, "tests.log4net.xml");
 			Logging.Logger.UseLogger(new NLogLogger());
 		}
 	}

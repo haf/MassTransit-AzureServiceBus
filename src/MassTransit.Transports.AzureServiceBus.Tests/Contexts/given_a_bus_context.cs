@@ -18,10 +18,10 @@ using MassTransit.Transports.AzureServiceBus.Configuration;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	public abstract class given_a_bus
+	public abstract class given_a_bus_context
 		: LocalTestFixture<TransportFactoryImpl>
 	{
-		protected given_a_bus()
+		protected given_a_bus_context()
 		{
 			LocalUri = new Uri("azure-sb://{0}:{1}@{2}/test-client"
 			                   	.FormatWith(
