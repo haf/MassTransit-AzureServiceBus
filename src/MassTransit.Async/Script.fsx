@@ -70,7 +70,7 @@ async {
   let token = Async.DefaultCancellationToken
   let running = (fun () -> token.IsCancellationRequested |> not)
   while running() do // equivalent to transport Receive being called (this body)
-    let msgs = r.AsyncConsume () |> AsyncSeq.map (fun m -> deserializer m , m)
+    let msgs = r.Consume () |> AsyncSeq.map (fun m -> deserializer m , m)
     for (dm, bm) in msgs do
       if running() |> not then return ()
       //printfn "(THIS PLACE is equivalent to sending (%A, _) up the chain of message sinks)" dm

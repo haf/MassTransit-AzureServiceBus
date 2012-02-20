@@ -21,7 +21,7 @@ open FSharp.Control
 
 open System
 open System.Runtime.CompilerServices
-open System.Threading
+open System.Collections.Concurrent
 
 open MassTransit.AzureServiceBus
 open MassTransit.Async.Queue
@@ -44,7 +44,7 @@ type Receiver(desc   : QueueDescription,
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
   
   let queueSize = defaultArg maxReceived 50
-  let messages = new BlockingQueueAgent<_>(queueSize)
+  let messages = new BlockingCollection<_>(queueSize)
   let cancel = Async.DefaultCancellationToken
   let error  = new Event<System.Exception>()
   
@@ -62,7 +62,7 @@ type Receiver(desc   : QueueDescription,
           let! bmsg = timeout |> recv client
           if bmsg <> null then
             logger.Debug("received message!")
-            do! messages.AsyncAdd bmsg
+            messages.Add bmsg
           else
             logger.Debug("got null msg due to timeout receiving") }
 
@@ -117,20 +117,21 @@ type Receiver(desc   : QueueDescription,
       Async.CancelDefaultToken ()
 
   member x.Get(timeout : TimeSpan) =
-    try
-      messages.Get(timeout.Milliseconds)
-    with
-      | :? TimeoutException -> Unchecked.defaultof<obj> :?> BrokeredMessage
+    let mutable item = null
+    let _ = messages.TryTake(&item, timeout.Milliseconds)
+    item
 
-  member __.AsyncGet(?timeout) = 
+  member __.TryTake(?timeout) =
     let timeout = defaultArg timeout <| TimeSpan.FromMilliseconds 50.0
-    messages.AsyncGet(timeout.Milliseconds)
+    let mutable item = null
+    if messages.TryTake(&item, timeout.Milliseconds)
+    then Some(item)
+    else None
 
-  member __.AsyncConsume() =
+  member __.Consume() =
     asyncSeq {
       while true do
-        let! res = messages.AsyncGet()
-        yield res }
+        yield messages.Take() }
 
   interface System.IDisposable with
     member x.Dispose () = x.Stop() ; closeColl ()

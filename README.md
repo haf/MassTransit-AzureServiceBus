@@ -25,7 +25,7 @@ using (ServiceBusFactory.New(sbc =>
 }
 ```
 
-or if this tickles your fancy:
+or alternatively:
 
 ```
 using (ServiceBusFactory.New(sbc =>
@@ -102,12 +102,17 @@ If you wish to run the performance tests, you will have to change `src\MassTrans
 	</Role>
 </ServiceConfiguration>
 ```
-
-# Spec
-Aims:
+## Aims:
 
  * Sub-Pub over message types
+ * Binding to specific topic on publish of message if subscriber exists in bus
+ * Purging of queues by deleting them and re-creating them
+ * Maximum performance. A middle ground of low latency (50 ms) and high throughput (batching, concurrent receives).
  * `GetEndpoint(...).Send<T>(this ..., T msg)`. [Done]
+
+# Spec
+
+A discussion on how messages should be routed.
 
 ## How will routing work?
 
@@ -190,24 +195,15 @@ Further:
  * Outbound retries messages met with **ServerBusyException** after **10 s**.
  * Transports log to *MassTransit.Messages*.
  
-Aiming to bring in log4net appender for Azure.
-
 ## Endpoints
 
 Endpoint in MT, tuple: { bus instance, inbound queue/transport, n x outbound queue/transport (one for each target we're sending to) }. In this case the endpoint needs to be, tuple { bus instance, inbound queue, n x inbound subscriptions that is polled round robin, n x outbound queue/transport (`GetEndpoint().Send()`), n x outbound subscription client (send to topic) }
 
-## Thoughts on encryption
+## Thoughs on async
 
-We can use the encrypting serializer, like what is displsyed in `PreSharedKeyEncryptedMessageSerializer` in MT. We'll set keys as we set endpoint names, using configuration management.
+So, I can cap the concurrency; i.e. the number of asynchronous BeginSend and BeginReceive that I have outstanding, without corresponding EndXXX having been called. Since I'm using batching, the question is whether I have say enqueued on a thread/spinwait/IO-port (???) the first 50 ms.
 
-## Thoughts on reliability
-
-Service Bus doesn't garantuee the uptime that one would get off e.g.
-a dedicated Rabbit MQ HA cluster:
-
- * Forum topic [Azure Service Bus stability](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/c1a37655-47ed-47b0-8853-5132330d8213)
-
-It could be possible to create a mechanism for switching to an alternate transport mechanism if the one in use fails. Perhaps failover to ZeroMQ transport if SBQS fails?
+## Thoughts on rate limits
 
 This transport will rate-limit on the persistency/quorum of service bus itself; i.e. when a message is considered safe - ZMQ wouldn't write to disk, but rather send the message asynchronously directly, so for example, given messages { 1,2,3,4,5 }, this transport could send { 1, receive ACK 1, 2 receive ACK 2, 3, receive ACK 3, ... } or optionally, { 1, 2, receive ACK 1, 3, 4, 5, receive ACK 2, receive ACK 3, ... }. ZeroMQ would do { 1, 2, 3, 4, 5 } and we'd never know from a sending app whether they arrived. It would be up to the producer to persist its current ACKed message for service bus and the ZMQ transport SHOULD have a PUSH/PULL socket that returns with an ACKs with the message id.
 
@@ -215,12 +211,12 @@ This transport will rate-limit on the persistency/quorum of service bus itself; 
 
  * Forum topic [BrokeredMessage 256KB limit](http://social.msdn.microsoft.com/Forums/en-US/windowsazureconnectivity/thread/b804b71e-831d-43b6-a38c-847d01034471)
 
-The way of sending large messages (over 256K) is to upload it to Azure Blob Storage. Another way is to chunk it.
+The way of sending large messages (over 256K) is to upload it to Azure Blob Storage. Another way is to chunk it. Another way is to use Azure Cache.
 
 ## Thoughts on ServerTooBusyException - retry in 10 seconds
-
 Hmm... 10 seconds: that's a couple of thousand messages, a long time.
 
-## Thoughts on maximum message factories per namespace
+## Thoughts on maximum message factories per (?)
 
-Only 100??
+Only 100? Is that per-IP or per namespace?
+

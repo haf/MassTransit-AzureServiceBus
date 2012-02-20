@@ -7,6 +7,7 @@ using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
+using MassTransit.Async;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -77,10 +78,10 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public Task<QueueDescription> CreateQueue()
 		{
-			return _nm.TryCreateQueue(QueueDescription);
+			return _nm.CreateAsync(QueueDescription);
 		}
 
-		public MassTransit.AzureServiceBus.QueueDescription QueueDescription
+		public QueueDescription QueueDescription
 		{
 			get { return _queueDescription; }
 		}

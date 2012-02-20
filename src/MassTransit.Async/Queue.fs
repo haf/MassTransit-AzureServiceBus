@@ -14,11 +14,17 @@
 *)
 namespace MassTransit.Async
 
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
+
+[<Extension>]
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Queue =
   
   open System
   open Microsoft.ServiceBus
   open Microsoft.ServiceBus.Messaging
+
   open MassTransit.Logging
   open MassTransit.AzureServiceBus
   
@@ -26,6 +32,8 @@ module Queue =
 
   type AQD = Microsoft.ServiceBus.Messaging.QueueDescription
 
+  /// Create a queue description from a path name asynchronously
+  [<Extension;CompiledName("Desc")>]
   let desc (nm : NamespaceManager) name =
     async {
       let! exists = Async.FromBeginEnd(name, nm.BeginQueueExists, nm.EndQueueExists)
@@ -33,6 +41,11 @@ module Queue =
       return! if exists then Async.FromBeginEnd(name, nm.BeginGetQueue, nm.EndGetQueue)
               else Async.FromBeginEnd(name, beginCreate, nm.EndCreateQueue) }
   
+  /// Create a queue description from a path name synchronously.
+  [<Extension;CompiledName("DescSync")>]
+  let descSync nm name = 
+    Async.RunSynchronously( desc nm name )
+
   let recv (client : MessageReceiver) timeout =
     let bRecv = client.BeginReceive : TimeSpan * AsyncCallback * obj -> IAsyncResult
     async {
@@ -52,6 +65,8 @@ module Queue =
   let exists (nm : NamespaceManager ) (desc : QueueDescription) = 
     async { return! Async.FromBeginEnd((desc.Path), nm.BeginQueueExists, nm.EndQueueExists) }
 
+  /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
+  [<Extension;CompiledName("Create")>]
   let rec create (nm : NamespaceManager) (desc : QueueDescription) =
     async {
       let! exists = desc |> exists nm
@@ -62,7 +77,17 @@ module Queue =
         return! desc |> create nm
       with
       | :? MessagingEntityAlreadyExistsException -> return () }
+  
+  /// Create a queue from the given queue description synchronously; never throws MessagingEntityAlreadyExistsException
+  [<Extension;CompiledName("CreateAsync")>]
+  let createSync nm desc = 
+    Async.StartAsTask(
+      async { 
+        do! create nm desc
+        return Unit() })
 
+  /// Delete a queue from the given queue description asynchronously; never throws MessagingEntityNotFoundException.
+  [<Extension;CompiledName("Delete")>]
   let rec delete (nm : NamespaceManager) (desc : QueueDescription) =
     async {
       let! exists = desc |> exists nm
@@ -73,6 +98,11 @@ module Queue =
       with
       | :? MessagingEntityNotFoundException -> return () }
 
+  /// Delete a queue from the given queue description synchronously; never throws MessagingEntityNotFoundException.
+  [<Extension;CompiledName("DeleteAsync")>]
+  let deleteSync nm desc = Async.StartAsTask(delete nm desc)
+
+  /// Create a new message sender from the messaging factory and the queue description
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =
     async {
       do! desc |> create nm
