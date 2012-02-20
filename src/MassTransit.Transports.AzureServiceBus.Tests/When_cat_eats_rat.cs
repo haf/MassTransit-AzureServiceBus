@@ -39,7 +39,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		Future<Rat> cat_having_dinner;
 		MassTransit.UnsubscribeAction take_nap;
 
-		[When]
+		[Given]
 		public void a_rat_is_sent_to_a_hungry_cat()
 		{
 			dinner_id = CombGuid.Generate();
@@ -56,17 +56,12 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			cat_prepares_with_napkin();
 
-			var cat = find_hungry_cat();
+			var cat = LocalBus.GetEndpoint(RemoteUri);
 			cat.Send<Rat>(new
 				{
 					Sound = "Eeeek",
 					CorrelationId = dinner_id
 				});
-		}
-
-		IEndpoint find_hungry_cat()
-		{
-			return LocalBus.GetEndpoint(RemoteUri);
 		}
 
 		// well behaved cats wear napkins
@@ -81,7 +76,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		public void the_rat_got_eaten()
 		{
 			cat_having_dinner
-				.WaitUntilCompleted(8.Seconds())
+				.WaitUntilCompleted(4.Seconds())
 				.ShouldBeTrue();
 
 			cat_having_dinner.Value
@@ -89,7 +84,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				.ShouldEqual(dinner_id);
 		}
 
-		[Finally]
+		[TearDown]
 		public void the_cat_naps()
 		{
 			if (take_nap != null)

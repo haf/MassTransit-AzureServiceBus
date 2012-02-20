@@ -1,0 +1,63 @@
+16:49:04.3521 +01:00|10|MassTransit.Transports.AzureServiceBus.ConnectionImpl|Debug|Disconnecting azure-sb://mt-client/rat_hole 
+TestFixture failed: The operation has timed out.
+
+Server stack trace: 
+
+
+Exception rethrown at [0]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.OnEndClose(IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.Sbmp.DuplexRequestBindingElement.DuplexRequestSessionChannel.OnClose(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Close(TimeSpan timeout)
+   at Microsoft.ServiceBus.Messaging.Channels.SharedChannel`1.CloseOrAbortAsyncResult.<GetAsyncSteps>b__b(CloseOrAbortAsyncResult thisPtr, TimeSpan t)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.RunSynchronously()
+
+Exception rethrown at [1]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.RunSynchronously()
+   at Microsoft.ServiceBus.Messaging.Channels.ReconnectBindingElement.ReconnectChannelFactory`1.RequestSessionChannel.OnClose(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Close(TimeSpan timeout)
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessagingFactory.CloseAsyncResult.<GetAsyncSteps>b__4c(CloseAsyncResult thisPtr, TimeSpan t)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.EnumerateSteps(CurrentThreadType state)
+
+Exception rethrown at [2]: 
+   at Microsoft.ServiceBus.Common.AsyncResult.End[TAsyncResult](IAsyncResult result)
+   at Microsoft.ServiceBus.Messaging.IteratorAsyncResult`1.RunSynchronously()
+   at Microsoft.ServiceBus.Messaging.Sbmp.SbmpMessagingFactory.OnClose(TimeSpan timeout)
+   at Microsoft.ServiceBus.Messaging.MessageClientEntity.Close(TimeSpan timeout)
+   at MassTransit.Transports.AzureServiceBus.ConnectionImpl.Dispose(Boolean managed) in D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.Transports.AzureServiceBus\ConnectionImpl.cs:line 121
+   at MassTransit.Transports.AzureServiceBus.ConnectionImpl.Dispose() in D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.Transports.AzureServiceBus\ConnectionImpl.cs:line 106
+   at MassTransit.Transports.ConnectionHandlerImpl`1.Dispose(Boolean disposing) in d:\code\oss\MassTransit\src\MassTransit\Transports\ConnectionHandlerImpl.cs:line 148
+   at MassTransit.Transports.ConnectionHandlerImpl`1.Dispose() in d:\code\oss\MassTransit\src\MassTransit\Transports\ConnectionHandlerImpl.cs:line 75
+   at MassTransit.Transports.AzureServiceBus.TransportFactoryImpl.<Dispose>b__14(ConnectionHandler`1 x) in D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.Transports.AzureServiceBus\TransportFactoryImpl.cs:line 129
+   at Magnum.Extensions.ExtensionsToEnumerable.Each[T](IEnumerable`1 collection, Action`1 callback) in d:\Builds\MassTransit-Magnum\src\Magnum\Extensions\ExtensionsToEnumerable.cs:line 32
+   at MassTransit.Transports.AzureServiceBus.TransportFactoryImpl.Dispose(Boolean managed) in D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.Transports.AzureServiceBus\TransportFactoryImpl.cs:line 129
+   at MassTransit.Transports.AzureServiceBus.TransportFactoryImpl.Dispose() in D:\code\oss\MassTransit-AzureServiceBus\src\MassTransit.Transports.AzureServiceBus\TransportFactoryImpl.cs:line 118
+   at MassTransit.Transports.EndpointFactory.<Dispose>b__4(ITransportFactory x) in d:\code\oss\MassTransit\src\MassTransit\Transports\EndpointFactory.cs:line 106
+   at Magnum.Extensions.ExtensionsToEnumerable.Each[T](IEnumerable`1 collection, Action`1 callback) in d:\Builds\MassTransit-Magnum\src\Magnum\Extensions\ExtensionsToEnumerable.cs:line 32
+   at MassTransit.Transports.EndpointFactory.Dispose(Boolean disposing) in d:\code\oss\MassTransit\src\MassTransit\Transports\EndpointFactory.cs:line 106
+   at MassTransit.Transports.EndpointFactory.Dispose() in d:\code\oss\MassTransit\src\MassTransit\Transports\EndpointFactory.cs:line 97
+   at MassTransit.Transports.EndpointCache.Dispose(Boolean disposing) in d:\code\oss\MassTransit\src\MassTransit\Transports\EndpointCache.cs:line 107
+   at MassTransit.TestFramework.Fixtures.EndpointTestFixture`1.FixtureTeardown() in d:\code\oss\MassTransit\src\MassTransit.TestFramework\Fixtures\EndpointTestFixture.cs:line 85
+
+
+   		void Dispose(bool managed)
+		{
+			if (!managed || _disposed)
+				return;
+
+			try
+			{
+				if (_queue != null)
+					_queue.Dispose();
+
+				if (_messagingFactory != null && !_messagingFactory.IsClosed)
+// HERE:
+					_messagingFactory.Close();
+			}
+			finally
+			{
+				_disposed = true;
+			}
+		}

@@ -86,6 +86,11 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				return obj != null && (obj is Rat) && Equals(obj as Rat);
 			}
 
+			public override int GetHashCode()
+			{
+				return Sound.GetHashCode() + CorrelationId.GetHashCode();
+			}
+
 			public bool Equals([NotNull] Rat other)
 			{
 				if (other == null) throw new ArgumentNullException("other");

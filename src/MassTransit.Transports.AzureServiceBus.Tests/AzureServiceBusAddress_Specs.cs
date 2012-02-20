@@ -38,7 +38,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[Then]
 		public void messaging_factory_should_not_be_null()
 		{
-			_address.MessagingFactory.ShouldNotBeNull();
+			_address.MessagingFactoryFactory.ShouldNotBeNull();
 		}
 
 		[Then]

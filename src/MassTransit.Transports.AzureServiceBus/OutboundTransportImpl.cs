@@ -7,6 +7,7 @@ using Magnum.Threading;
 using MassTransit.Logging;
 using Microsoft.ServiceBus.Messaging;
 using ILog = MassTransit.Logging.ILog;
+using MassTransit.Transports.AzureServiceBus.Internal;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -19,7 +20,10 @@ namespace MassTransit.Transports.AzureServiceBus
 		const int MaxOutstanding = 100;
 		static readonly ILog _logger = Logger.Get(typeof(OutboundTransportImpl));
 
+		bool _disposed;
+
 		int _messagesInFlight;
+		int _sleeping;
 
 		readonly ReaderWriterLockedObject<Queue<BrokeredMessage>> _retryMsgs
 			= new ReaderWriterLockedObject<Queue<BrokeredMessage>>(new Queue<BrokeredMessage>(MaxOutstanding));
@@ -37,12 +41,21 @@ namespace MassTransit.Transports.AzureServiceBus
 			_connectionHandler = connectionHandler;
 			_address = address;
 
-			_logger.Debug(string.Format("created outbound transport for address '{0}'", address));
+			_logger.Debug(() => "created outbound transport for address '{0}'".FormatWith(address));
 		}
 
-		/// <summary>
-		/// Gets the endpoint address this transport sends to.
-		/// </summary>
+		public void Dispose()
+		{
+			if (_disposed) return;
+			try
+			{
+				_address.Dispose();
+				_connectionHandler.Dispose();
+			}
+			finally { _disposed = true; }
+		}
+
+		/// <summary>Gets the endpoint address this transport sends to.</summary>
 		public IEndpointAddress Address
 		{
 			get { return _address; }
@@ -52,8 +65,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		// http://msdn.microsoft.com/en-us/library/windowsazure/hh528527.aspx
 		public void Send(ISendContext context)
 		{
-			if (context == null) throw new ArgumentNullException("context");
-
 			_connectionHandler
 				.Use(connection =>
 					{
@@ -61,7 +72,6 @@ namespace MassTransit.Transports.AzureServiceBus
 						{
 							context.SerializeTo(body);
 							var bm = new BrokeredMessage(new MessageEnvelope(body.ToArray()));
-							//bm.ContentType = context.ContentType;
 							
 							if (!string.IsNullOrWhiteSpace(context.CorrelationId))
 								bm.CorrelationId = context.CorrelationId;
@@ -69,31 +79,25 @@ namespace MassTransit.Transports.AzureServiceBus
 							if (!string.IsNullOrWhiteSpace(context.MessageId))
 								bm.MessageId = context.MessageId;
 							
-							if (_logger.IsDebugEnabled)
-								_logger.Debug(string.Format("SEND-begin:{0}:{1}:{2}",
-									_address, bm.Label, bm.MessageId));
-
 							TrySendMessage(connection, bm);
 						}
 					});
 		}
 
-		void TrySendMessage(ConnectionImpl connection, BrokeredMessage bm)
+		void TrySendMessage(ConnectionImpl connection, BrokeredMessage message)
 		{
 			// don't have too many outstanding at same time
 			SpinWait.SpinUntil(() => _messagesInFlight < MaxOutstanding);
+
+			Address.LogBeginSend(message.MessageId);
 			
 			Interlocked.Increment(ref _messagesInFlight);
 
-			connection.Queue.BeginSend(bm, ar =>
+			connection.Queue.BeginSend(message, ar =>
 				{
 					var tuple = ar.AsyncState as Tuple<QueueClient, BrokeredMessage>;
 					var msg = tuple.Item2;
 					var queueClient = tuple.Item1;
-
-					if (_logger.IsDebugEnabled)
-						_logger.Debug(string.Format("SEND-end:{0}:{1}:{2}",
-							_address, msg.Label, msg.MessageId));
 
 					try
 					{
@@ -102,41 +106,36 @@ namespace MassTransit.Transports.AzureServiceBus
 						// API to let it re-initialize the queue and hence maybe even the full transport...
 						// MessagingEntityNotFoundException.
 						Interlocked.Decrement(ref _messagesInFlight);
+
 						queueClient.EndSend(ar);
+
+						Address.LogEndSend(msg.MessageId);
 					}
-					catch (ServerBusyException serverBusyException)
+					catch (ServerBusyException ex)
 					{
-						if (_logger.IsWarnEnabled)
-							_logger.Warn(string.Format("SEND-too-busy:{0}:{1}:{2}",
-								_address, msg.Label, msg.MessageId), serverBusyException);
-						
-						RetryLoop(connection, bm);
+						_logger.Warn("Server Too Busy", ex);
+
+						RetryLoop(connection, message);
 					}
-				}, Tuple.Create(connection.Queue, bm));
+				}, Tuple.Create(connection.Queue, message));
 		}
 
 		// call only if first time gotten server busy exception
 		private void RetryLoop(ConnectionImpl connection, BrokeredMessage bm)
 		{
-			// exception tells me to wait 10 seconds before retrying.
-			Thread.Sleep(10.Seconds());
+			Address.LogSendRetryScheduled(bm.MessageId, _messagesInFlight, Interlocked.Increment(ref _sleeping));
+			// exception tells me to wait 10 seconds before retrying, so let's sleep 1 second instead,
+			// just 2,600,000,000 CPU cycles
+			Thread.Sleep(1.Seconds());
+			Interlocked.Decrement(ref _sleeping);
 
 			// push all pending retries onto the sending operation
 			_retryMsgs.WriteLock(queue =>
 				{
 					queue.Enqueue(bm);
-
-					if (_logger.IsInfoEnabled)
-						_logger.Info(string.Format("SEND-retry:{0}. Queue count: {1}", 
-							_address, queue.Count));
-
 					while (queue.Count > 0)
 						TrySendMessage(connection, queue.Dequeue());
 				});
-		}
-
-		public void Dispose()
-		{
 		}
 	}
 }

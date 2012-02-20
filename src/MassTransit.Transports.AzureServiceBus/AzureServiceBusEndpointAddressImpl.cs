@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MassTransit.AzureServiceBus;
 using MassTransit.Configurators;
-using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using QDesc = MassTransit.AzureServiceBus.QueueDescription;
+using MassTransit.Async;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -20,11 +22,13 @@ namespace MassTransit.Transports.AzureServiceBus
 			public string Application { get; set; }
 		}
 
+		readonly Uri _friendlyUri;
 		readonly Uri _rebuiltUri;
 		readonly Data _data;
 		readonly TokenProvider _tp;
-		readonly MessagingFactory _mf;
+		readonly Func<MessagingFactory> _mff;
 		readonly NamespaceManager _nm;
+		QDesc _queueDescription;
 
 		AzureServiceBusEndpointAddressImpl([NotNull] Data data)
 		{
@@ -37,14 +41,21 @@ namespace MassTransit.Transports.AzureServiceBus
 			                                                    _data.PasswordSharedSecret);
 
 			var sbUri = ServiceBusEnvironment.CreateServiceUri("sb", _data.Namespace, string.Empty);
-			_mf = MessagingFactory.Create(sbUri, _tp);
+			_mff = () => Microsoft.ServiceBus.Messaging.MessagingFactory.Create(sbUri, _tp);
 
 			_nm = new NamespaceManager(sbUri, _tp);
 
 			_rebuiltUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}", 
 				data.UsernameIssuer,
 				data.PasswordSharedSecret,
-				data.Namespace, data.Application));
+				data.Namespace, 
+				data.Application));
+
+			_friendlyUri = new Uri(string.Format("azure-sb://{0}/{1}",
+				data.Namespace,
+				data.Application));
+
+			_queueDescription = new QueueDescriptionImpl(data.Application);
 		}
 
 		[NotNull]
@@ -54,9 +65,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		}
 
 		[NotNull]
-		public MessagingFactory MessagingFactory
+		public Func<MessagingFactory> MessagingFactoryFactory
 		{
-			get { return _mf; }
+			get { return _mff; }
 		}
 
 		[NotNull]
@@ -65,15 +76,20 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _nm; }
 		}
 
+		public Task<Unit> CreateQueue()
+		{
+			return _nm.CreateAsync(QueueDescription);
+		}
+
+		public QDesc QueueDescription
+		{
+			get { return _queueDescription; }
+		}
+
 		[NotNull]
 		internal Data Details
 		{
 			get { return _data; }
-		}
-
-		public Task<QueueDescription> CreateQueue()
-		{
-			return _nm.TryCreateQueue(_data.Application);
 		}
 
 		/// <summary>
@@ -96,13 +112,11 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Dispose()
 		{
-			if (!_mf.IsClosed) _mf.Close();
-			GC.SuppressFinalize(this);
 		}
 
 		public override string ToString()
 		{
-			return _rebuiltUri.ToString();
+			return _friendlyUri.ToString();
 		}
 
 		public static AzureServiceBusEndpointAddressImpl Parse([NotNull] Uri uri)
