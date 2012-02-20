@@ -13,9 +13,7 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
-using Magnum.Extensions;
 using MassTransit.Async;
 using MassTransit.Context;
 using MassTransit.Logging;
@@ -30,8 +28,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		readonly IMessageNameFormatter _formatter;
 		readonly AzureServiceBusEndpointAddress _address;
-		static volatile Receiver _r;
-		static readonly object _rSem = new object();
+		volatile Receiver _r;
+		readonly object _rSem = new object();
 
 		bool _disposed;
 
@@ -65,8 +63,6 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
 		{
-			_logger.Debug(() => "Receive({0}, timeout) called".FormatWith(_address));
-
 			EnsureReceiver();
 
 			_connectionHandler.Use(connection =>
@@ -140,16 +136,19 @@ namespace MassTransit.Transports.AzureServiceBus
 		void Dispose(bool disposing)
 		{
 			if (_disposed) return;
+
 			if (disposing)
 			{
+				try
+				{
+					if (_r != null && _r is IDisposable)
+						(_r as IDisposable).Dispose();
+				}
+				finally
+				{
+					_disposed = true;
+				}
 			}
-
-			_disposed = true;
-		}
-
-		~InboundTransportImpl()
-		{
-			Dispose(false);
 		}
 	}
 }

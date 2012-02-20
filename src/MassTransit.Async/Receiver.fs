@@ -61,6 +61,7 @@ type Receiver(desc   : QueueDescription,
         while cancelled.IsCancellationRequested |> not do
           let! bmsg = timeout |> recv client
           if bmsg <> null then
+            logger.Debug("received message!")
             do! messages.AsyncAdd bmsg
           else
             logger.Debug("got null msg due to timeout receiving") }
@@ -99,7 +100,7 @@ type Receiver(desc   : QueueDescription,
 
   /// Starts the receiver which starts the consuming from the service bus.
   member x.Start () =
-    logger.Info("Start called on Recveiver")
+    logger.InfoFormat("started for queue {0}", desc)
     if started then ()
     else
       started <- true

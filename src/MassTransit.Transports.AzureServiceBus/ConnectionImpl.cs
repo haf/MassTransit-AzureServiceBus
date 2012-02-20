@@ -117,8 +117,8 @@ namespace MassTransit.Transports.AzureServiceBus
 				if (_queue != null)
 					_queue.Dispose();
 
-				if (_messagingFactory != null && !_messagingFactory.IsClosed)
-					_messagingFactory.Close();
+				//if (_messagingFactory != null && !_messagingFactory.IsClosed)
+				//    _messagingFactory.Close();
 			}
 			finally
 			{
