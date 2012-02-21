@@ -19,6 +19,7 @@ using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
+	[Explicit("test fixture for code fiddling")]
 	public class Scratch
 	{
 		[Test, Explicit]

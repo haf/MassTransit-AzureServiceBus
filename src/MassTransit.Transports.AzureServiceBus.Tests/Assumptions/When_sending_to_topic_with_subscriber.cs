@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
+	[Scenario, Integration]
 	public class When_sending_to_topic_with_subscriber
 		: Given_a_sent_message
 	{

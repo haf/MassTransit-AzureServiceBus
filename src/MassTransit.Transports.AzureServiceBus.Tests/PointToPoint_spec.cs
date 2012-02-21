@@ -27,7 +27,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	[Description("Validates the simplest possible behaviour; sending a message " +
 	             "from a local bus to a remote endpoint. In this case, we're sending " +
 	             "a rat to a hungry cat."),
-	 Scenario]
+	 Scenario,
+	 Integration]
 	public class PointToPoint_spec
 		: Given_two_buses_context
 	{

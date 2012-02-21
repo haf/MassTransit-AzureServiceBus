@@ -18,6 +18,7 @@ using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
+	[Scenario, Integration]
 	public class Should_be_possible_to_drain
 	{
 		Topic topic;

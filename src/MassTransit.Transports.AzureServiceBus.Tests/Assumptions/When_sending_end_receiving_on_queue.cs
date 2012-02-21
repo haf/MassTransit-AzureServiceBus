@@ -42,6 +42,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 	// ???
 	// wouldn't it be more prudent to make CreateSubscriptionClient TAKE A TopicDescription??
 
+	[Scenario, Integration]
 	public class When_sending_end_receiving_on_queue
 	{
 		Microsoft.ServiceBus.Messaging.QueueClient t;

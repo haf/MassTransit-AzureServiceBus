@@ -97,6 +97,7 @@
     <Compile Include="Assumptions\When_sending_to_topic_with_subscriber.cs" />
     <Compile Include="Assumptions\When_sending_to_topic_with_subscriber_and_tiny_lock_span.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_drain.cs" />
+    <Compile Include="Azure_management_impl_spec.cs" />
     <Compile Include="Framework\TestDataFactory.cs" />
     <Compile Include="Inbound_transport_bound_management_spec.cs" />
     <Compile Include="Scratch.cs" />

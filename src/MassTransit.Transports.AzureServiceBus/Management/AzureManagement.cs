@@ -15,9 +15,5 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 	public interface AzureManagement
 		: ConnectionBinding<ConnectionImpl>
 	{
-		/// <summary>
-		/// Purges the queue/topic that this management is managing.
-		/// </summary>
-		void Purge();
 	}
 }

@@ -5,6 +5,7 @@ using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
+	[Scenario, Integration]
 	class Should_be_possible_to_recieve_ordinarily_through_API
 	{
 		Topic topic;

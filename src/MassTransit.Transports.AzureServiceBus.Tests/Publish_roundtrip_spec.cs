@@ -21,7 +21,7 @@ using MassTransit.Transports.AzureServiceBus.Tests.Contexts;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	[Scenario]
+	[Scenario, Integration]
 	public class Publish_roundtrip_spec
 		: Given_a_bus_context
 	{

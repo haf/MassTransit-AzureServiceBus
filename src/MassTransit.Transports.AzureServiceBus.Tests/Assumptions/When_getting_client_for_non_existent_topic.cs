@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
+	[Scenario, Integration]
 	public class When_getting_client_for_non_existent_topic
 	{
 		private MessagingFactory mf;

@@ -10,31 +10,45 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
+
+using System;
+using System.Threading.Tasks;
+using MassTransit.Async;
+using MassTransit.AzureServiceBus;
+using MassTransit.Transports.AzureServiceBus.Util;
+
 namespace MassTransit.Transports.AzureServiceBus.Management
 {
 	public class AzureManagementImpl
 		: AzureManagement
 	{
 		readonly bool _purgeExistingMessages;
+		readonly AzureServiceBusEndpointAddress _address;
 
-		public AzureManagementImpl(bool purgeExistingMessages)
+		public AzureManagementImpl(bool purgeExistingMessages,
+			[NotNull] AzureServiceBusEndpointAddress address)
 		{
+			if (address == null) throw new ArgumentNullException("address");
 			_purgeExistingMessages = purgeExistingMessages;
+			_address = address;
 		}
 
-		public void Purge()
+		/// <summary>
+		/// Purges the queue/topic that this management is managing.
+		/// </summary>
+		internal Task Purge()
 		{
+			return _address.NamespaceManager.ToggleQueueAsync(_address.QueueDescription);
 		}
 
 		public void Bind(ConnectionImpl connection)
 		{
-			Purge();
-			throw new System.NotImplementedException();
+			if (_purgeExistingMessages)
+				Purge().Wait();
 		}
 
 		public void Unbind(ConnectionImpl connection)
 		{
-			throw new System.NotImplementedException();
 		}
 	}
 }

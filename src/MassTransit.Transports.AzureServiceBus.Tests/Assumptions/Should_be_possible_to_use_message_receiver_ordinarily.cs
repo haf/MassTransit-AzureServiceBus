@@ -5,6 +5,7 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
+	[Scenario, Integration]
 	class Should_be_possible_to_use_message_receiver_ordinarily
 	{
 		MessagingFactory mf;

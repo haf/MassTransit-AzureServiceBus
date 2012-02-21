@@ -19,7 +19,7 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
-	[Scenario]
+	[Scenario, Integration]
 	public class Should_be_possible_to_delete_and_recreate_queue
 	{
 		QueueClient client;
@@ -35,7 +35,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 
 			// sanity checks; I can now place a message in the queue
 			client.Send(new BrokeredMessage(new A("My Contents", new byte[] {1, 2, 3}))).Wait();
-
 		}
 
 		[Then]

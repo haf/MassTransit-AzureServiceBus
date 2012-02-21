@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	[Scenario]
+	[Scenario, Integration]
 	public class Interop_topic_spec
 	{
 		NamespaceManager nm;

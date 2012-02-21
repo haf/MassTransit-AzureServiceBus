@@ -22,6 +22,7 @@ using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
+	[Integration]
 	public class Publish_spec
 		: Given_two_buses_context
 	{

@@ -62,8 +62,12 @@ module Queue =
                       (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
                       mf.EndCreateMessageReceiver) }
   
+  [<Extension;CompiledName("Exists")>]
   let exists (nm : NamespaceManager ) (desc : QueueDescription) = 
     async { return! Async.FromBeginEnd((desc.Path), nm.BeginQueueExists, nm.EndQueueExists) }
+
+  [<Extension;CompiledName("ExistsAsync")>]
+  let existsAsync nm desc = Async.StartAsTask(exists nm desc)
 
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Create")>]
@@ -101,6 +105,16 @@ module Queue =
   /// Delete a queue from the given queue description synchronously; never throws MessagingEntityNotFoundException.
   [<Extension;CompiledName("DeleteAsync")>]
   let deleteSync nm desc = Async.StartAsTask(delete nm desc)
+
+  [<Extension;CompiledName("ToggleQueue")>]
+  let toggle nm desc =
+    async {
+      do! delete nm desc
+      do! create nm desc 
+      return Unit() }
+
+  [<Extension;CompiledName("ToggleQueueAsync")>]
+  let toggleAsync nm desc = Async.StartAsTask(toggle nm desc)
 
   /// Create a new message sender from the messaging factory and the queue description
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =
