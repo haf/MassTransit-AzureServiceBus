@@ -66,8 +66,10 @@
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Internal\EndpointAsyncLoggerExtensions.cs" />
     <Compile Include="Internal\TaskExtensions.cs" />
+    <Compile Include="Management\AzureManagement.cs" />
+    <Compile Include="Management\AzureManagementImpl.cs" />
     <Compile Include="MessageEnvelope.cs" />
-    <Compile Include="MessageNameFormatter.cs" />
+    <Compile Include="AzureMessageNameFormatter.cs" />
     <Compile Include="OutboundTransportImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AzureServiceBusEndpointAddress.cs" />

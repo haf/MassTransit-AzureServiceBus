@@ -59,6 +59,9 @@
     <Reference Include="Microsoft.ServiceBus, Version=1.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.ServiceBus.1.6.0.0\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
     </Reference>
+    <Reference Include="Moq">
+      <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.2.0.0.2000\lib\net20\NLog.dll</HintPath>
     </Reference>
@@ -94,13 +97,15 @@
     <Compile Include="Assumptions\When_sending_to_topic_with_subscriber.cs" />
     <Compile Include="Assumptions\When_sending_to_topic_with_subscriber_and_tiny_lock_span.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_drain.cs" />
+    <Compile Include="Framework\TestDataFactory.cs" />
+    <Compile Include="Inbound_transport_bound_management_spec.cs" />
     <Compile Include="Scratch.cs" />
     <Compile Include="Publish_spec.cs" />
     <Compile Include="Framework\TestConfigFactory.cs" />
     <Compile Include="Framework\NLogContextSetup.cs" />
     <Compile Include="Contexts\Given_a_bus_context.cs" />
     <Compile Include="PointToPoint_spec.cs" />
-    <Compile Include="AzureServiceBusAddress_Specs.cs" />
+    <Compile Include="Address_spec.cs" />
     <Compile Include="Contexts\Given_two_buses_context.cs" />
     <Compile Include="Publish_roundtrip_spec.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

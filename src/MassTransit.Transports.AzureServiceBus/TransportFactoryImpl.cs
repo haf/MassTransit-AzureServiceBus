@@ -3,6 +3,7 @@ using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
+using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus
@@ -12,16 +13,16 @@ namespace MassTransit.Transports.AzureServiceBus
 	{
 		static readonly ILog _logger = Logger.Get(typeof (TransportFactoryImpl));
 
-		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connectionCache;
+		private readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connCache;
 		private readonly ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress> _addresses;
-		private readonly MessageNameFormatter _messageNameFormatter;
+		private readonly AzureMessageNameFormatter _formatter;
 		private bool _disposed;
 
 		public TransportFactoryImpl()
 		{
 			_addresses = new ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress>();
-			_connectionCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>>();
-			_messageNameFormatter = new MessageNameFormatter();
+			_connCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>>();
+			_formatter = new AzureMessageNameFormatter();
 
 			_logger.Debug("created new transport factory");
 		}
@@ -36,7 +37,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public IMessageNameFormatter MessageNameFormatter
 		{
-			get { return _messageNameFormatter; }
+			get { return _formatter; }
 		}
 
 		/// <summary>
@@ -63,7 +64,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			var client = GetConnection(address);
 
-			return new InboundTransportImpl(address, client, MessageNameFormatter);
+			return new InboundTransportImpl(address, client, MessageNameFormatter,
+				new AzureManagementImpl(settings.PurgeExistingMessages));
 		}
 
 		public virtual IOutboundTransport BuildOutbound(ITransportSettings settings)
@@ -104,7 +106,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			_logger.Debug(() => string.Format("get connection( address:'{0}' )", address));
 
-			return _connectionCache.Retrieve(address.Uri, () =>
+			return _connCache.Retrieve(address.Uri, () =>
 				{
 					var connection = new ConnectionImpl(address, address.TokenProvider);
 					var connectionHandler = new ConnectionHandlerImpl<ConnectionImpl>(connection);
@@ -126,9 +128,9 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			if (managed)
 			{
-				_connectionCache.Values.Each(x => x.Dispose());
-				_connectionCache.Clear();
-				_connectionCache.Dispose();
+				_connCache.Values.Each(x => x.Dispose());
+				_connCache.Clear();
+				_connCache.Dispose();
 
 				_addresses.Values.Each(x => x.Dispose());
 				_addresses.Clear();

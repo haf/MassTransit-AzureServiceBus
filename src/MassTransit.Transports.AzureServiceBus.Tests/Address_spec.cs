@@ -17,22 +17,21 @@ using System.Linq;
 using Magnum.TestFramework;
 using MassTransit.Configurators;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Scenario]
-	public class AzureServiceBusAddress_Specs
+	public class Address_spec
 	{
 		AzureServiceBusEndpointAddressImpl _address;
-		Uri uri;
 
 		[When]
 		public void a_servicebusqueues_address_is_given()
 		{
-			uri = new Uri(string.Format("azure-sb://owner:{0}@{1}/my-application",
-				AccountDetails.Key, AccountDetails.Namespace));
-			_address = AzureServiceBusEndpointAddressImpl.Parse(uri);
+			_address = AzureServiceBusEndpointAddressImpl.Parse(
+				TestDataFactory.ApplicationEndpoint);
 		}
 
 		[Then]

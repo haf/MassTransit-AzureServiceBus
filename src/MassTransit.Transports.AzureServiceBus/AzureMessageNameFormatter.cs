@@ -18,12 +18,12 @@ namespace MassTransit.Transports.AzureServiceBus
 	/// <summary>
 	/// The default Azure Service Bus message name formatter.
 	/// </summary>
-	public class MessageNameFormatter
+	public class AzureMessageNameFormatter
 		: IMessageNameFormatter
 	{
 		readonly DefaultMessageNameFormatter _formatter;
 
-		public MessageNameFormatter()
+		public AzureMessageNameFormatter()
 		{
 			_formatter = new DefaultMessageNameFormatter("....", "--", "..", "-");
 		}
