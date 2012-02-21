@@ -2,6 +2,7 @@ using System;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using NUnit.Framework;
+using AccountDetails = MassTransit.Transports.AzureServiceBus.Tests.Framework.AccountDetails;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Contexts
 {

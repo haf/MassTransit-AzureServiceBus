@@ -6,6 +6,7 @@ using Magnum;
 using Magnum.Extensions;
 using MassTransit.AzurePerformance.Messages;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NLog;
@@ -22,37 +23,15 @@ namespace MassTransit.AzurePerformance.Sender
 
 		public override void Run()
 		{
-			//BasicConfigurator.Configure(AzureAppender.New(conf =>
-			//    {
-			//        conf.Level = "Info";
-
-			//        conf.ConfigureRepository((repo, mapper) =>
-			//            {
-			//                repo.Threshold = mapper("Info"); // root
-			//            });
-
-			//        conf.ConfigureAzureDiagnostics(d =>
-			//            {
-			//                d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
-			//            });
-			//    }));
-
 			_logger.Info("Sender entry point called");
 
 			RoleEnvironment.Stopping += (sender, args) => _isStopping = true;
 
-			var id = RoleEnvironment.CurrentRoleInstance.Id;
-			var myUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}",
-			                                  AccountDetails.IssuerName,
-			                                  AccountDetails.Key,
-			                                  AccountDetails.Namespace,
-			                                  "sender" + id.Substring(id.IndexOf("IN_", StringComparison.InvariantCulture) + 3)
-			                    	));
-
+			var creds = GetCredentials();
 			var startSignal = new ManualResetEventSlim(false);
 			using (var sb = ServiceBusFactory.New(sbc =>
 				{
-					sbc.ReceiveFrom(myUri);
+					sbc.ReceiveFromComponents(creds);
 
 					sbc.UseAzureServiceBusRouting();
 					sbc.UseNLog();
@@ -64,12 +43,9 @@ namespace MassTransit.AzurePerformance.Sender
 						});
 				}))
 			{
-				var receiver = sb.GetEndpoint(new Uri(string.Format("azure-sb://{0}:{1}@{2}/receiver", 
-						AccountDetails.IssuerName,
-						AccountDetails.Key,
-						AccountDetails.Namespace)));
+				var receiver = sb.GetEndpoint(creds.BuildUri("receiver"));
 
-				receiver.Send<SenderUp>(new { Source = myUri });
+				receiver.Send<SenderUp>(new { Source = creds.BuildUri() });
 
 				startSignal.Wait();
 
@@ -90,6 +66,14 @@ namespace MassTransit.AzurePerformance.Sender
 
 				while (true) Thread.Sleep(5000);
 			}
+		}
+
+		static PreSharedKeyCredentials GetCredentials()
+		{
+			var id = RoleEnvironment.CurrentRoleInstance.Id;
+			var appName = "sender" + id.Substring(id.IndexOf("IN_", StringComparison.InvariantCulture) + 3);
+			var creds = new AccountDetails().WithApplication(appName);
+			return creds;
 		}
 
 		[Serializable]

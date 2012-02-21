@@ -80,6 +80,10 @@
       <Project>{698E3DE2-501C-4609-A67B-CE98BA7CF1EC}</Project>
       <Name>MassTransit.AzurePerformance.Messages</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus.Tests\MassTransit.Transports.AzureServiceBus.Tests.csproj">
+      <Project>{BF352953-D63A-41A1-B3CF-65BE5624DA80}</Project>
+      <Name>MassTransit.Transports.AzureServiceBus.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus\MassTransit.Transports.AzureServiceBus.csproj">
       <Project>{0E9F5DB7-3FA0-444F-BF82-74947525AE62}</Project>
       <Name>MassTransit.Transports.AzureServiceBus</Name>

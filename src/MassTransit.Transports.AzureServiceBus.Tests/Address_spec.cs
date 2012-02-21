@@ -19,6 +19,7 @@ using MassTransit.Configurators;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using NUnit.Framework;
+using AccountDetails = MassTransit.Transports.AzureServiceBus.Tests.Framework.AccountDetails;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {

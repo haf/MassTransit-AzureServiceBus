@@ -32,7 +32,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		/// </summary>
 		public string Scheme
 		{
-			get { return "azure-sb"; }
+			get { return Constants.Scheme; }
 		}
 
 		public IMessageNameFormatter MessageNameFormatter

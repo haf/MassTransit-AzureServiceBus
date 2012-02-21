@@ -1,5 +1,4 @@
-﻿using System;
-using Magnum.Extensions;
+﻿using Magnum.Extensions;
 using MassTransit.BusConfigurators;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
@@ -10,17 +9,21 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		/// Specifies that MT should be using AppFabric ServiceBus Queues to receive messages and specifies the
 		/// uri by means of its components.
 		/// </summary>
-		public static T ReceiveFromComponents<T>(this T configurator,
-			string issuerOrUsername, string defaultKeyOrPassword,
-			string serviceBusNamespace, string applicationName)
+		public static void ReceiveFromComponents<T>(this T configurator, 
+			string issuerOrUsername, 
+			string defaultKeyOrPassword, string serviceBusNamespace,
+			string application)
 			where T : ServiceBusConfigurator
 		{
-			configurator.ReceiveFrom(
-				new Uri("azure-sb://{0}:{1}@{2}/{3}".FormatWith(issuerOrUsername, 
-					defaultKeyOrPassword, serviceBusNamespace,
-				    applicationName)));
+			var credentials = new Credentials(issuerOrUsername, defaultKeyOrPassword, serviceBusNamespace, application);
+			configurator.ReceiveFrom(credentials.BuildUri());
+		}
 
-			return configurator;
+		public static void ReceiveFromComponents<T>(this T configurator,
+			PreSharedKeyCredentials creds)
+			where T : ServiceBusConfigurator
+		{
+			configurator.ReceiveFrom(creds.BuildUri());
 		}
 
 		/// <summary>

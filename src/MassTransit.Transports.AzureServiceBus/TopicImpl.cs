@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Magnum.Policies;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;
@@ -38,48 +37,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _description; }
 		}
 
-		Task Topic.DrainBestEffort(TimeSpan timeout)
-		{
-			var retryFiveTimes = ExceptionPolicy.InCaseOf<TimeoutException>().Retry(5);
-			return _self.CreateSubscriber(ReceiveMode.ReceiveAndDelete)
-				.Then(tuple =>
-					{
-						var subscriber = tuple.Item2;
-						while (true)
-						{
-							try
-							{
-								// perform the drain operation;
-								// since there's no protocol for telling the topic 
-								// to drain itself and there's no extra meta
-								// data in the topic receive operation
-								// the specifies whether the topic queue had something
-								// inside last time, we can only wait till it doesn't
-								// return anything more and then say that we're done
-								while (retryFiveTimes.Do<BrokeredMessage>(() =>
-									{
-										var receive = subscriber.Receive(timeout);
-										receive.Wait();
-										return receive.Result;
-									}) != null)
-#pragma warning disable 642
-									;
-#pragma warning restore 642
-								break;
-							}
-							// happens seventh call (first -> 5 retries -> excep)
-							catch (TimeoutException)
-							{
-								break;
-							}
-						}
-
-						_logger.Debug("unsubscribe action wait start");
-						tuple.Item2.Dispose();
-						_logger.Debug("unsubscribe action wait end");
-					});
-		}
-		
 		Task<Tuple<TopicClient, Subscriber>> Topic.CreateSubscriber(
 			ReceiveMode mode,
 			string subscriberName,

@@ -11,7 +11,6 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
 
-using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
@@ -36,7 +35,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Then]
 		public void I_can_drain_the_topic()
 		{
-			topic.DrainBestEffort(3.Seconds());
 		}
 	}
 }

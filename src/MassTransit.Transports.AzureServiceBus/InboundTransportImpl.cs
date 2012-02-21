@@ -30,6 +30,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly IMessageNameFormatter _formatter;
 		readonly AzureManagement _management;
 		readonly AzureServiceBusEndpointAddress _address;
+
 		volatile Receiver _r;
 		readonly object _rSem = new object();
 

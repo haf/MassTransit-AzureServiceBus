@@ -8,7 +8,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
 	[Scenario, Integration]
 	public class When_sending_to_topic_with_subscriber
-		: Given_a_sent_message
+		: Given_a_sent_message_context
 	{
 		static readonly ILog _logger = Logger.Get(typeof (When_sending_to_topic_with_subscriber));
 		

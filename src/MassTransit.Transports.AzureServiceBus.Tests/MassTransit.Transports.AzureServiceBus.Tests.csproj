@@ -87,10 +87,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assumptions\A.cs" />
-    <Compile Include="Assumptions\Given_a_sent_message.cs" />
-    <Compile Include="Assumptions\MyFactory.cs" />
+    <Compile Include="Azure_service_bus_endpoint_spec.cs" />
+    <Compile Include="Contexts\Given_a_sent_message_context.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_delete_and_recreate_queue.cs" />
-    <Compile Include="Assumptions\Should_be_possible_to_recieve_ordinarily_through_API.cs" />
+    <Compile Include="Assumptions\Should_be_possible_to_recieve.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_use_message_receiver_ordinarily.cs" />
     <Compile Include="Assumptions\When_getting_client_for_non_existent_topic.cs" />
     <Compile Include="Assumptions\When_sending_end_receiving_on_queue.cs" />
@@ -98,6 +98,9 @@
     <Compile Include="Assumptions\When_sending_to_topic_with_subscriber_and_tiny_lock_span.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_drain.cs" />
     <Compile Include="Azure_management_impl_spec.cs" />
+    <Compile Include="Credentials_impl_spec.cs" />
+    <Compile Include="Pre_shared_key_credentials_transformations_spec.cs" />
+    <Compile Include="Framework\AccountDetails.cs" />
     <Compile Include="Framework\TestDataFactory.cs" />
     <Compile Include="Inbound_transport_bound_management_spec.cs" />
     <Compile Include="Scratch.cs" />

@@ -1,4 +1,16 @@
-using Magnum.Extensions;
+// Copyright 2012 Henrik Feldt
+//  
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
+// this file except in compliance with the License. You may obtain a copy of the 
+// License at 
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0 
+// 
+// Unless required by applicable law or agreed to in writing, software distributed 
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// specific language governing permissions and limitations under the License.
+
 using Magnum.TestFramework;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
@@ -6,12 +18,11 @@ using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using NLog;
 using NUnit.Framework;
-using Logger = NLog.Logger;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
 	[Scenario, Category("NegativeTests")]
-	public abstract class Given_a_sent_message
+	public abstract class Given_a_sent_message_context
 	{
 		static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -23,7 +34,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		[Given]
 		public void a_drained_topic_and_a_message()
 		{
-			message = MyFactory.AMessage();
+			message = TestDataFactory.AMessage();
 
 			var mf = TestConfigFactory.CreateMessagingFactory();
 			nm = TestConfigFactory.CreateNamespaceManager(mf);
@@ -50,11 +61,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		public void given_a_message_sent_to_the_topic()
 		{
 			_logger.Debug("[SetUp] draining");
-			if (!topic.DrainBestEffort(3.Seconds()).Wait(5.Seconds()))
-			{
-				_logger.Debug("failed to complete drain and delete in time");
-				Assert.Fail("failure with drain, didn't complete in time");
-			}
 
 			var msg = new BrokeredMessage(message);
 			BeforeSend(msg);

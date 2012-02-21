@@ -15,6 +15,7 @@ using System;
 using Magnum.Extensions;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using AccountDetails = MassTransit.Transports.AzureServiceBus.Tests.Framework.AccountDetails;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Contexts
 {

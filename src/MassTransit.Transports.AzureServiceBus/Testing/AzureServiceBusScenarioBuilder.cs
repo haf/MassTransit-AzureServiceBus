@@ -1,12 +1,14 @@
-﻿using System;
-using MassTransit.Testing.ScenarioBuilders;
+﻿using MassTransit.Testing.ScenarioBuilders;
+using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.Transports.AzureServiceBus.Util;
 
-namespace MassTransit.Transports.AzureServiceBus.Testing
+namespace MassTransit.Testing
 {
 	public class AzureServiceBusScenarioBuilder
 		: BusScenarioBuilderImpl
 	{
-		protected AzureServiceBusScenarioBuilder(Uri uri) : base(uri)
+		public AzureServiceBusScenarioBuilder([NotNull] PreSharedKeyCredentials credentials)
+			: base(credentials.BuildUri())
 		{
 		}
 	}

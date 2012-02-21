@@ -15,12 +15,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		TopicDescription Description { get; }
 
 		/// <summary>
-		/// Consumes and deletes until there is no message for the specified timeout.
-		/// </summary>
-		/// <returns>The hot computation of the drain</returns>
-		Task DrainBestEffort(TimeSpan timeout);
-		
-		/// <summary>
 		/// Create a subscriber.
 		/// </summary>
 		/// <param name="mode"></param>

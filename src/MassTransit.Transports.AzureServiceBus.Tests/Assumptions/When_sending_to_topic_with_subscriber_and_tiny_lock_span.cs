@@ -7,7 +7,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
 	[Scenario, Integration]
 	public class When_sending_to_topic_with_subscriber_and_tiny_lock_span
-		: Given_a_sent_message
+		: Given_a_sent_message_context
 	{
 		Subscriber subscriber;
 		BrokeredMessage msg1;

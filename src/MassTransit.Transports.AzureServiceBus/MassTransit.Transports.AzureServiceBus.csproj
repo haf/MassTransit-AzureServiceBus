@@ -58,10 +58,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\AccountDetails.cs" />
+    <Compile Include="Configuration\Credentials.cs" />
     <Compile Include="Configuration\EndpointFactoryConfiguratorExtensions.cs" />
     <Compile Include="Configuration\AzureServiceBusServiceBusExtensions.cs" />
     <Compile Include="Configuration\AzureServiceBusFactoryConfiguratorImpl.cs" />
+    <Compile Include="Configuration\PreSharedKeyCredentials.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Internal\EndpointAsyncLoggerExtensions.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="QueueClient.cs" />
     <Compile Include="QueueClientImpl.cs" />
     <Compile Include="QueueDescriptionImpl.cs" />
+    <Compile Include="Testing\BusTestScenarioExtensions.cs" />
     <Compile Include="TopicSubscriptionObserver.cs" />
     <Compile Include="TransportFactoryImpl.cs" />
     <Compile Include="Subscriber.cs" />

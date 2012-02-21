@@ -7,6 +7,7 @@ using System.Threading;
 using Magnum.Extensions;
 using MassTransit.AzurePerformance.Messages;
 using MassTransit.Pipeline.Inspectors;
+using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using MassTransit.Transports.AzureServiceBus.Configuration;
@@ -63,9 +64,7 @@ namespace MassTransit.AzurePerformance.Receiver
 				
 			using (var sb = ServiceBusFactory.New(sbc =>
 				{
-					sbc.ReceiveFromComponents(AccountDetails.IssuerName,
-						AccountDetails.Key, AccountDetails.Namespace,
-						"receiver");
+					sbc.ReceiveFromComponents(new AccountDetails());
 
 					sbc.SetPurgeOnStartup(true);
 					sbc.UseNLog();
@@ -130,8 +129,9 @@ namespace MassTransit.AzurePerformance.Receiver
 
 				stopping.WaitOne();
 
-				sb.GetEndpoint(new Uri(string.Format("azure-sb://owner:{0}@{1}/sender", AccountDetails.Key, AccountDetails.Namespace)))
-					.Send<ZoomDone>(new{});
+				var creds = new AccountDetails();
+
+				sb.GetEndpoint(creds.BuildUri("sender")).Send<ZoomDone>(new{});
 			}
 
 			_logger.Info(

@@ -49,7 +49,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		public void receive_is_called()
 		{
 			handler.Verify(
-				x => x.AddBinding(It.IsAny<ConnectionBinding<ConnectionImpl>>()), 
+				x => x.AddBinding(It.IsAny<ConnectionBinding<ConnectionImpl>>()),
 				Times.Never(),
 				"hasn't received yet");
 			

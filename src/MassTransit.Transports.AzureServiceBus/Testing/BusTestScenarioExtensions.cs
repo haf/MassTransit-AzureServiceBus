@@ -10,16 +10,22 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
+
+using System;
+using MassTransit.Testing.TestInstanceConfigurators;
+using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.Transports.AzureServiceBus.Util;
+
+namespace MassTransit.Testing
 {
-	public static class MyFactory
+	public static class BusTestScenarioExtensions
 	{
-
-
-		public static A AMessage()
+		public static void UseAzureServiceBusBusScenario(
+			this TestInstanceConfigurator<BusTestScenario> configurator, 
+			[NotNull] PreSharedKeyCredentials credentials)
 		{
-			return new A("Ditten datten", new byte[] { 2, 4, 6, 7, byte.MaxValue });
+			if (credentials == null) throw new ArgumentNullException("credentials");
+			configurator.UseScenarioBuilder(() => new AzureServiceBusScenarioBuilder(credentials));
 		}
-
 	}
 }
