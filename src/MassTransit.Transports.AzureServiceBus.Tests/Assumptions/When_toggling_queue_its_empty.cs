@@ -13,36 +13,53 @@
 
 using Magnum.Extensions;
 using Magnum.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using MassTransit.Async;
+using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {
 	[Scenario, Integration]
-	public class Should_be_possible_to_delete_and_recreate_queue
+	public class When_toggling_queue_its_empty
 	{
-		QueueClient client;
+		MessageSender client;
+		NamespaceManager nm;
+		QueueDescription desc;
 
 		[Given]
 		public void nsm_mf_and_topic()
 		{
 			var tp = TestConfigFactory.CreateTokenProvider();
 			var mf = TestConfigFactory.CreateMessagingFactory(tp);
-			var nm = TestConfigFactory.CreateNamespaceManager(mf, tp);
-			var qd = nm.TryCreateQueue("to-be-drained").Result;
-			client = mf.TryCreateQueueClient(nm, qd, 1).Result;
+			
+			desc = new QueueDescriptionImpl("to-be-drained");
+			nm = TestConfigFactory.CreateNamespaceManager(mf, tp);
+
+			client = mf.NewSenderAsync(nm, desc).Result;
 
 			// sanity checks; I can now place a message in the queue
-			client.Send(new BrokeredMessage(new A("My Contents", new byte[] {1, 2, 3}))).Wait();
+			client.Send(new BrokeredMessage(new A("My Contents", new byte[] {1, 2, 3})));
 		}
 
 		[Then]
-		public void I_can_drain_the_topic()
+		public void I_can_drain_the_queue()
 		{
-			client.Drain();
+			nm.ToggleQueueAsync(desc).Wait();
 
-			client.Receive(1.Seconds()).Result.ShouldBeNull();
+			var r = ReceiverModule.StartReceiver(TestDataFactory.GetAddress(), 1, 1);
+
+			BrokeredMessage message = null;
+			try
+			{
+				message = r.Get(1.Seconds()).ShouldBeNull();
+			}
+			finally
+			{
+				if (message != null)
+					message.Complete();
+			}
 		}
 	}
 }

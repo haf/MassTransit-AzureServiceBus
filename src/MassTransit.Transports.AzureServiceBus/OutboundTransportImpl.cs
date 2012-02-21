@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using Magnum.Extensions;
 using Magnum.Threading;
+using MassTransit.AzureServiceBus;
 using MassTransit.Logging;
 using Microsoft.ServiceBus.Messaging;
 using ILog = MassTransit.Logging.ILog;

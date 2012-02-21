@@ -16,7 +16,7 @@ using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Tests.Contexts;
+using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Util;
 using NUnit.Framework;
 
@@ -24,7 +24,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Integration]
 	public class Publish_spec
-		: Given_two_buses_context
+		: TwoBusTestFixture<TransportFactoryImpl>
 	{
 		Guid dinner_id;
 		Future<SmallRat> _receivedSmallRat;

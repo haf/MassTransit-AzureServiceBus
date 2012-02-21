@@ -10,21 +10,20 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
+// ReSharper disable InconsistentNaming
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Magnum.TestFramework;
 using MassTransit.Configurators;
-using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using NUnit.Framework;
-using AccountDetails = MassTransit.Transports.AzureServiceBus.Tests.Framework.AccountDetails;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Scenario]
-	public class Address_spec
+	public class When_parsing_application_endpoint_uri
 	{
 		AzureServiceBusEndpointAddressImpl _address;
 
@@ -121,18 +120,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		{
 			return new Uri(string.Format("azure-sb://owner:{0}@{1}{2}/my-application",
 			                                  AccountDetails.Key, AccountDetails.Namespace, extraHost));
-		}
-
-		[Then]
-		public void normal_address_equals_extended_without_queues_and_userinfo_and_app()
-		{
-			var ext = new Uri(_extended.ToString()
-				.Replace("-queues", string.Empty)
-				.Replace("my-application", string.Empty));
-
-			new UriBuilder(ext.Scheme, ext.Host, ext.Port, ext.AbsolutePath)
-				.Uri
-				.ShouldEqual(_address.NamespaceManager.Address);
 		}
 
 		[Then]

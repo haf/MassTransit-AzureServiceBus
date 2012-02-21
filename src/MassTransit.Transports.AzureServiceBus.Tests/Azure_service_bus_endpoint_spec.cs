@@ -18,16 +18,7 @@ using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	[Scenario, Integration]
-	public class Azure_service_bus_endpoint_spec
-	{
-		[Given]
-		public void an_endpoint()
-		{
-		}
-	}
-
-	public abstract class Handler_test_factory_contract
+	public class Handler_test_factory_contract
 	{
 		HandlerTest<A> _test;
 

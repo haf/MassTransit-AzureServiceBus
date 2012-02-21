@@ -78,6 +78,7 @@ module Queue =
       try
         let beginCreate = nm.BeginCreateQueue : AQD * AsyncCallback * obj -> IAsyncResult
         let! ndesc = Async.FromBeginEnd((desc.Inner), beginCreate, nm.EndCreateQueue)
+        logger.Debug "creating queue"
         return! desc |> create nm
       with
       | :? MessagingEntityAlreadyExistsException -> return () }
@@ -97,6 +98,7 @@ module Queue =
       let! exists = desc |> exists nm
       if exists then return ()
       try
+        logger.Debug "deleting queue"
         do! Async.FromBeginEnd((desc.Path), nm.BeginDeleteQueue, nm.EndDeleteQueue)
         return! desc |> delete nm
       with
@@ -120,7 +122,11 @@ module Queue =
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =
     async {
       do! desc |> create nm
-      printfn "starting sender"
+      logger.Debug "starting sender"
       return! Async.FromBeginEnd((desc.Path),
                       mf.BeginCreateMessageSender,
                       mf.EndCreateMessageSender) }
+
+  [<Extension;CompiledName("NewSenderAsync")>]
+  let newSenderAsync mf nm desc = 
+    Async.StartAsTask(newSender mf nm desc)

@@ -1,5 +1,4 @@
 using System;
-using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
@@ -11,8 +10,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
 	{
 		public static TokenProvider CreateTokenProvider()
 		{
-			var tokenProvider = TokenProvider.CreateSharedSecretTokenProvider(AccountDetails.IssuerName, AccountDetails.Key);
-			return tokenProvider;
+			return TokenProvider.CreateSharedSecretTokenProvider(AccountDetails.IssuerName, AccountDetails.Key);
 		}
 
 		public static MessagingFactory CreateMessagingFactory(TokenProvider tokenProvider = null)

@@ -12,18 +12,15 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.AzureServiceBus;
 using MassTransit.Transports.AzureServiceBus.Tests.Assumptions;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
 {
 	public static class TestDataFactory
 	{
-		public static Uri ApplicationEndpoint = new Uri(String.Format("azure-sb://owner:{0}@{1}/my-application",
-				AccountDetails.Key, AccountDetails.Namespace));
-
-		public static Uri ContractEndpoint = new Uri(String.Format("azure-sb://owner:{0}@{1}/contract_test",
-				AccountDetails.Key, AccountDetails.Namespace));
+		private static readonly AccountDetails _details = new AccountDetails();
+		public static readonly Uri ApplicationEndpoint = _details.BuildUri("my-application");
 
 		public static AzureServiceBusEndpointAddress GetAddress()
 		{

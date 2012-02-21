@@ -14,7 +14,7 @@
 using MassTransit.NLogIntegration.Logging;
 using NUnit.Framework;
 
-namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
+namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[SetUpFixture]
 	public class NLogContextSetup

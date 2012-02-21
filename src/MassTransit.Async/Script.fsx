@@ -21,7 +21,7 @@ open MassTransit.AzureServiceBus
 open MassTransit.Async
 open MassTransit.Logging
 open MassTransit.NLogIntegration.Logging
-open AccountDetails // customize:
+open MassTransit.Async.Internal.AccountDetails // customize:
 open FSharp.Control
 open System
 open System.Runtime.Serialization
@@ -63,7 +63,7 @@ for i in 1 .. concurrency do
   |> Async.Start
 
 // Receiver:
-let r = new Receiver(qdesc, mfFac, 1000, concurrency)
+let r = new Receiver(qdesc, mfFac, nm, 1000, concurrency)
 async {
   r.Start()
   counter.Post Start

@@ -25,23 +25,6 @@ namespace MassTransit.AzurePerformance.Receiver
 
 		public override void Run()
 		{
-			//BasicConfigurator.Configure(AzureAppender.New(conf =>
-			//    {
-			//        conf.Level = "Info";
-					
-			//        conf.ConfigureRepository((repo, mapper) =>
-			//            {
-			//                repo.Threshold = mapper("Info"); // root
-
-			//                ((Logger) ((Hierarchy) repo).GetLogger("MassTransit.Messages")).Level = mapper("Warn");
-			//            });
-
-			//        conf.ConfigureAzureDiagnostics(d =>
-			//            {
-			//                d.Logs.ScheduledTransferLogLevelFilter = LogLevel.Information;
-			//            });
-			//    }));
-			
 			// This is a sample worker implementation. Replace with your logic.
 			_logger.Info("starting receiver");
 
@@ -61,10 +44,11 @@ namespace MassTransit.AzurePerformance.Receiver
 			var senders = new LinkedList<IEndpoint>();
 			var allSendersUp = new CountdownEvent(
 				Convert.ToInt32(RoleEnvironment.GetConfigurationSettingValue("WaitForNumberOfSenders")));
-				
+			var creds = new AccountDetails();
+			
 			using (var sb = ServiceBusFactory.New(sbc =>
 				{
-					sbc.ReceiveFromComponents(new AccountDetails());
+					sbc.ReceiveFromComponents(creds);
 
 					sbc.SetPurgeOnStartup(true);
 					sbc.UseNLog();
@@ -128,8 +112,6 @@ namespace MassTransit.AzurePerformance.Receiver
 				PipelineViewer.Trace(sb.InboundPipeline);
 
 				stopping.WaitOne();
-
-				var creds = new AccountDetails();
 
 				sb.GetEndpoint(creds.BuildUri("sender")).Send<ZoomDone>(new{});
 			}

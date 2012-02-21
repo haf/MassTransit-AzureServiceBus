@@ -15,6 +15,7 @@ using System;
 using System.IO;
 using System.Text;
 using MassTransit.Async;
+using MassTransit.AzureServiceBus;
 using MassTransit.Context;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
@@ -38,7 +39,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		static readonly ILog _logger = Logger.Get(typeof (InboundTransportImpl));
 
-		public InboundTransportImpl([NotNull] AzureServiceBusEndpointAddress address,
+		public InboundTransportImpl(
+			[NotNull] AzureServiceBusEndpointAddress address,
 			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler,
 			[NotNull] IMessageNameFormatter formatter,
 			[NotNull] AzureManagement management)
@@ -125,7 +127,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (_r == null)
 				lock (_rSem)
 					if (_r == null)
-						_r = ReceiverModule.StartReceiver(_address.QueueDescription, _address.MessagingFactoryFactory, 1000, 30);
+						_r = ReceiverModule.StartReceiver(_address, 1000, 30);
 		}
 
 		static void TraceMessage(ReceiveContext context)

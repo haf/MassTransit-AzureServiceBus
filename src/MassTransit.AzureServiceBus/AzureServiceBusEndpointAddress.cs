@@ -13,12 +13,10 @@
 
 using System;
 using System.Threading.Tasks;
-using MassTransit.AzureServiceBus;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
 
-namespace MassTransit.Transports.AzureServiceBus
+namespace MassTransit.AzureServiceBus
 {
 	/// <summary>
 	/// 	Endpoint address for the service bus transport. Instances encapsulate the authentication and factory details for the specific endpoint.

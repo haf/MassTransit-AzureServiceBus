@@ -19,7 +19,8 @@ using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.TestFramework;
-using MassTransit.Transports.AzureServiceBus.Tests.Contexts;
+using MassTransit.TestFramework.Fixtures;
+using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
@@ -29,9 +30,16 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	             "a rat to a hungry cat."),
 	 Scenario,
 	 Integration]
-	public class PointToPoint_spec
-		: Given_two_buses_context
+	public class Point_to_point_spec
+		: TwoBusTestFixture<TransportFactoryImpl>
 	{
+		public Point_to_point_spec()
+		{
+			var creds = new AccountDetails();
+			LocalUri = creds.BuildUri("rat_hole");
+			RemoteUri = creds.BuildUri("hungry_cat");
+		}
+
 		Action<string> cat_sounds = Console.WriteLine,
 					   rat_sounds = Console.WriteLine;
 

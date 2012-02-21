@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MassTransit.AzureServiceBus;
 using MassTransit.Logging;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;

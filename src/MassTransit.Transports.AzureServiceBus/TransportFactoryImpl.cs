@@ -1,6 +1,7 @@
 using System;
 using Magnum.Extensions;
 using Magnum.Threading;
+using MassTransit.AzureServiceBus;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;

@@ -1,4 +1,5 @@
 ﻿using Magnum.Extensions;
+using MassTransit.AzureServiceBus;
 using MassTransit.BusConfigurators;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration

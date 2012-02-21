@@ -12,10 +12,9 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using Magnum.Extensions;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Configuration;
-using AccountDetails = MassTransit.Transports.AzureServiceBus.Tests.Framework.AccountDetails;
+using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Contexts
 {
@@ -24,12 +23,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Contexts
 	{
 		protected Given_a_bus_context()
 		{
-			LocalUri = new Uri("azure-sb://{0}:{1}@{2}/test-client"
-								.FormatWith(
-									AccountDetails.IssuerName, // username
-									AccountDetails.Key, // password
-									AccountDetails.Namespace)); // namespace
-
+			LocalUri = new AccountDetails().BuildUri("test-client"); // namespace
 			ConfigureEndpointFactory(x => x.UseAzureServiceBus());
 		}
 

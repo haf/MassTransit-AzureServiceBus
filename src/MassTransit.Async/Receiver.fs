@@ -31,6 +31,7 @@ open MassTransit.Async.AsyncRetry
 /// a factory for messaging factories and some control flow data
 type Receiver(desc   : QueueDescription,
               newMf  : (unit -> MessagingFactory),
+              nm     : NamespaceManager,
               ?maxReceived : int,
               ?concurrency : int,
               ?mfEveryNthConcurrentAsync : int) =
@@ -39,6 +40,8 @@ type Receiver(desc   : QueueDescription,
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
   
   let queueSize = defaultArg maxReceived 50
+
+  /// Field that contains the collection of messages
   let messages = new BlockingCollection<_>(queueSize)
   
   let timeout = TimeSpan.FromMilliseconds 50.0
@@ -90,12 +93,14 @@ type Receiver(desc   : QueueDescription,
         with
           | x -> logger.Error("could not close receiver", x)
 
-  /// Starts the receiver which starts the consuming from the service bus.
+  /// Starts the receiver which starts the consuming from the service bus
+  /// and creates the queue if it doesn't exist
   member x.Start () =
     logger.InfoFormat("started for queue {0}", desc)
     if started then ()
     else
       started <- true
+      desc |> create nm |> Async.RunSynchronously
       for (mf, client) in mfAndRecvsColl do
         worker client |> Async.Start
 
@@ -128,14 +133,27 @@ type Receiver(desc   : QueueDescription,
   interface System.IDisposable with
     member x.Dispose () = 
       logger.DebugFormat("dispose called for receiver on '{0}'", desc.Path)
-      x.Stop() ; closeColl ()
+      x.Stop()
+      closeColl ()
+      // clear all message locks that we may have
+      while messages.Count > 0 do
+        async {
+          let m = ref null
+          if messages.TryTake(m, TimeSpan.FromMilliseconds(4.0)) then 
+            try do! Async.FromBeginEnd((!m).BeginAbandon, (!m).EndAbandon)
+            with 
+            | x ->
+              let entry = sprintf "could not abandon message#%s" <| (!m).MessageId
+              logger.Error(entry, x) }
+          |> Async.Start
+
+      messages.Dispose()
 
 [<Extension>]
 type ReceiverModule =
-  static member StartReceiver(desc   : QueueDescription,
-                              newMf  : Func<MessagingFactory>,
+  static member StartReceiver(address     : AzureServiceBusEndpointAddress,
                               maxReceived : int,
                               concurrency : int) =
-    let r = new Receiver(desc, (fun () -> newMf.Invoke()), maxReceived, concurrency)
+    let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()), address.NamespaceManager, maxReceived, concurrency)
     r.Start ()
     r

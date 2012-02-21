@@ -89,7 +89,7 @@
     <Compile Include="Assumptions\A.cs" />
     <Compile Include="Azure_service_bus_endpoint_spec.cs" />
     <Compile Include="Contexts\Given_a_sent_message_context.cs" />
-    <Compile Include="Assumptions\Should_be_possible_to_delete_and_recreate_queue.cs" />
+    <Compile Include="Assumptions\When_toggling_queue_its_empty.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_recieve.cs" />
     <Compile Include="Assumptions\Should_be_possible_to_use_message_receiver_ordinarily.cs" />
     <Compile Include="Assumptions\When_getting_client_for_non_existent_topic.cs" />
@@ -106,11 +106,10 @@
     <Compile Include="Scratch.cs" />
     <Compile Include="Publish_spec.cs" />
     <Compile Include="Framework\TestConfigFactory.cs" />
-    <Compile Include="Framework\NLogContextSetup.cs" />
+    <Compile Include="NLogContextSetup.cs" />
     <Compile Include="Contexts\Given_a_bus_context.cs" />
-    <Compile Include="PointToPoint_spec.cs" />
+    <Compile Include="Point_to_point_spec.cs" />
     <Compile Include="Address_spec.cs" />
-    <Compile Include="Contexts\Given_two_buses_context.cs" />
     <Compile Include="Publish_roundtrip_spec.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configuration_api_spec.cs" />
