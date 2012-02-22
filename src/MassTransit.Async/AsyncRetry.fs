@@ -50,7 +50,7 @@ module AsyncRetry =
         use r = resource
         return! work r }
 
-  let asyncRetry = AsyncRetryBuilder(4)
+  let asyncRetry = AsyncRetryBuilder(1)
 
 //type RetryBuilder(max) = 
 //  member x.Return a = a               // Enable 'return'

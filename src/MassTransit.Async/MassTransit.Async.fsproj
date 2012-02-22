@@ -80,7 +80,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Script.fsx" />
+    <None Include="Retries.fsx" />
+    <None Include="ConsumeProduce.fsx" />
     <Compile Include="AccountDetails.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
