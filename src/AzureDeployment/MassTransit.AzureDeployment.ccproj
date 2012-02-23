@@ -37,16 +37,6 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MassTransit.AzureWorker\MassTransit.AzureWorker.csproj">
-      <Name>MassTransit.AzureWorker</Name>
-      <Project>{6fe0f903-2620-4f19-9988-be051c385b2d}</Project>
-      <Private>True</Private>
-      <RoleType>Worker</RoleType>
-      <RoleName>MassTransit.AzureWorker</RoleName>
-      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Profiles" />
   </ItemGroup>
   <ItemGroup>

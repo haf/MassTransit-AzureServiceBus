@@ -78,6 +78,12 @@ module FancyRetries =
       let (Retry retryFunc) = retry
       retryFunc retryPolicy
 
+  /// Performs the retry run, but throws the exception is RetryFailure<'T> is returned
+  let runUnwrap retry policy =
+    match run retry policy with
+    | RetrySuccess(t) -> t
+    | RetryFailure(ex) -> raise ex
+
   /// retry timeouts 9 times with a ts delay if fAcc returns true and the generic parameter matches the exception
   let exnRetryLong<'ex when 'ex :> exn> fAcc ts =
     RetryPolicy( ShouldRetry(fun (count, ex) -> count < 9 && (match box ex with | :? 'ex -> fAcc(ex :?> 'ex) | _ -> false), ts) )

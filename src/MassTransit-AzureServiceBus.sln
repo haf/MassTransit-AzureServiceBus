@@ -20,10 +20,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.Transports.Azur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.Transports.AzureServiceBus.Tests", "MassTransit.Transports.AzureServiceBus.Tests\MassTransit.Transports.AzureServiceBus.Tests.csproj", "{BF352953-D63A-41A1-B3CF-65BE5624DA80}"
 EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "MassTransit.AzureDeployment", "AzureDeployment\MassTransit.AzureDeployment.ccproj", "{A6A10CD7-9A4E-4175-A6D4-FCA07437CC0E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.AzureWorker", "MassTransit.AzureWorker\MassTransit.AzureWorker.csproj", "{6FE0F903-2620-4F19-9988-BE051C385B2D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.AzurePerformance.Receiver", "MassTransit.AzurePerformance.Receiver\MassTransit.AzurePerformance.Receiver.csproj", "{44179E8B-8F83-4DBA-8E36-04929FC2D206}"
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "MassTransit.AzurePerformance", "MassTransit.AzurePerformance\MassTransit.AzurePerformance.ccproj", "{04363CBC-D947-4173-8079-40AF92C0D3F3}"
@@ -52,14 +48,6 @@ Global
 		{BF352953-D63A-41A1-B3CF-65BE5624DA80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF352953-D63A-41A1-B3CF-65BE5624DA80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF352953-D63A-41A1-B3CF-65BE5624DA80}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6A10CD7-9A4E-4175-A6D4-FCA07437CC0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6A10CD7-9A4E-4175-A6D4-FCA07437CC0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6A10CD7-9A4E-4175-A6D4-FCA07437CC0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6A10CD7-9A4E-4175-A6D4-FCA07437CC0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6FE0F903-2620-4F19-9988-BE051C385B2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6FE0F903-2620-4F19-9988-BE051C385B2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6FE0F903-2620-4F19-9988-BE051C385B2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6FE0F903-2620-4F19-9988-BE051C385B2D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{44179E8B-8F83-4DBA-8E36-04929FC2D206}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{44179E8B-8F83-4DBA-8E36-04929FC2D206}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44179E8B-8F83-4DBA-8E36-04929FC2D206}.Release|Any CPU.ActiveCfg = Release|Any CPU

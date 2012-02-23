@@ -23,8 +23,8 @@ module TransientErrorHandling =
     | _ when x <= cut -> fx x
     | _ -> fx cut
 
-  /// overloaded things should be backed off of: http://www.wolframalpha.com/input/?i=f%28x%29+%3D+1.1^%288x%29+from+0+to+10
-  /// this should also be in the service bus innards, not client lib; implement a push-back mechanism
+  /// Overloaded things should be backed off of: http://www.wolframalpha.com/input/?i=f%28x%29+%3D+1.1^%288x%29+from+1+to+10
+  /// this should also be in the service bus innards, not client lib; implement a push-back mechanism.
   let serverOverloaded =
     seq {
       yield exnRetryCust<TimeoutException>
@@ -55,12 +55,16 @@ module TransientErrorHandling =
       yield exnRetryLong<UnauthorizedAccessException> (fun e -> e.Message.Contains("Error:Code:500:SubCode:T9002")) }
     |> Seq.map (fun pBuild -> pBuild <| TimeSpan.FromMilliseconds(1.0))
 
+  /// The composition of azure, network and overloaded errors
   let transients = 
     seq { 
       yield! serverOverloaded
       yield! badNetwork
       yield! badAzure }
 
+  /// Compose p1 and p2 together, such that if the first policy says to retry
+  /// then use that policy to retry, otherwise call the second policy's decision method
+  /// and let that decide on whether to continue retrying.
   let compose p1 p2 =
     // http://fssnip.net/7h
     RetryPolicy(ShouldRetry( (fun (c,e) ->
@@ -72,4 +76,4 @@ module TransientErrorHandling =
         let (cont', delay') = fn'(c,e)
         cont', delay') ))
 
-  let finalPolicy = serverOverloaded |> Seq.fold compose (RetryPolicies.NoRetry())
+  let finalPolicy = Seq.fold compose (RetryPolicies.NoRetry()) transients

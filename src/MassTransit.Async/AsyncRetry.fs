@@ -17,41 +17,48 @@ namespace MassTransit.Async
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
+/// Composition of policies for retrying
 [<AutoOpen>]
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module AsyncRetry =
   
   open System
   open System.Threading
+  open FancyRetries
   open TransientErrorHandling
+
+  let logger = MassTransit.Logging.Logger.Get("MassTransit.Async.AsyncRetry")
 
   // async work, continuation, retries left, maybe exception
   let rec bind w f n : Async<'T> =
     match n with
     | 0 -> async { let! v = w in return! f v }
-    | _ -> 
+    | _ ->
       async {
         try let! v = w in return! f v
         with ex ->
-          printfn "%A" ex
+          logger.Warn("retry failed", ex)
           return! bind w f (n-1) }
 
   let ret a = async { return a }
 
   let delay f = async { return! f() }
-  
-  type AsyncRetryBuilder(retries) =
+ 
+  let using resource work = 
+    async {
+      use r = resource
+      return! work r }
+
+  type AsyncRetryBuilder(policy) =
+    member x.Bind(work, f : ('a -> Async<'T>)) = bind work f policy
     member x.Return(a) = ret a
     member x.ReturnFrom(a) = a
     member x.Delay(f) = delay f
-    member x.Bind(work, f : ('a -> Async<'T>)) = bind work f retries
     member x.Zero() = ()
-    member x.Using<'T, 'U when 'T :> IDisposable>(resource : 'T, work : ('T -> Async<'U>)) =
-      async {
-        use r = resource
-        return! work r }
+    member x.Using<'T, 'U when 'T :> IDisposable>(resource : 'T, work : ('T -> Async<'U>)) = 
+      using resource work
 
-  let asyncRetry = AsyncRetryBuilder(1)
+  let asyncRetry = AsyncRetryBuilder(1) // (finalPolicy)
 
 //type RetryBuilder(max) = 
 //  member x.Return a = a               // Enable 'return'
