@@ -23,7 +23,8 @@ module AsyncRetry =
   
   open System
   open System.Threading
-  
+  open TransientErrorHandling
+
   // async work, continuation, retries left, maybe exception
   let rec bind w f n : Async<'T> =
     match n with

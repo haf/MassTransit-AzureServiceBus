@@ -72,4 +72,4 @@ module TransientErrorHandling =
         let (cont', delay') = fn'(c,e)
         cont', delay') ))
 
-  let finalPolicy = serverOverloaded |> Seq.scan compose (RetryPolicies.NoRetry())
+  let finalPolicy = serverOverloaded |> Seq.fold compose (RetryPolicies.NoRetry())
