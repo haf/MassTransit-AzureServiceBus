@@ -10,10 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{5E58A17C-99DE-46F2-A42D-353F97F5C277}"
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
-		wtf - exceptionmsg.txt = wtf - exceptionmsg.txt
-		wtfs - cannot close messaging factory.txt = wtfs - cannot close messaging factory.txt
-		docs\wtfs - MessagingCommunicationException.txt = docs\wtfs - MessagingCommunicationException.txt
-		docs\wtfs.txt = docs\wtfs.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.Transports.AzureServiceBus", "MassTransit.Transports.AzureServiceBus\MassTransit.Transports.AzureServiceBus.csproj", "{0E9F5DB7-3FA0-444F-BF82-74947525AE62}"

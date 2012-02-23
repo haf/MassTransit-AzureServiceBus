@@ -213,8 +213,32 @@ This transport will rate-limit on the persistency/quorum of service bus itself; 
 
 The way of sending large messages (over 256K) is to upload it to Azure Blob Storage. Another way is to chunk it. Another way is to use Azure Cache.
 
+Another method is using the session feature and session state available in Service Bus to track consumed data while writing it to storage.
+
+Doesn't this make the node a proxy from ASB to Blob? Perhaps it would be preferrable to extend the asynchronous API ideas with a consumer that returns a function; handle<'TMsg> :: Async<ChunkOf<'TMsg>> -> Async<unit> and let the consumer feed asynchronously off of a async monad that yields ordered byte arrays in the correct order. Node death is handled by keeping the last sequence id in the session state of ASB and then continuing consuming from where the sequence was interrupted. If the handler wants to be able to handle things reliably, it should perform work on the asynchronous byte array stream as it goes; the successful execution of its Async<unit> return value means that it's done.
+
+```
+type ChunkOf<'TMsg> = {
+  SeqId : BigInteger,
+  Data : byte array }
+
+let handler (item : Async<ChunkOf<LargeMessage>>) =
+  async {
+    let! ({ seqId, data }) = item
+    do! deleteAfter seqId // deletes works after seq id, through custom checkpointing
+    let! digest = Async.Sleep(1000) // actual work returning some partial work result
+    do! persistWork digest seqId+1 }
+```
+
+Successful execution of this Async<unit> means that the transports checkpoints that chunk as successfully written into the session state.
+
+Multiplexing would not really improve our position: http://www.250bpm.com/multiplexing so one MessagingFactory per queue. Data that is sent inside of a MessagingSession should be its own MessagingFactory + MessageReceiver, or we'd be multiplexing and wouldn't be able to select only the chunked message stream that is the large message.
+
 ## Thoughts on ServerTooBusyException - retry in 10 seconds
-Hmm... 10 seconds: that's a couple of thousand messages, a long time.
+
+Retry in 1 second instead.
+
+But we might still be choking the server that we're communicating with; our actual asynchronous requests will pile up locally on our sender on the IO completion ports, even if the receiving server is busy. We may handle this by temporarily blocking the send operation and/or throttling down the sending threaded publishers.
 
 ## Thoughts on maximum message factories per (?)
 
