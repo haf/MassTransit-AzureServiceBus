@@ -215,7 +215,7 @@ The way of sending large messages (over 256K) is to upload it to Azure Blob Stor
 
 Another method is using the session feature and session state available in Service Bus to track consumed data while writing it to storage.
 
-Doesn't this make the node a proxy from ASB to Blob? Perhaps it would be preferrable to extend the asynchronous API ideas with a consumer that returns a function; handle<'TMsg> :: Async<ChunkOf<'TMsg>> -> Async<unit> and let the consumer feed asynchronously off of a async monad that yields ordered byte arrays in the correct order. Node death is handled by keeping the last sequence id in the session state of ASB and then continuing consuming from where the sequence was interrupted. If the handler wants to be able to handle things reliably, it should perform work on the asynchronous byte array stream as it goes; the successful execution of its Async<unit> return value means that it's done.
+Doesn't this make the node a proxy from ASB to Blob? Perhaps it would be preferrable to extend the asynchronous API ideas with a consumer that returns a function; `handle<'TMsg> :: Async<ChunkOf<'TMsg>> -> Async<unit>` and let the consumer feed asynchronously off of a async monad that yields ordered byte arrays in the correct order. Node death is handled by keeping the last sequence id in the session state of ASB and then continuing consuming from where the sequence was interrupted. If the handler wants to be able to handle things reliably, it should perform work on the asynchronous byte array stream as it goes; the successful execution of its Async<unit> return value means that it's done.
 
 ```
 type ChunkOf<'TMsg> = {
