@@ -240,6 +240,8 @@ Retry in 1 second instead.
 
 But we might still be choking the server that we're communicating with; our actual asynchronous requests will pile up locally on our sender on the IO completion ports, even if the receiving server is busy. We may handle this by temporarily blocking the send operation and/or throttling down the sending threaded publishers.
 
+[Learn from previous successes though](http://en.wikipedia.org/wiki/TCP_congestion_avoidance_algorithm).
+
 ## Thoughts on maximum message factories per (?)
 
 Only 100? Is that per-IP or per namespace?
