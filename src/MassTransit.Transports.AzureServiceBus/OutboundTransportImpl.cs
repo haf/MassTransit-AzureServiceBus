@@ -43,7 +43,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			_connectionHandler = connectionHandler;
 			_address = address;
 
-			_logger.Debug(() => "created outbound transport for address '{0}'".FormatWith(address));
+			_logger.DebugFormat("created outbound transport for address '{0}'", address);
 		}
 
 		public void Dispose()

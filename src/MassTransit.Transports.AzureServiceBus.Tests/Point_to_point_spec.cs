@@ -40,65 +40,66 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			RemoteUri = creds.BuildUri("hungry_cat");
 		}
 
-		Action<string> cat_sounds = Console.WriteLine,
-					   rat_sounds = Console.WriteLine;
+		protected override void ConfigureLocalBus(BusConfigurators.ServiceBusConfigurator configurator)
+		{
+			configurator.UseJsonSerializer();
+			base.ConfigureLocalBus(configurator);
+		}
 
-		Guid dinner_id;
+		protected override void ConfigureRemoteBus(BusConfigurators.ServiceBusConfigurator configurator)
+		{
+			configurator.UseJsonSerializer();
+			base.ConfigureRemoteBus(configurator);
+		}
 
-		ConsumerOf<Rat> the_cat_is;
-		Future<Rat> cat_having_dinner;
-		MassTransit.UnsubscribeAction take_nap;
+		Guid rat_id;
+		ConsumerOf<Rat> cat;
+		Future<Rat> received_rat;
+		MassTransit.UnsubscribeAction cat_nap_unsubscribes;
 
 		[Given]
 		public void a_rat_is_sent_to_a_hungry_cat()
 		{
-			dinner_id = CombGuid.Generate();
-			cat_having_dinner = new Future<Rat>();
-			the_cat_is = new ConsumerOf<Rat>(a_large_rat_actually =>
+			rat_id = CombGuid.Generate();
+			received_rat = new Future<Rat>();
+			cat = new ConsumerOf<Rat>(a_large_rat_actually =>
 				{
-					cat_sounds("Miaooo!!!");
-					rat_sounds(a_large_rat_actually.Sound + "!!!");
-					cat_sounds("Cat: chase! ...");
-					cat_sounds("*silence*");
-					cat_sounds("Cat: *Crunch chrunch*");
-					cat_having_dinner.Complete(a_large_rat_actually);
+					Console.WriteLine("Miaooo!!!");
+					Console.WriteLine(a_large_rat_actually.Sound + "!!!");
+					Console.WriteLine("Cat: chase! ...");
+					Console.WriteLine("*silence*");
+					Console.WriteLine("Cat: *Crunch chrunch*");
+					received_rat.Complete(a_large_rat_actually);
 				});
 
-			cat_prepares_with_napkin();
-
-			var cat = LocalBus.GetEndpoint(RemoteUri);
-			cat.Send<Rat>(new
+			cat_nap_unsubscribes = RemoteBus.SubscribeInstance(cat);
+			
+			// we need to make sure this bus is up before sending to it
+			RemoteBus.Endpoint.InboundTransport.Receive(ctx => c => { }, 4.Seconds());
+			
+			LocalBus.GetEndpoint(RemoteUri).Send<Rat>(new
 				{
 					Sound = "Eeeek",
-					CorrelationId = dinner_id
+					CorrelationId = rat_id
 				});
-		}
-
-		// well behaved cats wear napkins
-		void cat_prepares_with_napkin()
-		{
-			take_nap = RemoteBus.SubscribeInstance(the_cat_is);
-			RemoteBus.ShouldHaveSubscriptionFor<Rat>();
-			LocalBus.ShouldHaveSubscriptionFor<Rat>();
 		}
 
 		[Then]
 		public void the_rat_got_eaten()
 		{
-			cat_having_dinner
+			received_rat
 				.WaitUntilCompleted(4.Seconds())
 				.ShouldBeTrue();
 
-			cat_having_dinner.Value
+			received_rat.Value
 				.CorrelationId
-				.ShouldEqual(dinner_id);
+				.ShouldEqual(rat_id);
 		}
 
 		[TearDown]
-		public void the_cat_naps()
+		public void rats_dance_on_table()
 		{
-			if (take_nap != null)
-				take_nap();
+			if (cat_nap_unsubscribes != null) cat_nap_unsubscribes();
 		}
 	}
 

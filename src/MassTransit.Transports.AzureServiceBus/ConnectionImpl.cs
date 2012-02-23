@@ -72,7 +72,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			_messagingFactory = MessagingFactory.Create(_endpointAddress.NamespaceManager.Address, mfs);
 
-			_log.Debug(() => "created connection impl for address ('{0}')".FormatWith(endpointAddress));
+			_log.DebugFormat("created connection impl for address ('{0}')", endpointAddress);
 		}
 
 		public QueueClient Queue
@@ -132,7 +132,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			Disconnect();
 
-			_log.Debug(() => "Connecting {0}".FormatWith(_endpointAddress));
+			_log.DebugFormat("Connecting '{0}'", _endpointAddress);
 
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
 			_queue = _endpointAddress
@@ -148,7 +148,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Disconnect()
 		{
-			_log.Debug(() => "Disconnecting (nop) {0}".FormatWith(_endpointAddress));
+			_log.DebugFormat("disconnecting (nop) '{0}'", _endpointAddress);
 		}
 	}
 }

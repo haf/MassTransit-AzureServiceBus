@@ -14,7 +14,6 @@
 using System;
 using System.IO;
 using System.Text;
-using MassTransit.Async;
 using MassTransit.AzureServiceBus;
 using MassTransit.Context;
 using MassTransit.Logging;
@@ -24,17 +23,19 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
+	/// <summary>
+	/// Inbound transport implementation for Azure Service Bus.
+	/// </summary>
 	public class InboundTransportImpl
 		: IInboundTransport
 	{
 		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		readonly IMessageNameFormatter _formatter;
+		PerConnectionReceiver _receiver;
 		readonly AzureManagement _management;
 		readonly AzureServiceBusEndpointAddress _address;
 
-		volatile Receiver _r;
-		readonly object _rSem = new object();
-
+		bool _bound;
 		bool _disposed;
 
 		static readonly ILog _logger = Logger.Get(typeof (InboundTransportImpl));
@@ -55,7 +56,34 @@ namespace MassTransit.Transports.AzureServiceBus
 			_management = management;
 			_address = address;
 
-			_logger.Debug(() => string.Format("created new inbound transport for {0}", address));
+			_logger.DebugFormat("created new inbound transport for '{0}'", address);
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		void Dispose(bool managed)
+		{
+			if (_disposed)
+				return;
+
+			if (!managed)
+				return;
+
+			_logger.DebugFormat("disposing transport for '{0}'", Address);
+
+			try
+			{
+				RemoveReceiverBinding();
+				RemoveManagementBinding();
+			}
+			finally
+			{
+				_disposed = true;
+			}
 		}
 
 		public IEndpointAddress Address
@@ -70,12 +98,13 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
 		{
-			EnsureReceiver();
 			AddManagementBinding();
+
+			AddReceiverBinding();
 
 			_connectionHandler.Use(connection =>
 				{
-					var message = _r.Get(timeout);
+					var message = _receiver.Get(timeout);
 
 					if (message == null)
 						return;
@@ -119,15 +148,33 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		void AddManagementBinding()
 		{
-			_connectionHandler.AddBinding(_management);
+			if (!_bound)
+				_connectionHandler.AddBinding(_management);
+			
+			_bound = true;
 		}
 
-		void EnsureReceiver()
+		void RemoveManagementBinding()
 		{
-			if (_r == null)
-				lock (_rSem)
-					if (_r == null)
-						_r = ReceiverModule.StartReceiver(_address, 1000, 30);
+			if (_bound)
+				_connectionHandler.RemoveBinding(_management);
+
+			_bound = false;
+		}
+
+		void AddReceiverBinding()
+		{
+			if (_receiver != null)
+				return;
+			
+			_receiver = new PerConnectionReceiver(_address);
+			_connectionHandler.AddBinding(_receiver);
+		}
+
+		void RemoveReceiverBinding()
+		{
+			if (_receiver != null)
+				_connectionHandler.RemoveBinding(_receiver);
 		}
 
 		static void TraceMessage(ReceiveContext context)
@@ -137,33 +184,6 @@ namespace MassTransit.Transports.AzureServiceBus
 				context.CopyBodyTo(ms);
 				var msg = Encoding.UTF8.GetString(ms.ToArray());
 				_logger.Debug(string.Format("{0} body:\n {1}", DateTime.UtcNow, msg));
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		void Dispose(bool disposing)
-		{
-			if (_disposed) 
-				return;
-
-			_logger.Debug(string.Format("disposing transport for {0}", Address));
-
-			if (disposing)
-			{
-				try
-				{
-					if (_r != null && _r is IDisposable)
-						(_r as IDisposable).Dispose();
-				}
-				finally
-				{
-					_disposed = true;
-				}
 			}
 		}
 	}

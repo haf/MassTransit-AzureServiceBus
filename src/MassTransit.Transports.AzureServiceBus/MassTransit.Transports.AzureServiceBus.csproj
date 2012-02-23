@@ -73,6 +73,7 @@
     <Compile Include="MessageEnvelope.cs" />
     <Compile Include="AzureMessageNameFormatter.cs" />
     <Compile Include="OutboundTransportImpl.cs" />
+    <Compile Include="PerConnectionReceiver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AzureServiceBusEndpointAddressImpl.cs" />
     <Compile Include="ConnectionImpl.cs" />

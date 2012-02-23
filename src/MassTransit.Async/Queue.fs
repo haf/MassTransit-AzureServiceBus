@@ -78,7 +78,7 @@ module Queue =
       try
         let beginCreate = nm.BeginCreateQueue : AQD * AsyncCallback * obj -> IAsyncResult
         let! ndesc = Async.FromBeginEnd((desc.Inner), beginCreate, nm.EndCreateQueue)
-        logger.Debug "creating queue"
+        logger.DebugFormat("creating queue '{0}'", desc)
         return! desc |> create nm
       with
       | :? MessagingEntityAlreadyExistsException -> return () }
@@ -98,7 +98,7 @@ module Queue =
       let! exists = desc |> exists nm
       if exists then return ()
       try
-        logger.Debug "deleting queue"
+        logger.DebugFormat("deleting queue '{0}'", desc)
         do! Async.FromBeginEnd((desc.Path), nm.BeginDeleteQueue, nm.EndDeleteQueue)
         return! desc |> delete nm
       with
@@ -112,7 +112,7 @@ module Queue =
   let toggle nm desc =
     async {
       do! delete nm desc
-      do! create nm desc 
+      do! create nm desc
       return Unit() }
 
   [<Extension;CompiledName("ToggleQueueAsync")>]
