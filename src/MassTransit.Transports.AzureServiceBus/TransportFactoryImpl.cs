@@ -61,7 +61,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
 			var address = _addresses.Retrieve(settings.Address.Uri, () => AzureServiceBusEndpointAddressImpl.Parse(settings.Address.Uri));
-			_logger.Debug(() => string.Format("building inbound transport for address '{0}'", address));
+			_logger.DebugFormat("building inbound transport for address '{0}'", address);
 
 			var client = GetConnection(address);
 
@@ -74,7 +74,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
 			var address = _addresses.Retrieve(settings.Address.Uri, () => AzureServiceBusEndpointAddressImpl.Parse(settings.Address.Uri));
-			_logger.Debug(() => string.Format("building outbound transport for address '{0}'", address));
+			_logger.DebugFormat("building outbound transport for address '{0}'", address);
 
 			var client = GetConnection(address);
 
@@ -86,7 +86,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			EnsureProtocolIsCorrect(settings.Address.Uri);
 
 			var address = _addresses.Retrieve(settings.Address.Uri, () => AzureServiceBusEndpointAddressImpl.Parse(settings.Address.Uri));
-			_logger.Debug(() => string.Format("building error transport for address '{0}'", address));
+			_logger.DebugFormat("building error transport for address '{0}'", address);
 
 			var client = GetConnection(address);
 			return new OutboundTransportImpl(address, client);
@@ -105,7 +105,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		private ConnectionHandler<ConnectionImpl> GetConnection(AzureServiceBusEndpointAddress address)
 		{
-			_logger.Debug(() => string.Format("get connection( address:'{0}' )", address));
+			_logger.DebugFormat("get connection( address:'{0}' )", address);
 
 			return _connCache.Retrieve(address.Uri, () =>
 				{

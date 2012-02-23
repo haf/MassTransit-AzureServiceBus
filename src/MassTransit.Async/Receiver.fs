@@ -56,20 +56,20 @@ type Receiver(desc   : QueueDescription,
         while cancelled.IsCancellationRequested |> not do
           let! bmsg = timeout |> recv client
           if bmsg <> null then
-            logger.Debug("received message!")
+            logger.Debug("received message")
             messages.Add bmsg
           else
             logger.Debug("got null msg due to timeout receiving") }
 
   /// Starts (stop-1)/100 new clients and message factories, so for stop=501
   /// it loops 500 times and starts 5 new clients
-  let rec initAsyncs desc newMf stop curr recvs =
+  let rec initAsyncs (desc : QueueDescription) newMf stop curr recvs =
     async {
       match curr with
       | _ when stop = curr ->
         return recvs
       | _ when curr % nthAsync = 0 || curr = 1 ->
-        logger.Info("created a new messaging factory")
+        logger.InfoFormat("created a new messaging factory for '{0}'", desc)
         let mf = newMf ()
         let! recv = desc |> newReceiver mf
         return! initAsyncs desc newMf stop (curr+1) ((mf, recv) :: recvs)
@@ -96,7 +96,7 @@ type Receiver(desc   : QueueDescription,
   /// Starts the receiver which starts the consuming from the service bus
   /// and creates the queue if it doesn't exist
   member x.Start () =
-    logger.InfoFormat("started for queue {0}", desc)
+    logger.InfoFormat("started for queue '{0}'", desc)
     if started then ()
     else
       started <- true
@@ -107,7 +107,7 @@ type Receiver(desc   : QueueDescription,
   /// Stops the receiver which closes all messaging factories and message receivers 
   /// that it holds onto.
   member x.Stop () =
-    logger.Info("Stop called on Recveiver")
+    logger.Info("stop called")
     if not(started) then ()
     else 
       started <- false

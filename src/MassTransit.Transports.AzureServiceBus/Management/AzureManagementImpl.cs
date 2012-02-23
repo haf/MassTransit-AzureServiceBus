@@ -15,6 +15,7 @@ using System;
 using System.Threading.Tasks;
 using MassTransit.Async;
 using MassTransit.AzureServiceBus;
+using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Management
@@ -22,13 +23,17 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 	public class AzureManagementImpl
 		: AzureManagement
 	{
+		static readonly ILog _logger = Logger.Get(typeof (AzureManagementImpl));
+
 		readonly bool _purgeExistingMessages;
 		readonly AzureServiceBusEndpointAddress _address;
 
 		public AzureManagementImpl(bool purgeExistingMessages,
 			[NotNull] AzureServiceBusEndpointAddress address)
 		{
-			if (address == null) throw new ArgumentNullException("address");
+			if (address == null)
+				throw new ArgumentNullException("address");
+
 			_purgeExistingMessages = purgeExistingMessages;
 			_address = address;
 		}
@@ -43,8 +48,11 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 
 		public void Bind(ConnectionImpl connection)
 		{
-			if (_purgeExistingMessages)
-				Purge().Wait();
+			if (!_purgeExistingMessages)
+				return;
+			
+			_logger.InfoFormat("purging queues for {0}", _address);
+			Purge().Wait();
 		}
 
 		public void Unbind(ConnectionImpl connection)

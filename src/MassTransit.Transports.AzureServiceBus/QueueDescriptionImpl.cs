@@ -121,5 +121,10 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			get { return _inner; }
 		}
+
+		public override string ToString()
+		{
+			return Path;
+		}
 	}
 }
