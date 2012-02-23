@@ -24,6 +24,7 @@ module FancyRetries =
     static member Retry (currentRetryCount : int) : RetryPolicy =
       RetryPolicies.Retry(currentRetryCount, TimeSpan.Zero)
 
+
   type RetryResult<'T> = 
     | RetrySuccess of 'T
     | RetryFailure of exn
@@ -76,3 +77,13 @@ module FancyRetries =
   let run (retry : Retry<'T>) (retryPolicy : RetryPolicy) : RetryResult<'T> =
       let (Retry retryFunc) = retry
       retryFunc retryPolicy
+
+  /// retry timeouts 9 times with a ts delay if fAcc returns true and the generic parameter matches the exception
+  let exnRetryLong<'ex when 'ex :> exn> fAcc ts =
+    RetryPolicy( ShouldRetry(fun (count, ex) -> count < 9 && (match box ex with | :? 'ex -> fAcc(ex :?> 'ex) | _ -> false), ts) )
+
+  /// retry timeouts 9 times with a ts delay if the generic parameter matches the exception
+  let exnRetry<'ex when 'ex :> exn> = exnRetryLong<'ex> (fun _ -> true)
+
+  let exnRetryCust<'ex when 'ex :> exn> f =
+    RetryPolicy ( ShouldRetry( fun (c, e) -> (match box e with | :? 'ex -> f(c,e) | _ -> false, TimeSpan.Zero)) )
