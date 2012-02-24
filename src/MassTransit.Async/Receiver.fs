@@ -145,9 +145,12 @@ type Receiver(desc   : QueueDescription,
   ///
   /// A receiver can have these states:
   /// --------------------------------
-  /// * Started
-  /// * Stopped
-  /// * Disposed
+  /// * Initial (waiting for a Start or Halt(chan) message.
+  /// * Starting (getting all message factories and receivers up and running)
+  /// * Started (main message loop)
+  /// * Paused (cancelling all async workflows)
+  /// * Halted (closing things)
+  /// * Final (implicit; reference is GCed)
   /// 
   /// with transitions:
   /// -----------------
