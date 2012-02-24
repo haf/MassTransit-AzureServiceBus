@@ -13,6 +13,37 @@ namespace MassTransit.Transports.AzureServiceBus
 			_description = description;
 		}
 
+		public bool Equals(TopicDescription other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return Equals(other.Path, Path);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(null, obj)) return false;
+			if (ReferenceEquals(this, obj)) return true;
+			if (!(obj is TopicDescription)) return false;
+			return Equals((TopicDescription)obj);
+		}
+
+		public override int GetHashCode()
+		{
+			return Path.GetHashCode();
+		}
+
+		public int CompareTo(object obj)
+		{
+			return CompareTo(obj as TopicDescription);
+		}
+
+		public int CompareTo(TopicDescription other)
+		{
+			if (other == null) return 1;
+			return string.CompareOrdinal(Path, other.Path);
+		}
+
 		#region Delegating Members
 
 		public bool IsReadOnly
@@ -58,50 +89,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		public bool EnableBatchedOperations
 		{
 			get { return _description.EnableBatchedOperations; }
-		}
-
-		#endregion
-
-		#region Equality
-
-		public bool Equals(TopicDescription other)
-		{
-			if (ReferenceEquals(null, other)) return false;
-			if (ReferenceEquals(this, other)) return true;
-			return Equals(other.DefaultMessageTimeToLive, DefaultMessageTimeToLive)
-			       && Equals(other.DuplicateDetectionHistoryTimeWindow, DuplicateDetectionHistoryTimeWindow)
-			       && Equals(other.EnableBatchedOperations, EnableBatchedOperations)
-			       && Equals(other.ExtensionData, ExtensionData)
-			       && Equals(other.IsReadOnly, IsReadOnly)
-			       && Equals(other.MaxSizeInMegabytes, MaxSizeInMegabytes)
-			       && Equals(other.Path, Path)
-			       && Equals(other.RequiresDuplicateDetection, RequiresDuplicateDetection)
-			       && Equals(other.SizeInBytes, SizeInBytes);
-		}
-
-		public override bool Equals(object obj)
-		{
-			if (ReferenceEquals(null, obj)) return false;
-			if (ReferenceEquals(this, obj)) return true;
-			if (obj.GetType() != typeof (TopicDescription)) return false;
-			return Equals((TopicDescription) obj);
-		}
-
-		public override int GetHashCode()
-		{
-			unchecked
-			{
-				int result = DefaultMessageTimeToLive.GetHashCode();
-				result = (result*397) ^ DuplicateDetectionHistoryTimeWindow.GetHashCode();
-				result = (result*397) ^ EnableBatchedOperations.GetHashCode();
-				result = (result*397) ^ (ExtensionData != null ? ExtensionData.GetHashCode() : 0);
-				result = (result*397) ^ IsReadOnly.GetHashCode();
-				result = (result*397) ^ MaxSizeInMegabytes.GetHashCode();
-				result = (result*397) ^ Path.GetHashCode();
-				result = (result*397) ^ RequiresDuplicateDetection.GetHashCode();
-				result = (result*397) ^ SizeInBytes.GetHashCode();
-				return result;
-			}
 		}
 
 		#endregion

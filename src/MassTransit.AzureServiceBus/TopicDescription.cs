@@ -5,9 +5,10 @@ using MassTransit.Util;
 namespace MassTransit.AzureServiceBus
 {
 	/// <summary>
-	/// value object
+	/// value object, implementing equality of <see cref="Path"/>.
 	/// </summary>
-	public interface TopicDescription : IEquatable<TopicDescription>
+	public interface TopicDescription 
+		: IEquatable<TopicDescription>, IComparable<TopicDescription>, IComparable
 	{
 		bool IsReadOnly { get; }
 		ExtensionDataObject ExtensionData { get; }

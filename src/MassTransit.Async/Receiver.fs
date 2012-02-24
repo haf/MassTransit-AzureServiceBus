@@ -20,6 +20,7 @@ open Microsoft.ServiceBus.Messaging
 open FSharp.Control
 
 open System
+open System.Threading
 open System.Runtime.CompilerServices
 open System.Collections.Concurrent
 
@@ -40,8 +41,9 @@ type RecvMsg =
   | UnsubscribeTopic of TopicDescription
 
 type WorkerState =
-  { QSubs : Map<QueueDescription, ReceiverSet>;
-    TSubs : Map<TopicDescription, ReceiverSet> }
+  { QSubs : Map<QueueDescription, ReceiverSet list>;
+    TSubs : Map<TopicDescription, ReceiverSet list> }
+//    StartedCT : CancellationTokenSource option }
 
 /// A pair of a messaging factory and a list of message receivers that
 /// were created from that messaging factory.
@@ -55,8 +57,10 @@ and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
 
   with transitions:
   
-  Initial -> Started
+  Initial -> Starting
   
+  Starting -> Started
+
   Started -> Paused
   Started -> Halted
   
@@ -89,13 +93,15 @@ type Receiver(desc   : QueueDescription,
   let nthAsync = defaultArg mfEveryNthConcurrentAsync 100 // in initAsyncs
   let azQDesc = desc.Inner
   
-  /// Starts (stop-1)/nthAsync new clients and message factories, so for stop=501, nthAsync=100
+  /// Starts stop/nthAsync new clients and message factories, so for stop=500, nthAsync=100
   /// it loops 500 times and starts 5 new clients
   let initReceiverSet desc newMf stop =
     let rec inner curr pairs =
       async {
         match curr with
-        | _ when stop = (curr - 1) -> return pairs
+        | _ when stop = (curr - 1) -> 
+          // we're stopping
+          return pairs
         | _ when curr % nthAsync = 0 || curr = 1 ->
           // we're at the first item, create a new pair
           let mf = newMf ()
@@ -105,48 +111,111 @@ type Receiver(desc   : QueueDescription,
         | _ ->
           // if we're not at an even location, just create a new receiver for
           // the same messaging factory
-          let (Pair(mf, rs) :: rest) = pairs // of mf<-> receiver list
-          let! r = desc |> newReceiver mf // the new receiver
-          let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
-          return! inner (curr+1) (p :: rest) }
+          match pairs with // of mf<-> receiver list
+          | [] -> failwith "curr != 1, but pairs empty. curr > 1 -> pairs.Length > 0"
+          | (Pair(mf, rs) :: rest) ->
+            let! r = desc |> newReceiver mf // the new receiver
+            let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
+            return! inner (curr+1) (p :: rest) }
     inner 1 []
-
-  let a = Agent<RecvMsg>.Start(fun inbox ->
-      let rec initial =
-        async {
-          logger.Debug "initial"
-          let! msg = inbox.Recieve()
-          match msg with 
-          | Start ->
-            // create WorkerState for initial subscription (that of the queue)
-            // and move to the started state
-            let! asyncs = initAsyncs desc newMf concurrency 1 []
-            let initalState = { QSubs = asyncs ; QSubs = [] }
-            return! started initialState
-          | _ ->
-            // because we only care about the Start message in the initial state,
-            // we will ignore all other messages.
-            return! initial () }
-
-      and started state =
-        ()
-      and paused state =
-        ()
-      and halted state =
-        ()
-      initial ())
-
+    
   /// creates an async workflow worker, given a message receiver client
   let worker client =
       async {
-        let! cancelled = Async.CancellationToken
-        while cancelled.IsCancellationRequested |> not do
+        while true do
           let! bmsg = timeout |> recv client
           if bmsg <> null then
             logger.Debug("received message")
             messages.Add bmsg
           else
             () }//logger.Debug("got null msg due to timeout receiving") }
+          
+  /// cleans out the message buffer and disposes all messages therein
+  let clearLocks () =
+    async {
+      while messages.Count > 0 do
+        let m = ref null
+        if messages.TryTake(m, TimeSpan.FromMilliseconds(4.0)) then 
+          try 
+            do! Async.FromBeginEnd((!m).BeginAbandon, (!m).EndAbandon)
+            (!m).Dispose()
+          with 
+          | x ->
+            let entry = sprintf "could not abandon message#%s" <| (!m).MessageId
+            logger.Error(entry, x) }
+
+  /// An agent that implements the reactor pattern, reacting to messages.
+  /// The mutually recursive function 'initial' uses the explicit functional
+  /// state pattern as described here:
+  /// http://www.cl.cam.ac.uk/~tp322/papers/async.pdf
+  let a = Agent<RecvMsg>.Start(fun inbox ->
+
+      let rec initial () =
+        async {
+          logger.Debug "initial"
+          let! msg = inbox.Receive ()
+          match msg with
+          | Start ->
+            // create WorkerState for initial subscription (that of the queue)
+            // and move to the started state
+            let! rSet = initReceiverSet desc newMf concurrency
+            let mappedRSet = Map.empty |> Map.add desc rSet
+            return! starting { QSubs = mappedRSet ;
+                               TSubs = Map.empty }
+          | _ ->
+            // because we only care about the Start message in the initial state,
+            // we will ignore all other messages.
+            return! initial () }
+
+      and starting state =
+        async {
+          logger.Debug "starting"
+          do! desc |> create nm
+          use ct = new CancellationTokenSource ()
+          for x in state.QSubs do // for all queue subscriptions
+            for Pair(mf, rs) in x.Value do // for all mf-receiver list pairs
+              for r in rs do // for all receivers
+                Async.Start(r |> worker, ct.Token) // start a worker on that queue receiver
+          for x in state.TSubs do
+            for Pair(mf, rs) in x.Value do
+              for r in rs do
+                Async.Start(r |> worker, ct.Token)
+          return! started state ct }
+
+      and started state ct =
+        async {
+          logger.Debug "started"
+          let! msg = inbox.Receive()
+          match msg with
+          | Pause -> ct.Cancel() ; return! paused state
+          | Halt -> ct.Cancel(); return! halted state
+          | SubscribeQueue qd ->
+            (* todo *) return! started state ct
+          | UnsubscribeQueue qd ->
+            (* todo *) return! started state ct
+          | SubscribeTopic td ->
+            (* todo *) return! started state ct
+          | UnsubscribeTopic td ->
+          (* todo *) return! started state ct
+          | _ -> (* ignore Start *) return! started state ct }
+
+      and paused state =
+        async { 
+          let! msg = inbox.Receive()
+          match msg with
+          | Start -> return! started state
+          | Halt -> return! halted state
+          | _ as x -> logger.Warn(sprintf "got %A, despite being paused" x) }
+
+      and halted state =
+        async { 
+          logger.Debug "halted"
+          do! clearLocks ()
+          (* TODO cancelling and disposing our state *)
+          // then exit
+          () }
+      initial ())
+
 
 
   /// All initial message receivers and messaging factories are kicked off and then
@@ -168,21 +237,7 @@ type Receiver(desc   : QueueDescription,
       if not(recv.IsClosed) then
         try recv.Close()
         with | x -> logger.Error("could not close receiver", x)
-        
-  /// cleans out the message buffer and disposes all messages therein
-  let clearLocks () = 
-    while messages.Count > 0 do
-      async {
-        let m = ref null
-        if messages.TryTake(m, TimeSpan.FromMilliseconds(4.0)) then 
-          try 
-            do! Async.FromBeginEnd((!m).BeginAbandon, (!m).EndAbandon)
-            (!m).Dispose()
-          with 
-          | x ->
-            let entry = sprintf "could not abandon message#%s" <| (!m).MessageId
-            logger.Error(entry, x) }
-        |> Async.Start
+
 
   /// Starts the receiver which starts the consuming from the service bus
   /// and creates the queue if it doesn't exist

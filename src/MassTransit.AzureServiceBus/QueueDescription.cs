@@ -17,6 +17,7 @@ using System.Runtime.Serialization;
 namespace MassTransit.AzureServiceBus
 {
 	public interface QueueDescription
+		: IEquatable<QueueDescription>, IComparable<QueueDescription>, IComparable
 	{
 		bool IsReadOnly { get; }
 		ExtensionDataObject ExtensionData { get; }
