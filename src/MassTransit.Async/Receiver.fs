@@ -30,15 +30,18 @@ open MassTransit.Async.AsyncRetry
 
 type internal Agent<'T> = AutoCancelAgent<'T>
 
-(* cancelling through dispose *)
+/// communication with the worker agent
 type RecvMsg =
   Start
   | Pause
   | Halt
-  | SubscribeQueue of QueueDescription
+  | SubscribeQueue of QueueDescription * Concurrency
   | UnsubscribeQueue of QueueDescription
-  | SubscribeTopic of TopicDescription
+  | SubscribeTopic of TopicDescription * Concurrency
   | UnsubscribeTopic of TopicDescription
+
+/// concurrently outstanding asynchronous requests
+and Concurrency = int
 
 type WorkerState =
   { QSubs : Map<QueueDescription, ReceiverSet list>;
@@ -64,7 +67,7 @@ and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
   Started -> Paused
   Started -> Halted
   
-  Paused -> Started
+  Paused -> Starting
   Paused -> Halted
 
   Halted -> Final (GC-ed here)
@@ -189,11 +192,15 @@ type Receiver(desc   : QueueDescription,
           match msg with
           | Pause -> ct.Cancel() ; return! paused state
           | Halt -> ct.Cancel(); return! halted state
-          | SubscribeQueue qd ->
-            (* todo *) return! started state ct
+          | SubscribeQueue(qd, cc) ->
+            let! pairs = initReceiverSet qd newMf cc
+            for Pair(mf, rs) in pairs do
+              for r in rs do Async.Start(r |> worker, ct.Token)
+            let qsubs' = state.QSubs.Add(qd, pairs)
+            return! started { QSubs = qsubs' ; TSubs = state.TSubs } ct
           | UnsubscribeQueue qd ->
             (* todo *) return! started state ct
-          | SubscribeTopic td ->
+          | SubscribeTopic(td, cc) ->
             (* todo *) return! started state ct
           | UnsubscribeTopic td ->
           (* todo *) return! started state ct
@@ -203,7 +210,7 @@ type Receiver(desc   : QueueDescription,
         async { 
           let! msg = inbox.Receive()
           match msg with
-          | Start -> return! started state
+          | Start -> return! starting state
           | Halt -> return! halted state
           | _ as x -> logger.Warn(sprintf "got %A, despite being paused" x) }
 
