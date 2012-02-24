@@ -6,6 +6,7 @@ using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {

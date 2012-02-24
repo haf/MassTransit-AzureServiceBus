@@ -25,6 +25,7 @@ using SBQDesc = Microsoft.ServiceBus.Messaging.QueueDescription;
 using SBTDesc = Microsoft.ServiceBus.Messaging.TopicDescription;
 using SBSDesc = Microsoft.ServiceBus.Messaging.SubscriptionDescription;
 using SBQClient = Microsoft.ServiceBus.Messaging.QueueClient;
+using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus.Management
 {

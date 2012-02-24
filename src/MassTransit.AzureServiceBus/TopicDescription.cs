@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using MassTransit.Util;
 
-namespace MassTransit.Transports.AzureServiceBus
+namespace MassTransit.AzureServiceBus
 {
 	/// <summary>
 	/// value object

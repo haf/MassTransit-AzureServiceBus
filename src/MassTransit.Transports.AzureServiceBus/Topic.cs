@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
+using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {

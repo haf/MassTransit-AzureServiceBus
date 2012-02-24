@@ -27,7 +27,48 @@ open MassTransit.AzureServiceBus
 open MassTransit.Async.Queue
 open MassTransit.Async.AsyncRetry
 
-type internal Agent<'T> = MailboxProcessor<'T>
+type internal Agent<'T> = AutoCancelAgent<'T>
+
+(* cancelling through dispose *)
+type RecvMsg =
+  Start
+  | Pause
+  | Halt
+  | SubscribeQueue of QueueDescription
+  | UnsubscribeQueue of QueueDescription
+  | SubscribeTopic of TopicDescription
+  | UnsubscribeTopic of TopicDescription
+
+type WorkerState =
+  { QSubs : Map<QueueDescription, ReceiverSet>;
+    TSubs : Map<TopicDescription, ReceiverSet> }
+
+/// A pair of a messaging factory and a list of message receivers that
+/// were created from that messaging factory.
+and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
+
+(* receiver can have these states:
+
+  Started
+  Stopped
+  Disposed
+
+  with transitions:
+  
+  Initial -> Started
+  
+  Started -> Paused
+  Started -> Halted
+  
+  Paused -> Started
+  Paused -> Halted
+
+  Halted -> Final (GC-ed here)
+
+  with state:
+
+  Started 
+*)
 
 /// Create a new receiver, with a queue description,
 /// a factory for messaging factories and some control flow data
@@ -38,18 +79,62 @@ type Receiver(desc   : QueueDescription,
               ?concurrency : int,
               ?mfEveryNthConcurrentAsync : int) =
   
-  /// Field denoting whether the receiver is in the started state or, if false, in the stopped state.
-  let mutable started = false
-
   /// The 'scratch' buffer that tunnels messages from the ASB receivers
   /// to the consumers of the Receiver class.
   let messages = new BlockingCollection<_>(defaultArg maxReceived 50)
   
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
   let timeout = TimeSpan.FromMilliseconds 50.0
-  let concurrency = defaultArg concurrency 250
+  let concurrency = defaultArg concurrency 5
   let nthAsync = defaultArg mfEveryNthConcurrentAsync 100 // in initAsyncs
   let azQDesc = desc.Inner
+  
+  /// Starts (stop-1)/nthAsync new clients and message factories, so for stop=501, nthAsync=100
+  /// it loops 500 times and starts 5 new clients
+  let initReceiverSet desc newMf stop =
+    let rec inner curr pairs =
+      async {
+        match curr with
+        | _ when stop = (curr - 1) -> return pairs
+        | _ when curr % nthAsync = 0 || curr = 1 ->
+          // we're at the first item, create a new pair
+          let mf = newMf ()
+          let! r = desc |> newReceiver mf
+          let p = Pair(mf, r :: [])
+          return! inner (curr+1) (p :: pairs)
+        | _ ->
+          // if we're not at an even location, just create a new receiver for
+          // the same messaging factory
+          let (Pair(mf, rs) :: rest) = pairs // of mf<-> receiver list
+          let! r = desc |> newReceiver mf // the new receiver
+          let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
+          return! inner (curr+1) (p :: rest) }
+    inner 1 []
+
+  let a = Agent<RecvMsg>.Start(fun inbox ->
+      let rec initial =
+        async {
+          logger.Debug "initial"
+          let! msg = inbox.Recieve()
+          match msg with 
+          | Start ->
+            // create WorkerState for initial subscription (that of the queue)
+            // and move to the started state
+            let! asyncs = initAsyncs desc newMf concurrency 1 []
+            let initalState = { QSubs = asyncs ; QSubs = [] }
+            return! started initialState
+          | _ ->
+            // because we only care about the Start message in the initial state,
+            // we will ignore all other messages.
+            return! initial () }
+
+      and started state =
+        ()
+      and paused state =
+        ()
+      and halted state =
+        ()
+      initial ())
 
   /// creates an async workflow worker, given a message receiver client
   let worker client =
@@ -63,20 +148,6 @@ type Receiver(desc   : QueueDescription,
           else
             () }//logger.Debug("got null msg due to timeout receiving") }
 
-  /// Starts (stop-1)/100 new clients and message factories, so for stop=501
-  /// it loops 500 times and starts 5 new clients
-  let rec initAsyncs (desc : QueueDescription) newMf stop curr recvs =
-    async {
-      match curr with
-      | _ when stop = curr ->
-        return recvs
-      | _ when curr % nthAsync = 0 || curr = 1 ->
-        logger.InfoFormat("created a new messaging factory for '{0}'", desc)
-        let mf = newMf ()
-        let! recv = desc |> newReceiver mf
-        return! initAsyncs desc newMf stop (curr+1) ((mf, recv) :: recvs)
-      | _ ->
-        return! initAsyncs desc newMf stop (curr+1) recvs }
 
   /// All initial message receivers and messaging factories are kicked off and then
   /// all such receivers and factories are awaited.
@@ -112,7 +183,6 @@ type Receiver(desc   : QueueDescription,
             let entry = sprintf "could not abandon message#%s" <| (!m).MessageId
             logger.Error(entry, x) }
         |> Async.Start
-
 
   /// Starts the receiver which starts the consuming from the service bus
   /// and creates the queue if it doesn't exist

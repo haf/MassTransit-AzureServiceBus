@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Serialization;
+using MassTransit.AzureServiceBus;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
