@@ -59,7 +59,7 @@ for i in 1 .. concurrency do
     while ctoken.IsCancellationRequested |> not do
       let num = random.Next(0, 25)
       do! A(num) |> send sender 
-      counter.Post Sent }
+      counter.Post (Sent(1)) }
   |> Async.Start
 
 // Receiver:
@@ -76,7 +76,7 @@ async {
       //printfn "(THIS PLACE is equivalent to sending (%A, _) up the chain of message sinks)" dm
       // this would have to go in the MT framework somehow, would be async instead of sync and would run on a fiber of its own
       ThreadPool.QueueUserWorkItem((fun mm -> (mm :?> BrokeredMessage).Complete()), bm) |> ignore
-      counter.Post Received
+      counter.Post (Received(1))
   ()
 } |> Async.Start
 

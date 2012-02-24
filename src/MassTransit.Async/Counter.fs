@@ -16,29 +16,61 @@ namespace MassTransit.Async
 
 open System.Diagnostics
 
-type Message = Start | Stop | Report of AsyncReplyChannel<Reply> | Received | Sent
+type CounterMessage = 
+  Start
+  | Stop
+  | Report of AsyncReplyChannel<Reply>
+  | Received of int
+  | Sent of int
 and  Reply = Counters of int * int * Option<Stopwatch>
 
-module Counter =
+type MultiCounterMessage =
+  Event of string * int
+  | BucketReport of string * AsyncReplyChannel<Option<Reply>>
 
-  let counter () = MailboxProcessor<Message>.Start(fun inbox ->
+module Counter =
+  let logger = MassTransit.Logging.Logger.Get("MassTransit.Async.Counter")
+
+  let counter () = MailboxProcessor<CounterMessage>.Start(fun inbox ->
       let rec loop received sent stopwatch =
         async {
           let! msg = inbox.Receive()
-          match msg with 
+          match msg with
           | Start ->
             do! loop 0 0 (Some(Stopwatch.StartNew()))
           | Stop ->
             stopwatch.Value.Stop()
-            // Async.CancelDefaultToken ()
-            printfn "received: %i, sent: %i, in %s" received sent (stopwatch.Value.Elapsed.ToString())
+            logger.Info(sprintf "received: %i, sent: %i, in %s" received sent (stopwatch.Value.Elapsed.ToString()))
             return ()
           | Report(chan) -> 
             chan.Reply(Counters(received, sent, stopwatch))
             do! loop received sent stopwatch
-          | Received -> 
-            do! loop (received+1) sent stopwatch
-          | Sent     -> 
-            do! loop received (sent+1) stopwatch
+          | Received(num) -> 
+            do! loop (received+num) sent stopwatch
+          | Sent(num) -> 
+            do! loop received (sent+num) stopwatch
           do! loop received sent stopwatch }
       loop 0 0 None)
+
+  let multiCounter () = MailboxProcessor<MultiCounterMessage>.Start(fun inbox ->
+    let rec loop (buckets : Map<string, MailboxProcessor<CounterMessage>>)=
+      async {
+        let! msg = inbox.Receive()
+        match msg with
+        | Event(target, value) ->
+          match buckets.TryFind target with
+          | Some(t) -> 
+            t.Post(Sent(1))
+            do! loop buckets
+          | None -> 
+            let t = counter ()
+            t.Post(Sent(1))
+            do! loop <| buckets.Add(target, t)
+        | BucketReport(target, replyChan) ->
+          match buckets.TryFind target with
+          | Some(t) ->
+            let! r = t.PostAndAsyncReply(fun chan -> Report(chan))
+            replyChan.Reply(Some(r))
+          | None ->
+            replyChan.Reply(None) }
+    loop Map.empty)

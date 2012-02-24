@@ -73,7 +73,7 @@ type Receiver(desc   : QueueDescription,
         let mf = newMf ()
         let! recv = desc |> newReceiver mf
         return! initAsyncs desc newMf stop (curr+1) ((mf, recv) :: recvs)
-      | _ -> 
+      | _ ->
         return! initAsyncs desc newMf stop (curr+1) recvs }
 
   let mfAndRecvsColl = Async.RunSynchronously (initAsyncs desc newMf (concurrency+1) 1 [])
@@ -83,15 +83,11 @@ type Receiver(desc   : QueueDescription,
     logger.InfoFormat("closing all ({0} of them) message factories and receivers", mfAndRecvsColl.Length)
     for (mf, recv) in mfAndRecvsColl do
       if not(mf.IsClosed) then
-        try
-          mf.Close()
-        with
-          | x -> logger.Error("could not close messaging factory", x)
+        try mf.Close()
+        with | x -> logger.Error("could not close messaging factory", x)
       if not(recv.IsClosed) then
-        try
-          recv.Close()
-        with
-          | x -> logger.Error("could not close receiver", x)
+        try recv.Close()
+        with | x -> logger.Error("could not close receiver", x)
 
   /// Starts the receiver which starts the consuming from the service bus
   /// and creates the queue if it doesn't exist

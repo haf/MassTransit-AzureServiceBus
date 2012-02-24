@@ -46,10 +46,11 @@ module Queue =
   let descSync nm name = 
     Async.RunSynchronously( desc nm name )
 
+  /// Perform a receive using a message receiver and a timeout.
   let recv (client : MessageReceiver) timeout =
     let bRecv = client.BeginReceive : TimeSpan * AsyncCallback * obj -> IAsyncResult
     async {
-      return! Async.FromBeginEnd(client.BeginReceive, client.EndReceive) }
+      return! Async.FromBeginEnd(timeout, bRecv, client.EndReceive) }
   
   let send (client : MessageSender) message =
     async {
@@ -77,17 +78,16 @@ module Queue =
       if exists then return ()
       try
         let beginCreate = nm.BeginCreateQueue : AQD * AsyncCallback * obj -> IAsyncResult
-        let! ndesc = Async.FromBeginEnd((desc.Inner), beginCreate, nm.EndCreateQueue)
         logger.DebugFormat("creating queue '{0}'", desc)
+        let! ndesc = Async.FromBeginEnd((desc.Inner), beginCreate, nm.EndCreateQueue)
         return! desc |> create nm
-      with
-      | :? MessagingEntityAlreadyExistsException -> return () }
+      with | :? MessagingEntityAlreadyExistsException -> return () }
   
   /// Create a queue from the given queue description synchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("CreateAsync")>]
   let createSync nm desc = 
     Async.StartAsTask(
-      async { 
+      async {
         do! create nm desc
         return Unit() })
 
@@ -101,13 +101,14 @@ module Queue =
         logger.DebugFormat("deleting queue '{0}'", desc)
         do! Async.FromBeginEnd((desc.Path), nm.BeginDeleteQueue, nm.EndDeleteQueue)
         return! desc |> delete nm
-      with
-      | :? MessagingEntityNotFoundException -> return () }
+      with | :? MessagingEntityNotFoundException -> return () }
 
   /// Delete a queue from the given queue description synchronously; never throws MessagingEntityNotFoundException.
   [<Extension;CompiledName("DeleteAsync")>]
   let deleteSync nm desc = Async.StartAsTask(delete nm desc)
-
+  
+  /// Naïve Drain operation, by deleting and then creating the queue,
+  /// or simply creating the queue if it doesn't exist.
   [<Extension;CompiledName("ToggleQueue")>]
   let toggle nm desc =
     async {
@@ -115,6 +116,8 @@ module Queue =
       do! create nm desc
       return Unit() }
 
+  /// Naïve Drain operation, by deleting and then creating the queue,
+  /// or simply creating the queue if it doesn't exist.
   [<Extension;CompiledName("ToggleQueueAsync")>]
   let toggleAsync nm desc = Async.StartAsTask(toggle nm desc)
 
