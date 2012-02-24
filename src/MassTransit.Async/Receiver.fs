@@ -76,10 +76,10 @@ type Receiver(desc   : QueueDescription,
     let rec inner curr pairs =
       async {
         match curr with
-        | _ when stop = (curr - 1) -> 
+        | _ when stop = curr -> 
           // we're stopping
           return pairs
-        | _ when curr % nthAsync = 0 || curr = 1 ->
+        | _ when curr % nthAsync = 0 ->
           // we're at the first item, create a new pair
           logger.DebugFormat("creating new mf & recv '{0}'", (desc : QueueDescription).Path)
           let mf = newMf ()
@@ -96,18 +96,20 @@ type Receiver(desc   : QueueDescription,
             let! r = desc |> newReceiver mf // the new receiver
             let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
             return! inner (curr+1) (p :: rest) }
-    inner 1 []
+    inner 0 []
     
   /// creates an async workflow worker, given a message receiver client
   let worker client =
+    //logger.Debug "worker called"
     async {
       while true do
+        //logger.Debug "worker loop"
         let! bmsg = timeout |> recv client
         if bmsg <> null then
           logger.Debug("received message")
           messages.Add bmsg
         else
-          logger.Debug("got null msg due to timeout receiving")
+          //logger.Debug("got null msg due to timeout receiving")
           () }
           
   /// cleans out the message buffer and disposes all messages therein
@@ -192,8 +194,7 @@ type Receiver(desc   : QueueDescription,
           |> Seq.append (state.TSubs |> Seq.map(fun x -> x.Value))
           |> Seq.collect (fun list -> list)
           |> Seq.collect (fun (Pair(_, rs)) -> rs)
-          |> Seq.map (fun r -> Async.Start(r |> worker, ct.Token))
-          |> ignore
+          |> Seq.iter (fun r -> Async.Start(r |> worker, ct.Token))
           return! started state ct }
 
       and started state ct =

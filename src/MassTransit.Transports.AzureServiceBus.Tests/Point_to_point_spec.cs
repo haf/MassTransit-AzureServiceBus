@@ -86,7 +86,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		public void the_rat_got_eaten()
 		{
 			received_rat
-				.WaitUntilCompleted(15.Seconds())
+				.WaitUntilCompleted(8.Seconds())
 				.ShouldBeTrue();
 
 			received_rat.Value
