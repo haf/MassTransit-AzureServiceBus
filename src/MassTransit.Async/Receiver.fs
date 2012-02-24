@@ -71,10 +71,6 @@ and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
   Paused -> Halted
 
   Halted -> Final (GC-ed here)
-
-  with state:
-
-  Started 
 *)
 
 /// Create a new receiver, with a queue description,
@@ -124,14 +120,14 @@ type Receiver(desc   : QueueDescription,
     
   /// creates an async workflow worker, given a message receiver client
   let worker client =
-      async {
-        while true do
-          let! bmsg = timeout |> recv client
-          if bmsg <> null then
-            logger.Debug("received message")
-            messages.Add bmsg
-          else
-            () }//logger.Debug("got null msg due to timeout receiving") }
+    async {
+      while true do
+        let! bmsg = timeout |> recv client
+        if bmsg <> null then
+          logger.Debug("received message")
+          messages.Add bmsg
+        else
+          () }//logger.Debug("got null msg due to timeout receiving") }
           
   /// cleans out the message buffer and disposes all messages therein
   let clearLocks () =
@@ -146,6 +142,18 @@ type Receiver(desc   : QueueDescription,
           | x ->
             let entry = sprintf "could not abandon message#%s" <| (!m).MessageId
             logger.Error(entry, x) }
+
+  /// Closes the pair of a messaging factory and a list of receivers
+  let closePair pair =
+    let (Pair(mf, rs)) = pair
+    logger.InfoFormat("closing all ({0} of them) receivers and their mf", rs.Length)
+    if not(mf.IsClosed) then
+      try mf.Close()
+      with | x -> logger.Error("could not close messaging factory", x)
+    for r in rs do
+      if not(r.IsClosed) then
+        try r.Close()
+        with | x -> logger.Error("could not close receiver", x)
 
   /// An agent that implements the reactor pattern, reacting to messages.
   /// The mutually recursive function 'initial' uses the explicit functional
@@ -193,17 +201,22 @@ type Receiver(desc   : QueueDescription,
           | Pause -> ct.Cancel() ; return! paused state
           | Halt -> ct.Cancel(); return! halted state
           | SubscribeQueue(qd, cc) ->
+            // create new receiver sets for the queue description and kick them off as workflows
             let! pairs = initReceiverSet qd newMf cc
             for Pair(mf, rs) in pairs do
               for r in rs do Async.Start(r |> worker, ct.Token)
             let qsubs' = state.QSubs.Add(qd, pairs)
+            // continue in the started state with the same cancellation token
             return! started { QSubs = qsubs' ; TSubs = state.TSubs } ct
           | UnsubscribeQueue qd ->
-            (* todo *) return! started state ct
+            (* todo *) 
+            return! started state ct
           | SubscribeTopic(td, cc) ->
-            (* todo *) return! started state ct
+            (* todo *) 
+            return! started state ct
           | UnsubscribeTopic td ->
-          (* todo *) return! started state ct
+            (* todo *) 
+            return! started state ct
           | _ -> (* ignore Start *) return! started state ct }
 
       and paused state =
@@ -217,50 +230,26 @@ type Receiver(desc   : QueueDescription,
       and halted state =
         async { 
           logger.Debug "halted"
+          for pair in state.QSubs do
+            closePair pair
+          for pair in state.TSubs do
+            closepair pair
           do! clearLocks ()
           (* TODO cancelling and disposing our state *)
           // then exit
           () }
       initial ())
 
-
-
-  /// All initial message receivers and messaging factories are kicked off and then
-  /// all such receivers and factories are awaited.
-  let mfAndRecvsColl = Async.RunSynchronously (initAsyncs desc newMf (concurrency+1) 1 [])
-
-  let start () =
-    desc |> create nm |> Async.RunSynchronously
-    for (mf, client) in mfAndRecvsColl do
-      worker client |> Async.Start
-
-  /// Closes the receivers and message factories created
-  let closeColl () =
-    logger.InfoFormat("closing all ({0} of them) message factories and receivers", mfAndRecvsColl.Length)
-    for (mf, recv) in mfAndRecvsColl do
-      if not(mf.IsClosed) then
-        try mf.Close()
-        with | x -> logger.Error("could not close messaging factory", x)
-      if not(recv.IsClosed) then
-        try recv.Close()
-        with | x -> logger.Error("could not close receiver", x)
-
-
   /// Starts the receiver which starts the consuming from the service bus
   /// and creates the queue if it doesn't exist
   member x.Start () =
     logger.InfoFormat("start called for queue '{0}'", desc)
-    if started then ()
-    else started <- true
-    start ()
+    a.Post Start
 
   /// Stops the receiver; allowing it to start once again.
-  member x.Stop () =
+  member x.Pause () =
     logger.InfoFormat("stop called for queue '{0}'", desc)
-    if not(started) then ()
-    else 
-      started <- false
-      Async.CancelDefaultToken ()
+    a.Post Pause
 
   /// Returns a message if one was added to the buffer within the timeout specified,
   /// or otherwise returns null.
@@ -269,27 +258,13 @@ type Receiver(desc   : QueueDescription,
     let _ = messages.TryTake(&item, timeout.Milliseconds)
     item
 
-  /// Tries to take an item from the list of messages
-  member internal __.TryTake(?timeout) =
-    let timeout = defaultArg timeout <| TimeSpan.FromMilliseconds 50.0
-    let mutable item = null
-    if messages.TryTake(&item, timeout.Milliseconds)
-    then Some(item)
-    else None
-
-  member __.Consume() =
-    asyncSeq {
-      while true do
-        yield messages.Take() }
+  member __.Consume() = asyncSeq { while true do yield messages.Take() }
 
   interface System.IDisposable with
     /// Cleans out all receivers and factories.
     member x.Dispose () = 
       logger.DebugFormat("dispose called for receiver on '{0}'", desc.Path)
-      x.Stop()
-      closeColl ()
-      clearLocks ()
-      messages.Dispose()
+      a.Post Halt
 
 [<Extension>]
 type ReceiverModule =
