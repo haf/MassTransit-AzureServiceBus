@@ -183,14 +183,14 @@ type Receiver(desc   : QueueDescription,
           logger.Debug "starting"
           do! desc |> create nm
           use ct = new CancellationTokenSource ()
-          for x in state.QSubs do // for all queue subscriptions
-            for Pair(mf, rs) in x.Value do // for all mf-receiver list pairs
-              for r in rs do // for all receivers
-                Async.Start(r |> worker, ct.Token) // start a worker on that queue receiver
-          for x in state.TSubs do
-            for Pair(mf, rs) in x.Value do
-              for r in rs do
-                Async.Start(r |> worker, ct.Token)
+          // start all subscriptions
+          state.QSubs
+          |> Seq.map (fun x -> x.Value)
+          |> Seq.append (state.TSubs |> Seq.map(fun x -> x.Value))
+          |> Seq.collect (fun list -> list)
+          |> Seq.collect (fun (Pair(_, rs)) -> rs)
+          |> Seq.map (fun r -> Async.Start(r |> worker, ct.Token))
+          |> ignore
           return! started state ct }
 
       and started state ct =
