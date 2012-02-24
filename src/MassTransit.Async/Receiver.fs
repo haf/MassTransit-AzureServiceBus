@@ -244,7 +244,6 @@ type Receiver(desc   : QueueDescription,
           for pair in subs do
             closePair pair
           do! clearLocks ()
-          (* TODO cancelling and disposing our state *)
           // then exit
           chan.Reply() }
       initial ())
