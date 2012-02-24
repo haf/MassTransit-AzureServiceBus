@@ -34,13 +34,13 @@ type internal Agent<'T> = AutoCancelAgent<'T>
 type RecvMsg =
   Start
   | Pause
-  | Halt
+  | Halt of AsyncReplyChannel<unit>
   | SubscribeQueue of QueueDescription * Concurrency
   | UnsubscribeQueue of QueueDescription
   | SubscribeTopic of TopicDescription * Concurrency
   | UnsubscribeTopic of TopicDescription
 
-/// concurrently outstanding asynchronous requests
+/// concurrently outstanding asynchronous requests (workers)
 and Concurrency = int
 
 type WorkerState =
@@ -51,27 +51,6 @@ type WorkerState =
 /// A pair of a messaging factory and a list of message receivers that
 /// were created from that messaging factory.
 and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
-
-(* receiver can have these states:
-
-  Started
-  Stopped
-  Disposed
-
-  with transitions:
-  
-  Initial -> Starting
-  
-  Starting -> Started
-
-  Started -> Paused
-  Started -> Halted
-  
-  Paused -> Starting
-  Paused -> Halted
-
-  Halted -> Final (GC-ed here)
-*)
 
 /// Create a new receiver, with a queue description,
 /// a factory for messaging factories and some control flow data
@@ -89,10 +68,9 @@ type Receiver(desc   : QueueDescription,
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
   let timeout = TimeSpan.FromMilliseconds 50.0
   let concurrency = defaultArg concurrency 5
-  let nthAsync = defaultArg mfEveryNthConcurrentAsync 100 // in initAsyncs
-  let azQDesc = desc.Inner
+  let nthAsync = defaultArg mfEveryNthConcurrentAsync 5 // in initAsyncs
   
-  /// Starts stop/nthAsync new clients and message factories, so for stop=500, nthAsync=100
+  /// Starts stop/nthAsync new clients and messaging factories, so for stop=500, nthAsync=100
   /// it loops 500 times and starts 5 new clients
   let initReceiverSet desc newMf stop =
     let rec inner curr pairs =
@@ -103,6 +81,7 @@ type Receiver(desc   : QueueDescription,
           return pairs
         | _ when curr % nthAsync = 0 || curr = 1 ->
           // we're at the first item, create a new pair
+          logger.DebugFormat("creating new mf & recv '{0}'", (desc : QueueDescription).Path)
           let mf = newMf ()
           let! r = desc |> newReceiver mf
           let p = Pair(mf, r :: [])
@@ -111,8 +90,9 @@ type Receiver(desc   : QueueDescription,
           // if we're not at an even location, just create a new receiver for
           // the same messaging factory
           match pairs with // of mf<-> receiver list
-          | [] -> failwith "curr != 1, but pairs empty. curr > 1 -> pairs.Length > 0"
+          | [] -> return failwith "curr != 1, but pairs empty. curr > 1 -> pairs.Length > 0"
           | (Pair(mf, rs) :: rest) ->
+            logger.Debug(sprintf "creating new recv '%s'" (desc.Path))
             let! r = desc |> newReceiver mf // the new receiver
             let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
             return! inner (curr+1) (p :: rest) }
@@ -127,7 +107,8 @@ type Receiver(desc   : QueueDescription,
           logger.Debug("received message")
           messages.Add bmsg
         else
-          () }//logger.Debug("got null msg due to timeout receiving") }
+          logger.Debug("got null msg due to timeout receiving")
+          () }
           
   /// cleans out the message buffer and disposes all messages therein
   let clearLocks () =
@@ -159,6 +140,27 @@ type Receiver(desc   : QueueDescription,
   /// The mutually recursive function 'initial' uses the explicit functional
   /// state pattern as described here:
   /// http://www.cl.cam.ac.uk/~tp322/papers/async.pdf
+  ///
+  /// A receiver can have these states:
+  /// --------------------------------
+  /// * Started
+  /// * Stopped
+  /// * Disposed
+  /// 
+  /// with transitions:
+  /// -----------------
+  /// Initial -> Starting
+  /// 
+  /// Starting -> Started
+  /// 
+  /// Started -> Paused
+  /// Started -> Halted
+  /// 
+  /// Paused -> Starting
+  /// Paused -> Halted
+  /// 
+  /// Halted -> Final (GC-ed here)
+  /// 
   let a = Agent<RecvMsg>.Start(fun inbox ->
 
       let rec initial () =
@@ -173,6 +175,7 @@ type Receiver(desc   : QueueDescription,
             let mappedRSet = Map.empty |> Map.add desc rSet
             return! starting { QSubs = mappedRSet ;
                                TSubs = Map.empty }
+          | Halt(chan) -> return! halted { QSubs = Map.empty; TSubs = Map.empty } chan
           | _ ->
             // because we only care about the Start message in the initial state,
             // we will ignore all other messages.
@@ -199,7 +202,7 @@ type Receiver(desc   : QueueDescription,
           let! msg = inbox.Receive()
           match msg with
           | Pause -> ct.Cancel() ; return! paused state
-          | Halt -> ct.Cancel(); return! halted state
+          | Halt(chan) -> ct.Cancel(); return! halted state chan
           | SubscribeQueue(qd, cc) ->
             // create new receiver sets for the queue description and kick them off as workflows
             let! pairs = initReceiverSet qd newMf cc
@@ -220,24 +223,26 @@ type Receiver(desc   : QueueDescription,
           | _ -> (* ignore Start *) return! started state ct }
 
       and paused state =
-        async { 
+        async {
           let! msg = inbox.Receive()
           match msg with
           | Start -> return! starting state
-          | Halt -> return! halted state
+          | Halt(chan) -> return! halted state chan
           | _ as x -> logger.Warn(sprintf "got %A, despite being paused" x) }
 
-      and halted state =
+      and halted state chan =
         async { 
           logger.Debug "halted"
-          for pair in state.QSubs do
+          let subs =
+            asyncSeq {
+             for x in (state.QSubs |> Seq.collect (fun x -> x.Value)) do yield x
+             for x in (state.TSubs |> Seq.collect (fun x -> x.Value)) do yield x }
+          for pair in subs do
             closePair pair
-          for pair in state.TSubs do
-            closepair pair
           do! clearLocks ()
           (* TODO cancelling and disposing our state *)
           // then exit
-          () }
+          chan.Reply() }
       initial ())
 
   /// Starts the receiver which starts the consuming from the service bus
@@ -258,13 +263,13 @@ type Receiver(desc   : QueueDescription,
     let _ = messages.TryTake(&item, timeout.Milliseconds)
     item
 
-  member __.Consume() = asyncSeq { while true do yield messages.Take() }
+  member x.Consume() = asyncSeq { while true do yield messages.Take() }
 
   interface System.IDisposable with
-    /// Cleans out all receivers and factories.
+    /// Cleans out all receivers and messaging factories.
     member x.Dispose () = 
       logger.DebugFormat("dispose called for receiver on '{0}'", desc.Path)
-      a.Post Halt
+      a.PostAndReply(fun chan -> Halt(chan))
 
 [<Extension>]
 type ReceiverModule =

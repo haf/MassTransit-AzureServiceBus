@@ -25,9 +25,7 @@ using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	[Description("Validates the simplest possible behaviour; sending a message " +
-	             "from a local bus to a remote endpoint. In this case, we're sending " +
-	             "a rat to a hungry cat."),
+	[Description("Validates the simplest possible behaviour; sending a message to a known receiver."),
 	 Scenario,
 	 Integration]
 	public class Point_to_point_spec
@@ -88,7 +86,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		public void the_rat_got_eaten()
 		{
 			received_rat
-				.WaitUntilCompleted(4.Seconds())
+				.WaitUntilCompleted(15.Seconds())
 				.ShouldBeTrue();
 
 			received_rat.Value
@@ -99,7 +97,10 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[TearDown]
 		public void rats_dance_on_table()
 		{
-			if (cat_nap_unsubscribes != null) cat_nap_unsubscribes();
+			if (cat_nap_unsubscribes != null)
+				cat_nap_unsubscribes();
+
+
 		}
 	}
 
