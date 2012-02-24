@@ -17,7 +17,7 @@ using MassTransit.AzureServiceBus;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
-	public class QueueDescriptionImpl : QueueDescription
+	public class QueueDescriptionImpl : QueueDescription, IEquatable<QueueDescription>
 	{
 		readonly Microsoft.ServiceBus.Messaging.QueueDescription _inner;
 
@@ -34,6 +34,42 @@ namespace MassTransit.Transports.AzureServiceBus
 		internal QueueDescriptionImpl(Microsoft.ServiceBus.Messaging.QueueDescription inner)
 		{
 			_inner = inner;
+		}
+
+		public bool Equals(QueueDescription other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return Equals(other.Path, Path);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(null, obj)) return false;
+			if (ReferenceEquals(this, obj)) return true;
+			if (!(obj is QueueDescription)) return false;
+			return Equals((QueueDescription) obj);
+		}
+
+		public override int GetHashCode()
+		{
+			return Path.GetHashCode();
+		}
+
+		public int CompareTo(object obj)
+		{
+			return CompareTo(obj as QueueDescription);
+		}
+
+		public int CompareTo(QueueDescription other)
+		{
+			if (other == null) return 1;
+			return string.CompareOrdinal(Path, other.Path);
+		}
+
+		public override string ToString()
+		{
+			return Path;
 		}
 
 		public bool IsReadOnly
@@ -120,11 +156,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		public Microsoft.ServiceBus.Messaging.QueueDescription Inner
 		{
 			get { return _inner; }
-		}
-
-		public override string ToString()
-		{
-			return Path;
 		}
 	}
 }

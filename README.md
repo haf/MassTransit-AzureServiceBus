@@ -242,7 +242,7 @@ But we might still be choking the server that we're communicating with; our actu
 
 [Learn from previous successes though](http://en.wikipedia.org/wiki/TCP_congestion_avoidance_algorithm).
 
-## Thoughts on maximum message factories per (?)
+## Thoughts on maximum messaging factories per (?)
 
 Only 100? Is that per-IP or per namespace?
 

@@ -90,7 +90,6 @@
     <Compile Include="Topic.cs" />
     <Compile Include="TopicClient.cs" />
     <Compile Include="TopicClientImpl.cs" />
-    <Compile Include="TopicDescription.cs" />
     <Compile Include="TopicDescriptionImpl.cs" />
     <Compile Include="TopicImpl.cs" />
     <Compile Include="Internal\NameHelper.cs" />
