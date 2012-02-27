@@ -1,8 +1,7 @@
-﻿#load "Retry.fs"
-open MassTransit.Async.FancyRetries
-#load "TransientErrorHandling.fs"
-open MassTransit.Async.TransientErrorHandling
-#load "AsyncRetry.fs"
+﻿#I "../MassTransit.Async/bin/Debug"
+#r "MassTransit.Async.dll"
+open MassTransit.Async.Retry
+open MassTransit.Async.FaultPolicies
 open MassTransit.Async.AsyncRetry
 
 // https://gist.github.com/1869125

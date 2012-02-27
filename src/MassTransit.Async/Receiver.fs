@@ -43,10 +43,10 @@ type RecvMsg =
 /// concurrently outstanding asynchronous requests (workers)
 and Concurrency = uint32
 
+/// State-keeping structure
 type WorkerState =
   { QSubs : Map<QueueDescription, ReceiverSet list>;
     TSubs : Map<TopicDescription, ReceiverSet list> }
-//    StartedCT : CancellationTokenSource option }
 
 /// A pair of a messaging factory and a list of message receivers that
 /// were created from that messaging factory.

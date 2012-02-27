@@ -1,21 +1,24 @@
-﻿#r @"..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll"
+﻿#r "../PerformanceTesting/Utils/bin/Debug/Utils.dll"
+#r "../MassTransit.AzureServiceBus/bin/Debug/MassTransit.AzureServiceBus.dll"
+#r @"..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll"
 #r @"..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll"
-#r @"..\packages\MassTransit.2.0.5\lib\net40\MassTransit.dll"
+#r @"..\packages\MassTransit.2.1.0-prerelease\lib\net40\MassTransit.dll"
 #I @"..\packages\NLog.2.0.0.2000\lib\net20"
-#r @"NLog.dll"
-#r @"..\packages\MassTransit.NLog.2.0.5\lib\net40\MassTransit.NLogIntegration.dll"
+#r "NLog.dll"
 NLog.Config.SimpleConfigurator.ConfigureForConsoleLogging()
+#r @"..\packages\MassTransit.NLog.2.1.0-prerelease\lib\net40\MassTransit.NLogIntegration.dll"
 MassTransit.Logging.Logger.UseLogger(MassTransit.NLogIntegration.Logging.NLogLogger()) // MT logging
 #r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
 #r @"..\MassTransit.AzureServiceBus\bin\Debug\MassTransit.AzureServiceBus.dll"
+#r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.ServiceModel.dll"
 #r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
-#time "on"
-#load "AccountDetails.fs"
-open AC
 #load "Impl.fs"
+#time "on"
+#load "AccountDetails.fs" 
+open AC
 open Impl
-#load "Counter.fs"
-open MassTransit.Async.Counter
+open Counter
+open MassTransit.AzureServiceBus
 #load "Retry.fs"
 open MassTransit.Async.Retry
 #load "AsyncRetry.fs"
@@ -23,7 +26,6 @@ open MassTransit.Async.AsyncRetry
 #load "Queue.fs"
 open MassTransit.Async.Queue
 #load "Receiver.fs"
-open MassTransit.AzureServiceBus
 open MassTransit.Async
 open FSharp.Control
 open System

@@ -69,12 +69,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Retries.fsx" />
-    <None Include="ConsumeProduce.fsx" />
     <Compile Include="AccountDetails.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
-    <Compile Include="Counter.fs" />
     <Compile Include="Retry.fs" />
     <Compile Include="FaultPolicies.fs" />
     <Compile Include="AsyncRetry.fs" />
