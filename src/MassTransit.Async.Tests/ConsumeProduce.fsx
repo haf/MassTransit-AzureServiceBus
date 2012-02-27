@@ -1,4 +1,5 @@
-﻿#r "../PerformanceTesting/Utils/bin/Debug/Utils.dll"
+﻿#r "../MassTransit.Async/bin/Debug/MassTransit.Async.dll"
+#r "../PerformanceTesting/Utils/bin/Debug/Utils.dll"
 #r "../MassTransit.AzureServiceBus/bin/Debug/MassTransit.AzureServiceBus.dll"
 #r @"..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll"
 #r @"..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll"
@@ -11,21 +12,21 @@ MassTransit.Logging.Logger.UseLogger(MassTransit.NLogIntegration.Logging.NLogLog
 #r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
 #r @"..\MassTransit.AzureServiceBus\bin\Debug\MassTransit.AzureServiceBus.dll"
 #r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.ServiceModel.dll"
-#r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
+//#r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
 #load "Impl.fs"
 #time "on"
-#load "AccountDetails.fs" 
+//#load "AccountDetails.fs" 
 open AC
 open Impl
 open Counter
 open MassTransit.AzureServiceBus
-#load "Retry.fs"
+//#load "Retry.fs"
 open MassTransit.Async.Retry
-#load "AsyncRetry.fs"
+//#load "AsyncRetry.fs"
 open MassTransit.Async.AsyncRetry
-#load "Queue.fs"
+//#load "Queue.fs"
 open MassTransit.Async.Queue
-#load "Receiver.fs"
+//#load "Receiver.fs"
 open MassTransit.Async
 open FSharp.Control
 open System

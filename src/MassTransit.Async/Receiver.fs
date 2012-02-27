@@ -52,7 +52,12 @@ type WorkerState =
 /// were created from that messaging factory.
 and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
 
-open Impl // for default settings
+type ReceiverDefaults() =
+  interface ReceiverSettings with
+    member x.Concurrency = 2u
+    member x.BufferSize = 1000u
+    member x.NThAsync = 5u
+    member x.ReceiveTimeout = TimeSpan.FromMilliseconds 50.0
 
 /// Create a new receiver, with a queue description,
 /// a factory for messaging factories and some control flow data
@@ -252,6 +257,7 @@ type Receiver(desc   : QueueDescription,
     a.Post Start
 
   /// Stops the receiver; allowing it to start once again.
+  /// (Stopping is done by disposing the receiver.)
   member x.Pause () =
     logger.InfoFormat("stop called for queue '{0}'", desc)
     a.Post Pause
