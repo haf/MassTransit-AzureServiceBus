@@ -29,32 +29,34 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class InboundTransportImpl
 		: IInboundTransport
 	{
-		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		readonly IMessageNameFormatter _formatter;
-		PerConnectionReceiver _receiver;
 		readonly AzureManagement _management;
+		readonly ReceiverSettings _receiverSettings;
 		readonly AzureServiceBusEndpointAddress _address;
+
+		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
+		PerConnectionReceiver _receiver;
 
 		bool _bound;
 		bool _disposed;
 
 		static readonly ILog _logger = Logger.Get(typeof (InboundTransportImpl));
 
-		public InboundTransportImpl(
-			[NotNull] AzureServiceBusEndpointAddress address,
+		public InboundTransportImpl([NotNull] AzureServiceBusEndpointAddress address, 
 			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler,
-			[NotNull] IMessageNameFormatter formatter,
-			[NotNull] AzureManagement management)
+			[NotNull] AzureManagement management, 
+			[CanBeNull] IMessageNameFormatter formatter = null,
+			[CanBeNull] ReceiverSettings receiverSettings = null)
 		{
 			if (address == null) throw new ArgumentNullException("address");
 			if (connectionHandler == null) throw new ArgumentNullException("connectionHandler");
-			if (formatter == null) throw new ArgumentNullException("formatter");
 			if (management == null) throw new ArgumentNullException("management");
 
-			_connectionHandler = connectionHandler;
-			_formatter = formatter;
-			_management = management;
 			_address = address;
+			_connectionHandler = connectionHandler;
+			_management = management;
+			_formatter = formatter ?? new AzureMessageNameFormatter();
+			_receiverSettings = receiverSettings; // can be null all the way to usage in Receiver.
 
 			_logger.DebugFormat("created new inbound transport for '{0}'", address);
 		}
@@ -167,7 +169,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (_receiver != null)
 				return;
 			
-			_receiver = new PerConnectionReceiver(_address);
+			_receiver = new PerConnectionReceiver(_address, _receiverSettings);
 			_connectionHandler.AddBinding(_receiver);
 		}
 
@@ -175,6 +177,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			if (_receiver != null)
 				_connectionHandler.RemoveBinding(_receiver);
+
+			_receiver = null;
 		}
 
 		static void TraceMessage(ReceiveContext context)

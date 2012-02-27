@@ -19,12 +19,17 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly AzureServiceBusEndpointAddress _address;
 		static readonly ILog _logger = Logger.Get(typeof (PerConnectionReceiver));
 
+		readonly ReceiverSettings _settings;
 		Receiver _receiver;
 
-		public PerConnectionReceiver([NotNull] AzureServiceBusEndpointAddress address)
+		public PerConnectionReceiver(
+			[NotNull] AzureServiceBusEndpointAddress address, 
+			[CanBeNull] ReceiverSettings settings)
 		{
 			if (address == null) throw new ArgumentNullException("address");
+			
 			_address = address;
+			_settings = settings;
 		}
 
 		public void Bind(ConnectionImpl connection)
@@ -32,21 +37,25 @@ namespace MassTransit.Transports.AzureServiceBus
 			_logger.DebugFormat("starting receiver for '{0}'", _address);
 
 			if (_receiver == null)
-				_receiver = ReceiverModule.StartReceiver(_address, 1000, 15);
+				_receiver = ReceiverModule.StartReceiver(_address, _settings);
 		}
 
 		public void Unbind(ConnectionImpl connection)
 		{
 			_logger.DebugFormat("stopping receiver for '{0}'", _address);
 
-			if (_receiver == null) 
+			if (_receiver == null)
 				return;
 
 			((IDisposable)_receiver).Dispose();
+			_receiver = null;
 		}
 
 		public BrokeredMessage Get(TimeSpan timeout)
 		{
+			if (_receiver == null)
+				throw new ApplicationException("Call Bind before calling Get");
+
 			return _receiver.Get(timeout);
 		}
 	}

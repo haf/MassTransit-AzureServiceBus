@@ -41,7 +41,7 @@ type RecvMsg =
   | UnsubscribeTopic of TopicDescription
 
 /// concurrently outstanding asynchronous requests (workers)
-and Concurrency = int
+and Concurrency = uint32
 
 type WorkerState =
   { QSubs : Map<QueueDescription, ReceiverSet list>;
@@ -52,24 +52,22 @@ type WorkerState =
 /// were created from that messaging factory.
 and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
 
+open Impl
+
 /// Create a new receiver, with a queue description,
 /// a factory for messaging factories and some control flow data
 type Receiver(desc   : QueueDescription,
               newMf  : (unit -> MessagingFactory),
               nm     : NamespaceManager,
-              ?maxReceived : int,
-              ?concurrency : int,
-              ?mfEveryNthConcurrentAsync : int) =
-  
+              ?settings : ReceiverSettings) =
+
+  let sett = defaultArg settings (ReceiverDefaults() :> ReceiverSettings)
+
   /// The 'scratch' buffer that tunnels messages from the ASB receivers
   /// to the consumers of the Receiver class.
-  let messages = new BlockingCollection<_>(defaultArg maxReceived 50)
-  
+  let messages = new BlockingCollection<_>(int <| sett.BufferSize)
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
-  let timeout = TimeSpan.FromMilliseconds 50.0
-  let concurrency = defaultArg concurrency 5
-  let nthAsync = defaultArg mfEveryNthConcurrentAsync 5 // in initAsyncs
-  
+
   /// Starts stop/nthAsync new clients and messaging factories, so for stop=500, nthAsync=100
   /// it loops 500 times and starts 5 new clients
   let initReceiverSet desc newMf stop =
@@ -79,13 +77,13 @@ type Receiver(desc   : QueueDescription,
         | _ when stop = curr -> 
           // we're stopping
           return pairs
-        | _ when curr % nthAsync = 0 ->
+        | _ when curr % sett.NThAsync = 0u ->
           // we're at the first item, create a new pair
           logger.DebugFormat("creating new mf & recv '{0}'", (desc : QueueDescription).Path)
           let mf = newMf ()
           let! r = desc |> newReceiver mf
           let p = Pair(mf, r :: [])
-          return! inner (curr+1) (p :: pairs)
+          return! inner (curr + 1u) (p :: pairs)
         | _ ->
           // if we're not at an even location, just create a new receiver for
           // the same messaging factory
@@ -95,8 +93,8 @@ type Receiver(desc   : QueueDescription,
             logger.Debug(sprintf "creating new recv '%s'" (desc.Path))
             let! r = desc |> newReceiver mf // the new receiver
             let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
-            return! inner (curr+1) (p :: rest) }
-    inner 0 []
+            return! inner (curr + 1u) (p :: rest) }
+    inner 0u []
     
   /// creates an async workflow worker, given a message receiver client
   let worker client =
@@ -104,7 +102,7 @@ type Receiver(desc   : QueueDescription,
     async {
       while true do
         //logger.Debug "worker loop"
-        let! bmsg = timeout |> recv client
+        let! bmsg = sett.ReceiveTimeout |> recv client
         if bmsg <> null then
           logger.Debug("received message")
           messages.Add bmsg
@@ -176,7 +174,7 @@ type Receiver(desc   : QueueDescription,
           | Start ->
             // create WorkerState for initial subscription (that of the queue)
             // and move to the started state
-            let! rSet = initReceiverSet desc newMf concurrency
+            let! rSet = initReceiverSet desc newMf (sett.Concurrency)
             let mappedRSet = Map.empty |> Map.add desc rSet
             return! starting { QSubs = mappedRSet ;
                                TSubs = Map.empty }
@@ -274,11 +272,18 @@ type Receiver(desc   : QueueDescription,
       logger.DebugFormat("dispose called for receiver on '{0}'", desc.Path)
       a.PostAndReply(fun chan -> Halt(chan))
 
-[<Extension>]
 type ReceiverModule =
-  static member StartReceiver(address     : AzureServiceBusEndpointAddress,
-                              maxReceived : int,
-                              concurrency : int) =
-    let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()), address.NamespaceManager, maxReceived, concurrency)
-    r.Start ()
-    r
+  /// <code>address</code> is required. <code>settings</code> is optional.
+  static member StartReceiver(address  : AzureServiceBusEndpointAddress,
+                              settings : ReceiverSettings) =
+    
+    match settings with 
+    | null -> let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()),
+                                   address.NamespaceManager)
+              r.Start ()
+              r
+    | _    -> let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()),
+                                   address.NamespaceManager, 
+                                   settings)
+              r.Start ()
+              r

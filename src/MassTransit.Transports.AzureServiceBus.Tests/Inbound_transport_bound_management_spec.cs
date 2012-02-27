@@ -39,7 +39,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			subject = new InboundTransportImpl(
 				TestDataFactory.GetAddress(),
 				handler.Object,
-				new AzureMessageNameFormatter(),
 				management.Object);
 
 			// when

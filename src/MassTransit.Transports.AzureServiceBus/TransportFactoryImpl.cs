@@ -65,8 +65,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			var client = GetConnection(address);
 
-			return new InboundTransportImpl(address, client, MessageNameFormatter,
-				new AzureManagementImpl(settings.PurgeExistingMessages, address));
+			return new InboundTransportImpl(address, client,
+				new AzureManagementImpl(settings.PurgeExistingMessages, address), MessageNameFormatter);
 		}
 
 		public virtual IOutboundTransport BuildOutbound(ITransportSettings settings)

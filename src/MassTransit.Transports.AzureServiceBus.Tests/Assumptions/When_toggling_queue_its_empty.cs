@@ -48,7 +48,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		{
 			nm.ToggleQueueAsync(desc).Wait();
 
-			var r = ReceiverModule.StartReceiver(TestDataFactory.GetAddress(), 1, 1);
+			var r = ReceiverModule.StartReceiver(TestDataFactory.GetAddress(), null);
 
 			BrokeredMessage message = null;
 			try
