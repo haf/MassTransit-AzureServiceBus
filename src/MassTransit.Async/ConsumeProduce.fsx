@@ -8,10 +8,13 @@
 #r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
 #time "on"
 #load "AccountDetails.fs"
+open AC
 #load "Impl.fs"
 open Impl
 #load "Counter.fs"
 open MassTransit.Async.Counter
+#load "Retry.fs"
+open MassTransit.Async.Retry
 #load "AsyncRetry.fs"
 open MassTransit.Async.AsyncRetry
 #load "Queue.fs"
@@ -21,7 +24,6 @@ open MassTransit.AzureServiceBus
 open MassTransit.Async
 open MassTransit.Logging
 open MassTransit.NLogIntegration.Logging
-open MassTransit.Async.Internal.AccountDetails // customize:
 open FSharp.Control
 open System
 open System.Runtime.Serialization
@@ -30,7 +32,7 @@ open Microsoft.ServiceBus
 open Microsoft.ServiceBus.Messaging
 
 NLog.Config.SimpleConfigurator.ConfigureForConsoleLogging()
-Logger.UseLogger(NLogLogger()) // logging
+Logger.UseLogger(NLogLogger()) // MT logging
 
 [<Serializable>] type A(item : int) =
                    member x.Item = item
@@ -44,7 +46,7 @@ let mfFac = (fun () -> let mfs = MessagingFactorySettings(TokenProvider = tp,
                                    NetMessagingTransportSettings = NetMessagingTransportSettings(BatchFlushInterval = TimeSpan.FromMilliseconds 50.0))
                        MessagingFactory.Create(nm.Address, mfs))
 let deserializer (message : BrokeredMessage) = printfn "Deserializing message: %s" <| message.ToString() ; message.GetBody<A>()
-let concurrency = 200 // concurrent outstanding messages
+let concurrency = 1 // concurrent outstanding messages
 let counter = counter ()
 
 // Producer:
@@ -54,7 +56,7 @@ let mf = mfFac ()
 let sender = Async.RunSynchronously(qdesc |> newSender mf nm)
 for i in 1 .. concurrency do
   async {
-    counter.Post Start
+    counter.Post CounterMessage.Start
     let ctoken = Async.DefaultCancellationToken
     while ctoken.IsCancellationRequested |> not do
       let num = random.Next(0, 25)
@@ -63,10 +65,10 @@ for i in 1 .. concurrency do
   |> Async.Start
 
 // Receiver:
-let r = new Receiver(qdesc, mfFac, nm, 1000, concurrency)
+let r = new Receiver(qdesc, mfFac, nm)
 async {
   r.Start()
-  counter.Post Start
+  counter.Post CounterMessage.Start
   let token = Async.DefaultCancellationToken
   let running = (fun () -> token.IsCancellationRequested |> not)
   while running() do // equivalent to transport Receive being called (this body)
@@ -88,6 +90,6 @@ counter.Post Stop
 counter.PostAndReply(fun chan -> Report(chan))
 
 r.Start()
-r.Stop ()
+r.Pause()
 
 Async.CancelDefaultToken ()

@@ -1,9 +1,9 @@
 ﻿namespace MassTransit.Async
 
-module TransientErrorHandling =
+module FaultPolicies =
 
   open System
-  open MassTransit.Async.FancyRetries
+  open MassTransit.Async.Retry
 
   open System.ServiceModel
   open System.Net.Sockets

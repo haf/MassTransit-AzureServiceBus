@@ -4,7 +4,7 @@ open System
 open System.Threading
 
 // have a look at this: http://fssnip.net/8o
-module FancyRetries =
+module Retry =
 
   type ShouldRetry = ShouldRetry of (RetryCount * LastException -> bool * RetryDelay)
   and RetryCount = int

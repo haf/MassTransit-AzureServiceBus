@@ -87,7 +87,7 @@
     <None Include="app.config" />
     <Compile Include="Counter.fs" />
     <Compile Include="Retry.fs" />
-    <Compile Include="TransientErrorHandling.fs" />
+    <Compile Include="FaultPolicies.fs" />
     <Compile Include="AsyncRetry.fs" />
     <Compile Include="Impl.fs" />
     <Compile Include="Queue.fs" />

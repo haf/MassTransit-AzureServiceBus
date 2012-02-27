@@ -52,7 +52,7 @@ type WorkerState =
 /// were created from that messaging factory.
 and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
 
-open Impl
+open Impl // for default settings
 
 /// Create a new receiver, with a queue description,
 /// a factory for messaging factories and some control flow data
@@ -62,12 +62,12 @@ type Receiver(desc   : QueueDescription,
               ?settings : ReceiverSettings) =
 
   let sett = defaultArg settings (ReceiverDefaults() :> ReceiverSettings)
+  let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
 
   /// The 'scratch' buffer that tunnels messages from the ASB receivers
   /// to the consumers of the Receiver class.
   let messages = new BlockingCollection<_>(int <| sett.BufferSize)
-  let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
-
+  
   /// Starts stop/nthAsync new clients and messaging factories, so for stop=500, nthAsync=100
   /// it loops 500 times and starts 5 new clients
   let initReceiverSet desc newMf stop =
@@ -90,7 +90,7 @@ type Receiver(desc   : QueueDescription,
           match pairs with // of mf<-> receiver list
           | [] -> return failwith "curr != 1, but pairs empty. curr > 1 -> pairs.Length > 0"
           | (Pair(mf, rs) :: rest) ->
-            logger.Debug(sprintf "creating new recv '%s'" (desc.Path))
+            logger.Debug(sprintf "creating new recv '%s'" (desc.ToString()))
             let! r = desc |> newReceiver mf // the new receiver
             let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
             return! inner (curr + 1u) (p :: rest) }
@@ -104,7 +104,7 @@ type Receiver(desc   : QueueDescription,
         //logger.Debug "worker loop"
         let! bmsg = sett.ReceiveTimeout |> recv client
         if bmsg <> null then
-          logger.Debug("received message")
+          logger.Debug(sprintf "received message on '%s'" (desc.ToString()))
           messages.Add bmsg
         else
           //logger.Debug("got null msg due to timeout receiving")
@@ -116,24 +116,21 @@ type Receiver(desc   : QueueDescription,
       while messages.Count > 0 do
         let m = ref null
         if messages.TryTake(m, TimeSpan.FromMilliseconds(4.0)) then 
-          try 
-            do! Async.FromBeginEnd((!m).BeginAbandon, (!m).EndAbandon)
-            (!m).Dispose()
-          with 
-          | x ->
-            let entry = sprintf "could not abandon message#%s" <| (!m).MessageId
-            logger.Error(entry, x) }
+          try         do! Async.FromBeginEnd((!m).BeginAbandon, (!m).EndAbandon)
+                      (!m).Dispose()
+          with | x -> let entry = sprintf "could not abandon message#%s" <| (!m).MessageId
+                      logger.Error(entry, x) }
 
   /// Closes the pair of a messaging factory and a list of receivers
   let closePair pair =
     let (Pair(mf, rs)) = pair
-    logger.InfoFormat("closing all ({0} of them) receivers and their mf", rs.Length)
+    logger.InfoFormat("closing {0} receivers and their single messaging factory", rs.Length)
     if not(mf.IsClosed) then
-      try mf.Close()
+      try         mf.Close()
       with | x -> logger.Error("could not close messaging factory", x)
     for r in rs do
       if not(r.IsClosed) then
-        try r.Close()
+        try         r.Close()
         with | x -> logger.Error("could not close receiver", x)
 
   /// An agent that implements the reactor pattern, reacting to messages.
@@ -144,7 +141,7 @@ type Receiver(desc   : QueueDescription,
   /// A receiver can have these states:
   /// --------------------------------
   /// * Initial (waiting for a Start or Halt(chan) message.
-  /// * Starting (getting all message factories and receivers up and running)
+  /// * Starting (getting all messaging factories and receivers up and running)
   /// * Started (main message loop)
   /// * Paused (cancelling all async workflows)
   /// * Halted (closing things)
@@ -153,6 +150,7 @@ type Receiver(desc   : QueueDescription,
   /// with transitions:
   /// -----------------
   /// Initial -> Starting
+  /// Initial -> Halted
   /// 
   /// Starting -> Started
   /// 
@@ -214,7 +212,7 @@ type Receiver(desc   : QueueDescription,
             // continue in the started state with the same cancellation token
             return! started { QSubs = qsubs' ; TSubs = state.TSubs } ct
           | UnsubscribeQueue qd ->
-            (* todo *) 
+            
             return! started state ct
           | SubscribeTopic(td, cc) ->
             (* todo *) 
@@ -222,10 +220,11 @@ type Receiver(desc   : QueueDescription,
           | UnsubscribeTopic td ->
             (* todo *) 
             return! started state ct
-          | _ -> (* ignore Start *) return! started state ct }
+          | Start -> return! started state ct }
 
       and paused state =
         async {
+          logger.Debug "paused"
           let! msg = inbox.Receive()
           match msg with
           | Start -> return! starting state

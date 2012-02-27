@@ -24,8 +24,7 @@ module AsyncRetry =
   
   open System
   open System.Threading
-  open FancyRetries
-  open TransientErrorHandling
+  open MassTransit.Async.Retry
 
   let logger = MassTransit.Logging.Logger.Get("MassTransit.Async.AsyncRetry")
 

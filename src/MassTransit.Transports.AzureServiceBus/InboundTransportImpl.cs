@@ -42,7 +42,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		static readonly ILog _logger = Logger.Get(typeof (InboundTransportImpl));
 
-		public InboundTransportImpl([NotNull] AzureServiceBusEndpointAddress address, 
+		public InboundTransportImpl([NotNull] AzureServiceBusEndpointAddress address,
 			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler,
 			[NotNull] AzureManagement management, 
 			[CanBeNull] IMessageNameFormatter formatter = null,
