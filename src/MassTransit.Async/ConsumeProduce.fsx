@@ -1,8 +1,11 @@
 ﻿#r @"..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll"
 #r @"..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll"
 #r @"..\packages\MassTransit.2.0.5\lib\net40\MassTransit.dll"
-#r @"..\packages\NLog.2.0.0.2000\lib\net20\NLog.dll"
+#I @"..\packages\NLog.2.0.0.2000\lib\net20"
+#r @"NLog.dll"
 #r @"..\packages\MassTransit.NLog.2.0.5\lib\net40\MassTransit.NLogIntegration.dll"
+NLog.Config.SimpleConfigurator.ConfigureForConsoleLogging()
+MassTransit.Logging.Logger.UseLogger(MassTransit.NLogIntegration.Logging.NLogLogger()) // MT logging
 #r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
 #r @"..\MassTransit.AzureServiceBus\bin\Debug\MassTransit.AzureServiceBus.dll"
 #r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
@@ -22,17 +25,12 @@ open MassTransit.Async.Queue
 #load "Receiver.fs"
 open MassTransit.AzureServiceBus
 open MassTransit.Async
-open MassTransit.Logging
-open MassTransit.NLogIntegration.Logging
 open FSharp.Control
 open System
 open System.Runtime.Serialization
 open System.Threading
 open Microsoft.ServiceBus
 open Microsoft.ServiceBus.Messaging
-
-NLog.Config.SimpleConfigurator.ConfigureForConsoleLogging()
-Logger.UseLogger(NLogLogger()) // MT logging
 
 [<Serializable>] type A(item : int) =
                    member x.Item = item

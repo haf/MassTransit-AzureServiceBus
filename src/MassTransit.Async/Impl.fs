@@ -41,7 +41,7 @@ type QDesc(path) =
 
 type ReceiverDefaults() =
   interface ReceiverSettings with
-    member x.Concurrency = 15u
+    member x.Concurrency = 2u
     member x.BufferSize = 1000u
     member x.NThAsync = 5u
     member x.ReceiveTimeout = TimeSpan.FromMilliseconds 50.0
