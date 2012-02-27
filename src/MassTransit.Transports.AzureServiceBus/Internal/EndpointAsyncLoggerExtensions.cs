@@ -28,8 +28,7 @@ namespace MassTransit.Transports.AzureServiceBus.Internal
 		/// </summary>
 		public static void LogBeginSend(this IEndpointAddress sourceAddress, string messageId)
 		{
-			_messages.Info(() => "SEND begin:{0}:{1}"
-				.FormatWith(sourceAddress, messageId));
+			_messages.InfoFormat("SEND begin:{0}:{1}", sourceAddress, messageId);
 		}
 
 		/// <summary>
@@ -37,8 +36,7 @@ namespace MassTransit.Transports.AzureServiceBus.Internal
 		/// </summary>
 		public static void LogEndSend(this IEndpointAddress sourceAddress, string messageId)
 		{
-			_messages.Info(() => "SEND end:{0}:{1}"
-				.FormatWith(sourceAddress, messageId));
+			_messages.InfoFormat("SEND end:{0}:{1}", sourceAddress, messageId);
 		}
 
 		/// <summary>
@@ -46,8 +44,8 @@ namespace MassTransit.Transports.AzureServiceBus.Internal
 		/// </summary>
 		public static void LogSendRetryScheduled(this IEndpointAddress sourceAddress, string messageId, int messagesInFlight, int inSleep)
 		{
-			_messages.Warn(() => "SEND retry:{0}:{1}. Messages in flight: {2}. Messages sleeping: {3} "
-				.FormatWith(sourceAddress, messageId, messagesInFlight, inSleep));
+			_messages.WarnFormat("SEND retry:{0}:{1}. Messages in flight: {2}. Messages sleeping: {3} ", 
+				sourceAddress, messageId, messagesInFlight, inSleep);
 		}
 	}
 }

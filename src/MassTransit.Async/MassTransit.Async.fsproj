@@ -54,14 +54,7 @@
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MassTransit">
-      <HintPath>..\packages\MassTransit.2.0.5\lib\net40\MassTransit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MassTransit.NLogIntegration">
-      <HintPath>..\packages\MassTransit.NLog.2.0.5\lib\net40\MassTransit.NLogIntegration.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="MassTransit" />
     <Reference Include="Microsoft.ServiceBus">
       <HintPath>..\packages\WindowsAzure.ServiceBus.1.6.0.0\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
       <Private>True</Private>
