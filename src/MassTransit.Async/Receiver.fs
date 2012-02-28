@@ -43,10 +43,12 @@ type RecvMsg =
 /// concurrently outstanding asynchronous requests (workers)
 and Concurrency = uint32
 
-/// State-keeping structure
+/// State-keeping structure, mapping a description to a pair of cancellation token source and
+/// receiver set list. The CancellationTokenSource can be used to stop the subscription that
+/// it corresponds to.
 type WorkerState =
-  { QSubs : Map<QueueDescription, ReceiverSet list>;
-    TSubs : Map<TopicDescription, ReceiverSet list> }
+  { QSubs : Map<QueueDescription, CancellationTokenSource * ReceiverSet list>;
+    TSubs : Map<TopicDescription, CancellationTokenSource * ReceiverSet list> }
 
 /// A pair of a messaging factory and a list of message receivers that
 /// were created from that messaging factory.
@@ -54,7 +56,7 @@ and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
 
 type ReceiverDefaults() =
   interface ReceiverSettings with
-    member x.Concurrency = 2u
+    member x.Concurrency = 1u
     member x.BufferSize = 1000u
     member x.NThAsync = 5u
     member x.ReceiveTimeout = TimeSpan.FromMilliseconds 50.0
@@ -72,10 +74,18 @@ type Receiver(desc   : QueueDescription,
   /// The 'scratch' buffer that tunnels messages from the ASB receivers
   /// to the consumers of the Receiver class.
   let messages = new BlockingCollection<_>(int <| sett.BufferSize)
+
+  /// Creates a new child token from the parent cancellation token source
+  let childTokenFrom ( cts : CancellationTokenSource ) =
+    let childCTS = new CancellationTokenSource()
+    let reg = cts.Token.Register(fun () -> childCTS.Cancel()) // what to do with the IDisposable...?
+    childCTS
+
+  let getToken ( cts : CancellationTokenSource ) = cts.Token
   
   /// Starts stop/nthAsync new clients and messaging factories, so for stop=500, nthAsync=100
   /// it loops 500 times and starts 5 new clients
-  let initReceiverSet desc newMf stop =
+  let initReceiverSet pathDesc newMf stop =
     let rec inner curr pairs =
       async {
         match curr with
@@ -86,7 +96,7 @@ type Receiver(desc   : QueueDescription,
           // we're at the first item, create a new pair
           logger.DebugFormat("creating new mf & recv '{0}'", (desc : QueueDescription).Path)
           let mf = newMf ()
-          let! r = desc |> newReceiver mf
+          let! r = pathDesc |> newReceiver mf
           let p = Pair(mf, r :: [])
           return! inner (curr + 1u) (p :: pairs)
         | _ ->
@@ -100,7 +110,7 @@ type Receiver(desc   : QueueDescription,
             let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
             return! inner (curr + 1u) (p :: rest) }
     inner 0u []
-    
+
   /// creates an async workflow worker, given a message receiver client
   let worker client =
     //logger.Debug "worker called"
@@ -115,6 +125,12 @@ type Receiver(desc   : QueueDescription,
           //logger.Debug("got null msg due to timeout receiving")
           () }
           
+  let startPairsAsync pairs token =
+    async {
+      for Pair(mf, rs) in pairs do
+        for r in rs do 
+          Async.Start(r |> worker, token) }
+
   /// cleans out the message buffer and disposes all messages therein
   let clearLocks () =
     async {
@@ -178,9 +194,8 @@ type Receiver(desc   : QueueDescription,
             // create WorkerState for initial subscription (that of the queue)
             // and move to the started state
             let! rSet = initReceiverSet desc newMf (sett.Concurrency)
-            let mappedRSet = Map.empty |> Map.add desc rSet
-            return! starting { QSubs = mappedRSet ;
-                               TSubs = Map.empty }
+            let mappedRSet = Map.empty |> Map.add desc (new CancellationTokenSource(), rSet)
+            return! starting { QSubs = mappedRSet ; TSubs = Map.empty }
           | Halt(chan) -> return! halted { QSubs = Map.empty; TSubs = Map.empty } chan
           | _ ->
             // because we only care about the Start message in the initial state,
@@ -196,36 +211,59 @@ type Receiver(desc   : QueueDescription,
           state.QSubs
           |> Seq.map (fun x -> x.Value)
           |> Seq.append (state.TSubs |> Seq.map(fun x -> x.Value))
-          |> Seq.collect (fun list -> list)
+          |> Seq.collect (fun ctsAndRs -> snd ctsAndRs)
           |> Seq.collect (fun (Pair(_, rs)) -> rs)
           |> Seq.iter (fun r -> Async.Start(r |> worker, ct.Token))
           return! started state ct }
 
-      and started state ct =
+      and started state cts =
         async {
           logger.Debug "started"
           let! msg = inbox.Receive()
           match msg with
-          | Pause -> ct.Cancel() ; return! paused state
-          | Halt(chan) -> ct.Cancel(); return! halted state chan
+          | Pause ->
+            cts.Cancel() 
+            return! paused state
+
+          | Halt(chan) -> 
+            cts.Cancel()
+            return! halted state chan
+
           | SubscribeQueue(qd, cc) ->
+            logger.DebugFormat("SubscribeQueue '{0}'", qd.Path)
             // create new receiver sets for the queue description and kick them off as workflows
-            let! pairs = initReceiverSet qd newMf cc
-            for Pair(mf, rs) in pairs do
-              for r in rs do Async.Start(r |> worker, ct.Token)
-            let qsubs' = state.QSubs.Add(qd, pairs)
-            // continue in the started state with the same cancellation token
-            return! started { QSubs = qsubs' ; TSubs = state.TSubs } ct
+            let childAsyncCts = childTokenFrom cts // get a new child token to control the computation with
+            let! recvSet = initReceiverSet qd newMf cc // initialize the receivers and potentially new messaging factories
+            do! childAsyncCts |> getToken |> startPairsAsync recvSet // start the actual async workflow
+            let qsubs' = state.QSubs.Add(qd, (childAsyncCts, recvSet)) // update the subscriptions mapping, from description to cts*ReceiverSet list.
+            return! started { QSubs = qsubs' ; TSubs = state.TSubs } cts
+
           | UnsubscribeQueue qd ->
-            
-            return! started state ct
+            logger.Warn "SKIP:UnsubscribeQueue (TODO - do we even need this?)"
+            return! started state cts
+
           | SubscribeTopic(td, cc) ->
-            (* todo *) 
-            return! started state ct
+            logger.DebugFormat("SubscribeTopic '{0}'", td.Path)
+            let childAsyncCts = childTokenFrom cts
+            let! pairs = initReceiverSet td newMf cc
+            do! childAsyncCts |> getToken |> startPairsAsync pairs
+            let tsubs' = state.TSubs.Add(td, (childAsyncCts, pairs))
+            return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
+
           | UnsubscribeTopic td ->
-            (* todo *) 
-            return! started state ct
-          | Start -> return! started state ct }
+            logger.DebugFormat("UnsubscribeTopic '{0}'", td.Path)
+            match state.TSubs.TryFind td with
+            | None -> 
+              logger.WarnFormat("Called UnsubscribeTopic('{0}') on non-subscribed topic!", td.Path) 
+              return! started state cts
+
+            | Some( childCts, recvSet ) -> 
+              childCts.Cancel() ; childCts.Dispose()
+              recvSet |> List.iter (fun set -> closePair set)
+              let tsubs' = state.TSubs.Remove(td)
+              return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
+
+          | Start -> return! started state cts }
 
       and paused state =
         async {
@@ -241,8 +279,8 @@ type Receiver(desc   : QueueDescription,
           logger.Debug "halted"
           let subs =
             asyncSeq {
-             for x in (state.QSubs |> Seq.collect (fun x -> x.Value)) do yield x
-             for x in (state.TSubs |> Seq.collect (fun x -> x.Value)) do yield x }
+             for x in (state.QSubs |> Seq.collect (fun x -> snd x.Value)) do yield x
+             for x in (state.TSubs |> Seq.collect (fun x -> snd x.Value)) do yield x }
           for pair in subs do
             closePair pair
           do! clearLocks ()
@@ -261,6 +299,14 @@ type Receiver(desc   : QueueDescription,
   member x.Pause () =
     logger.InfoFormat("stop called for queue '{0}'", desc)
     a.Post Pause
+
+  member x.Subscribe ( td : TopicDescription ) =
+    logger.InfoFormat("subscribe called for topic description '{0}'", td)
+    a.Post <| SubscribeTopic( td, sett.Concurrency )
+
+  member x.Unsubscribe ( td : TopicDescription ) =
+    logger.InfoFormat("unsubscribe called for topic description '{0}'", td)
+    a.Post <| UnsubscribeTopic( td )
 
   /// Returns a message if one was added to the buffer within the timeout specified,
   /// or otherwise returns null.

@@ -15,8 +15,10 @@ using System;
 using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.Services.Graphite.Configuration;
 using MassTransit.TestFramework;
 using MassTransit.TestFramework.Fixtures;
+using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using MassTransit.Transports.AzureServiceBus.Util;
 using NUnit.Framework;
 
@@ -24,32 +26,42 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Integration]
 	public class Publish_spec
-		: TwoBusTestFixture<TransportFactoryImpl>
+		: EndpointTestFixture<TransportFactoryImpl>
 	{
 		Guid dinner_id;
 		Future<SmallRat> _receivedSmallRat;
 		Future<LargeRat> _receivedLargeRat;
 
-		protected override void ConfigureServiceBus(Uri uri, BusConfigurators.ServiceBusConfigurator configurator)
-		{
-			base.ConfigureServiceBus(uri, configurator);
-
-			_receivedSmallRat = new Future<SmallRat>();
-			_receivedLargeRat = new Future<LargeRat>();
-
-			configurator.Subscribe(s =>
-				{
-					s.Handler<SmallRat>(_receivedSmallRat.Complete);
-					s.Handler<LargeRat>(_receivedLargeRat.Complete);
-				});
-		}
-
 		[When]
 		public void a_large_rat_is_published()
 		{
+			_receivedSmallRat = new Future<SmallRat>();
+			_receivedLargeRat = new Future<LargeRat>();
+
+			var details = new AccountDetails();
+
+			PublisherBus = SetupServiceBus(details.BuildUri("publisher"), cfg =>
+				{
+					cfg.UseGraphite(g => g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.publisher"));
+				});
+
+			SubscriberBus = SetupServiceBus(details.BuildUri("subscriber"), cfg =>
+				{
+					cfg.Subscribe(s =>
+						{
+							s.Handler<LargeRat>(_receivedLargeRat.Complete);
+							s.Handler<SmallRat>(_receivedSmallRat.Complete);
+						});
+
+					cfg.UseGraphite(g => g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.subscriber"));
+				});
+
 			dinner_id = CombGuid.Generate();
-			LocalBus.Publish<Rat>(new LargeRat("peep", dinner_id));
+			PublisherBus.Publish<Rat>(new LargeRat("peep", dinner_id));
 		}
+	
+		protected IServiceBus PublisherBus { get; private set; }
+		protected IServiceBus SubscriberBus { get; private set; }
 
 		[Then]
 		public void cat_ate_small_rat()
@@ -63,6 +75,11 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		{
 			_receivedLargeRat.WaitUntilCompleted(8.Seconds()).ShouldBeTrue("Should have received large rat message");
 			_receivedLargeRat.Value.ShouldEqual(new LargeRat("peep", dinner_id));
+		}
+
+		[Finally]
+		public void DisposeAll()
+		{
 		}
 
 		class LargeRat : SmallRat

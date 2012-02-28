@@ -12,26 +12,22 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using System.Runtime.Serialization;
 
 namespace MassTransit.AzureServiceBus
 {
 	public interface QueueDescription
-		: IEquatable<QueueDescription>, IComparable<QueueDescription>, IComparable
+		: IEquatable<QueueDescription>, IComparable<QueueDescription>, 
+		IComparable, PathBasedEntity,
+		EntityDescription
 	{
-		bool IsReadOnly { get; }
-		ExtensionDataObject ExtensionData { get; }
 		TimeSpan LockDuration { get; }
-		long MaxSizeInMegabytes { get; }
-		bool RequiresDuplicateDetection { get; }
+
 		bool RequiresSession { get; }
-		TimeSpan DefaultMessageTimeToLive { get; }
+
 		bool EnableDeadLetteringOnMessageExpiration { get; }
-		TimeSpan DuplicateDetectionHistoryTimeWindow { get; }
-		string Path { get; }
+
 		int MaxDeliveryCount { get; }
-		bool EnableBatchedOperations { get; }
-		long SizeInBytes { get; }
+
 		long MessageCount { get; }
 
 		Microsoft.ServiceBus.Messaging.QueueDescription Inner { get; }

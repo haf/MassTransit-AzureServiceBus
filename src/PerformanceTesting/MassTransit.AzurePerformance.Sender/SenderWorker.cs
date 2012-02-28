@@ -35,7 +35,7 @@ namespace MassTransit.AzurePerformance.Sender
 
 					sbc.UseAzureServiceBusRouting();
 					sbc.UseNLog();
-
+					//sbc.UseGraphite();
 					sbc.Subscribe(s =>
 						{
 							s.Handler<ZoomDone>(zd => { _isStopping = true; });

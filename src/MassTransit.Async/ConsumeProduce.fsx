@@ -8,7 +8,7 @@
 #I @"..\packages\NLog.2.0.0.2000\lib\net20"
 #r "NLog.dll"
 NLog.Config.SimpleConfigurator.ConfigureForConsoleLogging()
-#r @"..\packages\MassTransit.NLog.2.1.0-prerelease\lib\net40\MassTransit.NLogIntegration.dll"
+#r @"..\packages\MassTransit.NLog.2.1.2\lib\net40\MassTransit.NLogIntegration.dll"
 MassTransit.Logging.Logger.UseLogger(MassTransit.NLogIntegration.Logging.NLogLogger()) // MT logging
 #r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
 #r @"..\MassTransit.AzureServiceBus\bin\Debug\MassTransit.AzureServiceBus.dll"
@@ -48,8 +48,8 @@ let qdesc = QDesc("WhereUWent")
 let mfFac = (fun () -> let mfs = MessagingFactorySettings(TokenProvider = tp,
                                    NetMessagingTransportSettings = NetMessagingTransportSettings(BatchFlushInterval = TimeSpan.FromMilliseconds 50.0))
                        MessagingFactory.Create(nm.Address, mfs))
-let deserializer (message : BrokeredMessage) = printfn "Deserializing message: %s" <| message.ToString() ; message.GetBody<A>()
-let concurrency = 1 // concurrent outstanding messages
+let deserializer (message : BrokeredMessage) = (*printfn "Deserializing message: %s" <| message.ToString() ; *) message.GetBody<A>()
+let concurrency = 100 // concurrent outstanding messages
 let counter = counter ()
 let client = new StatsDClient("192.168.81.130", 8125, "mt.asb")
 
@@ -57,10 +57,10 @@ let client = new StatsDClient("192.168.81.130", 8125, "mt.asb")
 Async.RunSynchronously( qdesc |> delete nm )
 let random = Random()
 let mf = mfFac ()
+counter.Post CounterMessage.Start
 let sender = Async.RunSynchronously(qdesc |> newSender mf nm)
 for i in 1 .. concurrency do
   async {
-    counter.Post CounterMessage.Start
     let ctoken = Async.DefaultCancellationToken
     while ctoken.IsCancellationRequested |> not do
       let num = random.Next(0, 25)
@@ -73,7 +73,6 @@ for i in 1 .. concurrency do
 let r = new Receiver(qdesc, mfFac, nm)
 async {
   r.Start()
-  counter.Post CounterMessage.Start
   let token = Async.DefaultCancellationToken
   let running = (fun () -> token.IsCancellationRequested |> not)
   while running() do // equivalent to transport Receive being called (this body)

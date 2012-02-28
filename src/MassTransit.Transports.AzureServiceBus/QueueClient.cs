@@ -32,7 +32,6 @@ namespace MassTransit.Transports.AzureServiceBus
 		/// <returns></returns>
 		Task<BrokeredMessage> Receive();
 
-
 		Task<BrokeredMessage> Receive(TimeSpan serverWaitTime);
 		Task Send(BrokeredMessage message);
 		

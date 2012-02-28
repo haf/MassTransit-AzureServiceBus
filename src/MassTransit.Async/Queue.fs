@@ -57,9 +57,9 @@ module Queue =
       use bm = new BrokeredMessage(message)
       do! Async.FromBeginEnd(bm, client.BeginSend, client.EndSend) : Async<unit> }
   
-  let newReceiver (mf : MessagingFactory) (desc : QueueDescription) =
+  let newReceiver (mf : MessagingFactory) (desc : PathBasedEntity) =
     async {
-      return! Async.FromBeginEnd((desc.Path),
+      return! Async.FromBeginEnd(desc.Path,
                       (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
                       mf.EndCreateMessageReceiver) }
   

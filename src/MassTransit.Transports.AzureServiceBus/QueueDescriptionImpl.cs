@@ -17,7 +17,7 @@ using MassTransit.AzureServiceBus;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
-	public class QueueDescriptionImpl : QueueDescription, IEquatable<QueueDescription>
+	public class QueueDescriptionImpl : QueueDescription
 	{
 		readonly Microsoft.ServiceBus.Messaging.QueueDescription _inner;
 
