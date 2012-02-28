@@ -41,7 +41,6 @@
     <None Include="packages.config" />
     <None Include="Retries.fsx" />
     <Compile Include="Impl.fs" />
-    <None Include="ConsumeProduce.fsx" />
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
@@ -50,6 +49,10 @@
       <Project>{ccd26eda-5048-4752-863d-4301173dcc93}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <Reference Include="Graphite">
+      <HintPath>..\packages\Graphite.NET.1.1\lib\net40\Graphite.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Magnum">
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
       <Private>True</Private>

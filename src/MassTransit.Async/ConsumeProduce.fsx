@@ -4,6 +4,7 @@
 #r @"..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll"
 #r @"..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll"
 #r @"..\packages\MassTransit.2.1.0-prerelease\lib\net40\MassTransit.dll"
+#r @"..\packages\Graphite.NET.1.1\lib\net40\Graphite.dll"
 #I @"..\packages\NLog.2.0.0.2000\lib\net20"
 #r "NLog.dll"
 NLog.Config.SimpleConfigurator.ConfigureForConsoleLogging()
@@ -12,21 +13,21 @@ MassTransit.Logging.Logger.UseLogger(MassTransit.NLogIntegration.Logging.NLogLog
 #r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
 #r @"..\MassTransit.AzureServiceBus\bin\Debug\MassTransit.AzureServiceBus.dll"
 #r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.ServiceModel.dll"
-//#r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
+#r @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Runtime.Serialization.dll"
 #load "Impl.fs"
 #time "on"
-//#load "AccountDetails.fs" 
+#load "AccountDetails.fs" 
 open AC
 open Impl
 open Counter
 open MassTransit.AzureServiceBus
-//#load "Retry.fs"
+#load "Retry.fs"
 open MassTransit.Async.Retry
-//#load "AsyncRetry.fs"
+#load "AsyncRetry.fs"
 open MassTransit.Async.AsyncRetry
-//#load "Queue.fs"
+#load "Queue.fs"
 open MassTransit.Async.Queue
-//#load "Receiver.fs"
+#load "Receiver.fs"
 open MassTransit.Async
 open FSharp.Control
 open System
@@ -34,6 +35,7 @@ open System.Runtime.Serialization
 open System.Threading
 open Microsoft.ServiceBus
 open Microsoft.ServiceBus.Messaging
+open Graphite.StatsD
 
 [<Serializable>] type A(item : int) =
                    member x.Item = item
@@ -49,6 +51,7 @@ let mfFac = (fun () -> let mfs = MessagingFactorySettings(TokenProvider = tp,
 let deserializer (message : BrokeredMessage) = printfn "Deserializing message: %s" <| message.ToString() ; message.GetBody<A>()
 let concurrency = 1 // concurrent outstanding messages
 let counter = counter ()
+let client = new StatsDClient("192.168.81.130", 8125, "mt.asb")
 
 // Producer:
 Async.RunSynchronously( qdesc |> delete nm )
@@ -62,7 +65,8 @@ for i in 1 .. concurrency do
     while ctoken.IsCancellationRequested |> not do
       let num = random.Next(0, 25)
       do! A(num) |> send sender 
-      counter.Post (Sent(1)) }
+      counter.Post (Sent(1))
+      client.Increment(1, 1.0, "producer.send") |> ignore }
   |> Async.Start
 
 // Receiver:
@@ -80,6 +84,7 @@ async {
       // this would have to go in the MT framework somehow, would be async instead of sync and would run on a fiber of its own
       ThreadPool.QueueUserWorkItem((fun mm -> (mm :?> BrokeredMessage).Complete()), bm) |> ignore
       counter.Post (Received(1))
+      client.Increment(1, 1.0, "receiver.receive") |> ignore
   ()
 } |> Async.Start
 
@@ -92,5 +97,6 @@ counter.PostAndReply(fun chan -> Report(chan))
 
 r.Start()
 r.Pause()
-
+(r :> IDisposable).Dispose()
+(client :> IDisposable).Dispose()
 Async.CancelDefaultToken ()

@@ -77,6 +77,8 @@
     <Compile Include="AsyncRetry.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="Receiver.fs" />
+    <None Include="ConsumeProduce.fsx" />
+    <Compile Include="Impl.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
