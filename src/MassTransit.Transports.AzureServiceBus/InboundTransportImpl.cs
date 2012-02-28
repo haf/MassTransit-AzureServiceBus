@@ -20,6 +20,7 @@ using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
+using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -189,6 +190,16 @@ namespace MassTransit.Transports.AzureServiceBus
 				var msg = Encoding.UTF8.GetString(ms.ToArray());
 				_logger.Debug(string.Format("{0} body:\n {1}", DateTime.UtcNow, msg));
 			}
+		}
+
+		public void SignalBoundSubscription(Guid key, TopicDescription value)
+		{
+			_receiver.SubscribeTopic(value);
+		}
+
+		public void SignalUnboundSubscription(Guid key, TopicDescription value)
+		{
+			_receiver.UnsubscribeTopic(value);
 		}
 	}
 }

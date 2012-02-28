@@ -4,6 +4,7 @@ using MassTransit.AzureServiceBus;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
+using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -57,6 +58,18 @@ namespace MassTransit.Transports.AzureServiceBus
 				throw new ApplicationException("Call Bind before calling Get");
 
 			return _receiver.Get(timeout);
+		}
+
+		public void SubscribeTopic([NotNull] TopicDescription value)
+		{
+			if (value == null) throw new ArgumentNullException("value");
+			_receiver.Subscribe(value);
+		}
+
+		public void UnsubscribeTopic([NotNull] TopicDescription value)
+		{
+			if (value == null) throw new ArgumentNullException("value");
+			_receiver.Unsubscribe(value);
 		}
 	}
 }

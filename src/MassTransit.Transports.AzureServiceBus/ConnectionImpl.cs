@@ -24,6 +24,7 @@ using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -80,28 +81,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _queue; }
 		}
 
-		public void SignalBoundSubscription(Guid subscriptionId, Topic topic)
-		{
-			topic.CreateSubscriber()
-				.Then(tClientAndSub => _subscribers.Add(subscriptionId, tClientAndSub));
-		}
-
-		public void SignalUnboundSubscription(Guid key, Topic topic)
-		{
-			Tuple<TopicClient, Subscriber> tuple;
-			if (_subscribers.TryGetValue(key, out tuple))
-			{
-				tuple.Item1.Dispose();
-				tuple.Item2.Dispose();
-			}
-		}
-
-		public IEnumerable<Subscriber> Subscribers
-		{
-			// is this a performance issue?
-			get { return _subscribers.Values.Select(x => x.Item2); }
-		}
-
 		public void Dispose()
 		{
 			Dispose(true);
@@ -117,10 +96,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			{
 				if (_queue != null)
 					_queue.Dispose();
-
-				// this bugs out
-				//if (_messagingFactory != null && !_messagingFactory.IsClosed)
-				//    _messagingFactory.Close();
 			}
 			finally
 			{
