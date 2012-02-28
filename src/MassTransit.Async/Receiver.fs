@@ -52,7 +52,8 @@ type WorkerState =
 
 /// A pair of a messaging factory and a list of message receivers that
 /// were created from that messaging factory.
-and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
+and ReceiverSet = QPair of MessagingFactory * MessageReceiver list
+                  | TPair of MessagingFactory * SubscriptionClient list
 
 type ReceiverDefaults() =
   interface ReceiverSettings with
@@ -66,6 +67,7 @@ type ReceiverDefaults() =
 type Receiver(desc   : QueueDescription,
               newMf  : (unit -> MessagingFactory),
               nm     : NamespaceManager,
+              receiverName : string,
               ?settings : ReceiverSettings) =
 
   let sett = defaultArg settings (ReceiverDefaults() :> ReceiverSettings)
@@ -85,11 +87,11 @@ type Receiver(desc   : QueueDescription,
   
   /// Starts stop/nthAsync new clients and messaging factories, so for stop=500, nthAsync=100
   /// it loops 500 times and starts 5 new clients
-  let initReceiverSet pathDesc newMf stop =
+  let initReceiverSet newMf stop pathDesc =
     let rec inner curr pairs =
       async {
         match curr with
-        | _ when stop = curr -> 
+        | _ when stop = curr ->
           // we're stopping
           return pairs
         | _ when curr % sett.NThAsync = 0u ->
@@ -110,6 +112,8 @@ type Receiver(desc   : QueueDescription,
             let p = Pair(mf, r :: rs) // add the receiver to the list of receivers for this mf
             return! inner (curr + 1u) (p :: rest) }
     inner 0u []
+
+  let initReceiverSet' : (PathBasedEntity -> _) = initReceiverSet newMf (sett.Concurrency)
 
   /// creates an async workflow worker, given a message receiver client
   let worker client =
@@ -193,7 +197,7 @@ type Receiver(desc   : QueueDescription,
           | Start ->
             // create WorkerState for initial subscription (that of the queue)
             // and move to the started state
-            let! rSet = initReceiverSet desc newMf (sett.Concurrency)
+            let! rSet = desc |> initReceiverSet'
             let mappedRSet = Map.empty |> Map.add desc (new CancellationTokenSource(), rSet)
             return! starting { QSubs = mappedRSet ; TSubs = Map.empty }
           | Halt(chan) -> return! halted { QSubs = Map.empty; TSubs = Map.empty } chan
@@ -231,9 +235,10 @@ type Receiver(desc   : QueueDescription,
 
           | SubscribeQueue(qd, cc) ->
             logger.DebugFormat("SubscribeQueue '{0}'", qd.Path)
+            do! qd |> create nm
             // create new receiver sets for the queue description and kick them off as workflows
             let childAsyncCts = childTokenFrom cts // get a new child token to control the computation with
-            let! recvSet = initReceiverSet qd newMf cc // initialize the receivers and potentially new messaging factories
+            let! recvSet = initReceiverSet newMf cc qd // initialize the receivers and potentially new messaging factories
             do! childAsyncCts |> getToken |> startPairsAsync recvSet // start the actual async workflow
             let qsubs' = state.QSubs.Add(qd, (childAsyncCts, recvSet)) // update the subscriptions mapping, from description to cts*ReceiverSet list.
             return! started { QSubs = qsubs' ; TSubs = state.TSubs } cts
@@ -245,7 +250,8 @@ type Receiver(desc   : QueueDescription,
           | SubscribeTopic(td, cc) ->
             logger.DebugFormat("SubscribeTopic '{0}'", td.Path)
             let childAsyncCts = childTokenFrom cts
-            let! pairs = initReceiverSet td newMf cc
+            let! sub = td |> Topic.subscribe nm receiverName
+            let! pairs = initReceiverSet newMf cc td
             do! childAsyncCts |> getToken |> startPairsAsync pairs
             let tsubs' = state.TSubs.Add(td, (childAsyncCts, pairs))
             return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
@@ -326,15 +332,16 @@ type Receiver(desc   : QueueDescription,
 type ReceiverModule =
   /// <code>address</code> is required. <code>settings</code> is optional.
   static member StartReceiver(address  : AzureServiceBusEndpointAddress,
-                              settings : ReceiverSettings) =
+                              settings : ReceiverSettings,
+                              receiverName : string) =
     
     match settings with 
     | null -> let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()),
-                                   address.NamespaceManager)
+                                   address.NamespaceManager, receiverName)
               r.Start ()
               r
     | _    -> let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()),
-                                   address.NamespaceManager, 
+                                   address.NamespaceManager, receiverName,
                                    settings)
               r.Start ()
               r

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MassTransit.Async;
 using MassTransit.AzureServiceBus;
 using MassTransit.Logging;
@@ -20,6 +21,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly AzureServiceBusEndpointAddress _address;
 		static readonly ILog _logger = Logger.Get(typeof (PerConnectionReceiver));
 
+		readonly HashSet<TopicDescription> _pending = new HashSet<TopicDescription>();
 		readonly ReceiverSettings _settings;
 		Receiver _receiver;
 
@@ -37,8 +39,18 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			_logger.DebugFormat("starting receiver for '{0}'", _address);
 
-			if (_receiver == null)
-				_receiver = ReceiverModule.StartReceiver(_address, _settings);
+			if (_receiver != null) 
+				return;
+			
+			_receiver = ReceiverModule.StartReceiver(_address, _settings);
+				
+			lock (_pending)
+			{
+				foreach (var td in _pending)
+					_receiver.Subscribe(td);
+
+				_pending.Clear();
+			}
 		}
 
 		public void Unbind(ConnectionImpl connection)
@@ -50,11 +62,13 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			((IDisposable)_receiver).Dispose();
 			_receiver = null;
+
+			_pending.Clear();
 		}
 
 		public BrokeredMessage Get(TimeSpan timeout)
 		{
-			if (_receiver == null)
+			if (_receiver == null) 
 				throw new ApplicationException("Call Bind before calling Get");
 
 			return _receiver.Get(timeout);
@@ -63,13 +77,21 @@ namespace MassTransit.Transports.AzureServiceBus
 		public void SubscribeTopic([NotNull] TopicDescription value)
 		{
 			if (value == null) throw new ArgumentNullException("value");
-			_receiver.Subscribe(value);
+
+			if (_receiver != null)
+				_receiver.Subscribe(value);
+			else
+				lock(_pending) _pending.Add(value);
 		}
 
 		public void UnsubscribeTopic([NotNull] TopicDescription value)
 		{
 			if (value == null) throw new ArgumentNullException("value");
-			_receiver.Unsubscribe(value);
+
+			if (_receiver != null)
+				_receiver.Unsubscribe(value);
+			else
+				lock (_pending) _pending.Remove(value);
 		}
 	}
 }

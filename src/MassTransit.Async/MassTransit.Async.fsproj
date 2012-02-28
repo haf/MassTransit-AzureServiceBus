@@ -86,6 +86,7 @@
     <Compile Include="Retry.fs" />
     <Compile Include="FaultPolicies.fs" />
     <Compile Include="AsyncRetry.fs" />
+    <Compile Include="Topic.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="Receiver.fs" />
     <None Include="ConsumeProduce.fsx" />

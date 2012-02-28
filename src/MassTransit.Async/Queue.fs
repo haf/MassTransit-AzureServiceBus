@@ -64,8 +64,8 @@ module Queue =
                       mf.EndCreateMessageReceiver) }
   
   [<Extension;CompiledName("Exists")>]
-  let exists (nm : NamespaceManager ) (desc : QueueDescription) = 
-    async { return! Async.FromBeginEnd((desc.Path), nm.BeginQueueExists, nm.EndQueueExists) }
+  let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
+    async { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
 
   [<Extension;CompiledName("ExistsAsync")>]
   let existsAsync nm desc = Async.StartAsTask(exists nm desc)
@@ -77,9 +77,9 @@ module Queue =
       let! exists = desc |> exists nm
       if exists then return ()
       try
-        let beginCreate = nm.BeginCreateQueue : AQD * AsyncCallback * obj -> IAsyncResult
+        let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
         logger.DebugFormat("creating queue '{0}'", desc)
-        let! ndesc = Async.FromBeginEnd((desc.Inner), beginCreate, nm.EndCreateQueue)
+        let! ndesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateQueue)
         return! desc |> create nm
       with | :? MessagingEntityAlreadyExistsException -> return () }
   
@@ -99,7 +99,7 @@ module Queue =
       if exists then return ()
       try
         logger.DebugFormat("deleting queue '{0}'", desc)
-        do! Async.FromBeginEnd((desc.Path), nm.BeginDeleteQueue, nm.EndDeleteQueue)
+        do! Async.FromBeginEnd(desc.Path, nm.BeginDeleteQueue, nm.EndDeleteQueue)
         return! desc |> delete nm
       with | :? MessagingEntityNotFoundException -> return () }
 
@@ -110,10 +110,10 @@ module Queue =
   /// Naïve Drain operation, by deleting and then creating the queue,
   /// or simply creating the queue if it doesn't exist.
   [<Extension;CompiledName("ToggleQueue")>]
-  let toggle nm desc =
+  let toggle nm d =
     async {
-      do! delete nm desc
-      do! create nm desc
+      do! delete nm d
+      do! create nm d
       return Unit() }
 
   /// Naïve Drain operation, by deleting and then creating the queue,

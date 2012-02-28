@@ -102,17 +102,7 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 				.InCaseOf<TimeoutException>()
 				.CircuitBreak(50.Milliseconds(), 5);
 
-			return Task.Factory.StartNew<TopicClient>(() =>
-				{
-					return timeoutPolicy.Do(() =>
-						{
-							// where is the BeginCreateTopicClient??!
-							_logger.Debug(string.Format("create topic client for topic @ '{0}'", topic.Description));
-							var client = new TopicClientImpl(messagingFactory, nm);
-							_logger.Debug(string.Format("create topic client done for topic @ '{0}'", topic.Description));
-							return client;
-						});
-				});
+			return Task.Factory.StartNew<TopicClient>(() => new TopicClientImpl(messagingFactory, nm));
 		}
 
 		public static Task<QueueClient> TryCreateQueueClient(
