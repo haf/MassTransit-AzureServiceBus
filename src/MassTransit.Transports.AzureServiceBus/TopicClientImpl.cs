@@ -36,7 +36,6 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public Task Send(BrokeredMessage msg, Topic topic)
 		{
-			// todo: client has Close method... but not dispose.
 			var client = _clientFac(topic.Description.Path);
 
 			_logger.Debug("begin send");

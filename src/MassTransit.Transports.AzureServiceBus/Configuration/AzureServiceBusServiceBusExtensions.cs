@@ -1,5 +1,4 @@
 ﻿using Magnum.Extensions;
-using MassTransit.AzureServiceBus;
 using MassTransit.BusConfigurators;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
@@ -31,21 +30,18 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		/// Configure the service bus to use the queues and topics routing semantics with
 		/// Azure ServiceBus.
 		/// </summary>
-		public static T UseAzureServiceBusRouting<T>(this T configurator)
+		public static void UseAzureServiceBusRouting<T>(this T configurator)
 			where T : ServiceBusConfigurator
 		{
-			configurator.UseJsonSerializer();
-			
 			configurator.SetSubscriptionObserver((sb, router) =>
 				{
 					var inboundTransport = sb.Endpoint.InboundTransport.CastAs<InboundTransportImpl>();
-					return new TopicSubscriptionObserver(inboundTransport.Address.CastAs<AzureServiceBusEndpointAddress>(),
-						inboundTransport.MessageNameFormatter);
+					return new TopicSubscriptionObserver(inboundTransport.MessageNameFormatter, inboundTransport);
 				});
 
-			configurator.UseAzureServiceBus();
+			configurator.UseJsonSerializer();
 
-			return configurator;
+			configurator.UseAzureServiceBus();
 		}
 	}
 }

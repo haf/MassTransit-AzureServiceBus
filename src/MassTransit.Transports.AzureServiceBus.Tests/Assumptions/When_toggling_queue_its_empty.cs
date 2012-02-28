@@ -44,7 +44,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 		}
 
 		[Then]
-		public void I_can_drain_the_queue()
+		public void I_can_consume_the_message()
 		{
 			nm.ToggleQueueAsync(desc).Wait();
 

@@ -15,12 +15,14 @@ using System;
 using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.Pipeline.Inspectors;
 using MassTransit.Services.Graphite.Configuration;
 using MassTransit.TestFramework;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using MassTransit.Transports.AzureServiceBus.Util;
 using NUnit.Framework;
+using MassTransit.Transports.AzureServiceBus.Configuration;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
@@ -42,7 +44,10 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			PublisherBus = SetupServiceBus(details.BuildUri("publisher"), cfg =>
 				{
-					cfg.UseGraphite(g => g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.publisher"));
+					cfg.UseGraphite(g => 
+						g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.publisher"));
+
+					cfg.UseAzureServiceBusRouting();
 				});
 
 			SubscriberBus = SetupServiceBus(details.BuildUri("subscriber"), cfg =>
@@ -53,10 +58,19 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 							s.Handler<SmallRat>(_receivedSmallRat.Complete);
 						});
 
-					cfg.UseGraphite(g => g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.subscriber"));
+					cfg.UseGraphite(g => 
+						g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.subscriber"));
+
+					cfg.UseAzureServiceBusRouting();
 				});
 
 			dinner_id = CombGuid.Generate();
+
+			PipelineViewer.Trace(PublisherBus.OutboundPipeline);
+			Console.WriteLine("Inbound:");
+			Console.WriteLine();
+			PipelineViewer.Trace(SubscriberBus.InboundPipeline);
+
 			PublisherBus.Publish<Rat>(new LargeRat("peep", dinner_id));
 		}
 	
@@ -66,7 +80,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[Then]
 		public void cat_ate_small_rat()
 		{
-			_receivedSmallRat.WaitUntilCompleted(8.Seconds()).ShouldBeTrue();
+			_receivedSmallRat.WaitUntilCompleted(60.Seconds()).ShouldBeTrue();
 			_receivedSmallRat.Value.ShouldEqual(new SmallRat("peep", dinner_id));
 		}
 

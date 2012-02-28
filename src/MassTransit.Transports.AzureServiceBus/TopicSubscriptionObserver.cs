@@ -13,12 +13,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using MassTransit.AzureServiceBus;
 using MassTransit.Logging;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
-using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Magnum.Extensions;
 
@@ -28,33 +26,25 @@ namespace MassTransit.Transports.AzureServiceBus
 	/// 	Monitors the subscriptions from the local bus and subscribes the topics with topic clients when subscriptions occur: when they do; create the appropriate topics for them.
 	/// </summary>
 	public class TopicSubscriptionObserver
-		: SubscriptionObserver, ConnectionBinding<ConnectionImpl>
+		: SubscriptionObserver
 	{
 		static readonly ILog _logger = Logger.Get(typeof (TopicSubscriptionObserver));
 
-		readonly AzureServiceBusEndpointAddress _address;
 		readonly IMessageNameFormatter _formatter;
-		readonly Dictionary<Guid, Topic> _bindings;
+		readonly InboundTransportImpl _inboundTransport;
+		readonly Dictionary<Guid, TopicDescription> _bindings;
 
-		public TopicSubscriptionObserver([NotNull] AzureServiceBusEndpointAddress address, [NotNull] IMessageNameFormatter formatter)
+		public TopicSubscriptionObserver(
+			[NotNull] IMessageNameFormatter formatter,
+			[NotNull] InboundTransportImpl inboundTransport)
 		{
-			if (address == null) throw new ArgumentNullException("address");
 			if (formatter == null) throw new ArgumentNullException("formatter");
+			if (inboundTransport == null) throw new ArgumentNullException("inboundTransport");
 
-			_address = address;
 			_formatter = formatter;
-			_bindings = new Dictionary<Guid, Topic>();
+			_inboundTransport = inboundTransport;
 
-			if (_logger.IsDebugEnabled)
-				_logger.Debug(string.Format("new subscription observer on address {0}", address));
-		}
-
-		public void Bind(ConnectionImpl connection)
-		{
-			if (_logger.IsDebugEnabled)
-				_logger.Debug(string.Format("connection {0} BOUND to {1}", connection, _address));
-
-			_bindings.Each(kv => connection.SignalBoundSubscription(kv.Key /* subId */, kv.Value /* topic */));
+			_bindings = new Dictionary<Guid, TopicDescription>();
 		}
 
 		public void OnSubscriptionAdded(SubscriptionAdded message)
@@ -62,32 +52,9 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (message == null)
 				throw new ArgumentNullException("message");
 
-			_logger.Debug(string.Format("subscription added: '{0}'", message));
-
 			var messageName = GetMessageName(message);
-			var topicName = messageName.ToString();
-			var mf = _address.MessagingFactoryFactory();
-			Task<Topic> t;
-			try
-			{
-				t = _address.NamespaceManager.TryCreateTopic(mf, topicName);
-				t.Wait();
-			}
-			finally
-			{
-				mf.Close();
-			}
-
-
-			_bindings[message.SubscriptionId] = t.Result;
-		}
-
-		public void Unbind(ConnectionImpl connection)
-		{
-			if (_logger.IsDebugEnabled)
-				_logger.Debug(string.Format("connection {0} UNBOUND to {1}", connection, _address));
-
-			_bindings.Each(kv => connection.SignalUnboundSubscription(kv.Key /* subId */, kv.Value /* topic */));
+			_bindings[message.SubscriptionId] = new TopicDescriptionImpl(messageName.ToString());
+			_bindings.Each(kv => _inboundTransport.SignalBoundSubscription(kv.Key /* subId */, kv.Value /* topic desc */));
 		}
 
 		public void OnSubscriptionRemoved(SubscriptionRemoved message)
@@ -102,6 +69,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				                            messageName));
 
 				_bindings.Remove(message.SubscriptionId);
+				_bindings.Each(kv => _inboundTransport.SignalUnboundSubscription(kv.Key /* subId */, kv.Value /* topic desc */));
 			}
 		}
 

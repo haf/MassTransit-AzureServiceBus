@@ -48,9 +48,7 @@ module Queue =
 
   /// Perform a receive using a message receiver and a timeout.
   let recv (client : MessageReceiver) timeout =
-    let bRecv = client.BeginReceive : TimeSpan * AsyncCallback * obj -> IAsyncResult
-    async {
-      return! Async.FromBeginEnd(timeout, bRecv, client.EndReceive) }
+    async { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
   
   let send (client : MessageSender) message =
     async {
@@ -59,13 +57,22 @@ module Queue =
   
   let newReceiver (mf : MessagingFactory) (desc : PathBasedEntity) =
     async {
-      return! Async.FromBeginEnd(desc.Path,
-                      (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
-                      mf.EndCreateMessageReceiver) }
+      let! wrapped = Async.FromBeginEnd(desc.Path,
+                       (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
+                       mf.EndCreateMessageReceiver)
+      return { new MessageReceiver with 
+                   member x.BeginReceive(timeout, callback, state) =
+                     wrapped.BeginReceive(timeout, callback, state)
+                   member x.EndReceive(result) =
+                     wrapped.EndReceive(result) 
+                   member x.IsClosed = 
+                     wrapped.IsClosed 
+                   member x.Close () =
+                     wrapped.Close() } }
   
   [<Extension;CompiledName("Exists")>]
-  let exists (nm : NamespaceManager ) (desc : QueueDescription) = 
-    async { return! Async.FromBeginEnd((desc.Path), nm.BeginQueueExists, nm.EndQueueExists) }
+  let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
+    async { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
 
   [<Extension;CompiledName("ExistsAsync")>]
   let existsAsync nm desc = Async.StartAsTask(exists nm desc)
@@ -77,9 +84,9 @@ module Queue =
       let! exists = desc |> exists nm
       if exists then return ()
       try
-        let beginCreate = nm.BeginCreateQueue : AQD * AsyncCallback * obj -> IAsyncResult
+        let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
         logger.DebugFormat("creating queue '{0}'", desc)
-        let! ndesc = Async.FromBeginEnd((desc.Inner), beginCreate, nm.EndCreateQueue)
+        let! ndesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateQueue)
         return! desc |> create nm
       with | :? MessagingEntityAlreadyExistsException -> return () }
   
@@ -99,7 +106,7 @@ module Queue =
       if exists then return ()
       try
         logger.DebugFormat("deleting queue '{0}'", desc)
-        do! Async.FromBeginEnd((desc.Path), nm.BeginDeleteQueue, nm.EndDeleteQueue)
+        do! Async.FromBeginEnd(desc.Path, nm.BeginDeleteQueue, nm.EndDeleteQueue)
         return! desc |> delete nm
       with | :? MessagingEntityNotFoundException -> return () }
 
@@ -110,10 +117,10 @@ module Queue =
   /// Naïve Drain operation, by deleting and then creating the queue,
   /// or simply creating the queue if it doesn't exist.
   [<Extension;CompiledName("ToggleQueue")>]
-  let toggle nm desc =
+  let toggle nm d =
     async {
-      do! delete nm desc
-      do! create nm desc
+      do! delete nm d
+      do! create nm d
       return Unit() }
 
   /// Naïve Drain operation, by deleting and then creating the queue,

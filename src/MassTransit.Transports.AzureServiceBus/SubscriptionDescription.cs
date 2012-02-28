@@ -13,6 +13,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using MassTransit.AzureServiceBus;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Util;
 

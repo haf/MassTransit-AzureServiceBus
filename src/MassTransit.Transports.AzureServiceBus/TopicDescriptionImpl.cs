@@ -13,6 +13,11 @@ namespace MassTransit.Transports.AzureServiceBus
 			_description = description;
 		}
 
+		public TopicDescriptionImpl(string path)
+		{
+			_description = new Microsoft.ServiceBus.Messaging.TopicDescription(path);
+		}
+
 		public bool Equals(TopicDescription other)
 		{
 			if (ReferenceEquals(null, other)) return false;
