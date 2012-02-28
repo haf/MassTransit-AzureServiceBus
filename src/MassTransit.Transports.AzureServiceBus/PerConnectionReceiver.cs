@@ -21,18 +21,25 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly AzureServiceBusEndpointAddress _address;
 		static readonly ILog _logger = Logger.Get(typeof (PerConnectionReceiver));
 
-		readonly HashSet<TopicDescription> _pending = new HashSet<TopicDescription>();
 		readonly ReceiverSettings _settings;
+		readonly Action<Receiver> _onBound;
+		readonly Action<Receiver> _onUnbound;
 		Receiver _receiver;
 
 		public PerConnectionReceiver(
 			[NotNull] AzureServiceBusEndpointAddress address, 
-			[CanBeNull] ReceiverSettings settings)
+			[CanBeNull] ReceiverSettings settings, 
+			[NotNull] Action<Receiver> onBound, 
+			[NotNull] Action<Receiver> onUnbound)
 		{
 			if (address == null) throw new ArgumentNullException("address");
-			
+			if (onBound == null) throw new ArgumentNullException("onBound");
+			if (onUnbound == null) throw new ArgumentNullException("onUnbound");
+
 			_address = address;
 			_settings = settings;
+			_onBound = onBound;
+			_onUnbound = onUnbound;
 		}
 
 		public void Bind(ConnectionImpl connection)
@@ -43,14 +50,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				return;
 			
 			_receiver = ReceiverModule.StartReceiver(_address, _settings);
-				
-			lock (_pending)
-			{
-				foreach (var td in _pending)
-					_receiver.Subscribe(td);
-
-				_pending.Clear();
-			}
+			_onBound(_receiver);
 		}
 
 		public void Unbind(ConnectionImpl connection)
@@ -60,10 +60,10 @@ namespace MassTransit.Transports.AzureServiceBus
 			if (_receiver == null)
 				return;
 
+			_onUnbound(_receiver);
+
 			((IDisposable)_receiver).Dispose();
 			_receiver = null;
-
-			_pending.Clear();
 		}
 
 		public BrokeredMessage Get(TimeSpan timeout)
@@ -77,21 +77,13 @@ namespace MassTransit.Transports.AzureServiceBus
 		public void SubscribeTopic([NotNull] TopicDescription value)
 		{
 			if (value == null) throw new ArgumentNullException("value");
-
-			if (_receiver != null)
-				_receiver.Subscribe(value);
-			else
-				lock(_pending) _pending.Add(value);
+			_receiver.Subscribe(value);
 		}
 
 		public void UnsubscribeTopic([NotNull] TopicDescription value)
 		{
 			if (value == null) throw new ArgumentNullException("value");
-
-			if (_receiver != null)
-				_receiver.Unsubscribe(value);
-			else
-				lock (_pending) _pending.Remove(value);
+			_receiver.Unsubscribe(value);
 		}
 	}
 }

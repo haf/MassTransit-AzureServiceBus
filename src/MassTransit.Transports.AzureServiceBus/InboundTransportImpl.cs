@@ -12,8 +12,10 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Magnum.Caching;
 using MassTransit.AzureServiceBus;
 using MassTransit.Context;
 using MassTransit.Logging;
@@ -36,6 +38,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly AzureServiceBusEndpointAddress _address;
 
 		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
+		readonly Cache<Guid, TopicDescription> _subscribed = new ConcurrentCache<Guid, TopicDescription>();
 		PerConnectionReceiver _receiver;
 
 		bool _bound;
@@ -169,16 +172,30 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			if (_receiver != null)
 				return;
-			
-			_receiver = new PerConnectionReceiver(_address, _receiverSettings);
+
+			_receiver = new PerConnectionReceiver(_address, _receiverSettings, 
+				recv =>
+					{
+						lock (_subscribed)
+							foreach (var d in _subscribed)
+								recv.Subscribe(d);
+					},
+				recv =>
+					{
+						lock (_subscribed)
+							foreach (var d in _subscribed)
+								recv.Unsubscribe(d);
+					});
+
 			_connectionHandler.AddBinding(_receiver);
 		}
 
 		void RemoveReceiverBinding()
 		{
-			if (_receiver != null)
-				_connectionHandler.RemoveBinding(_receiver);
+			if (_receiver == null)
+				return;
 
+			_connectionHandler.RemoveBinding(_receiver);
 			_receiver = null;
 		}
 
@@ -194,12 +211,16 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void SignalBoundSubscription(Guid key, TopicDescription value)
 		{
-			_receiver.SubscribeTopic(value);
+			lock (_subscribed)
+				if (!_subscribed.Has(key))
+					_subscribed.Add(key, value);
 		}
 
 		public void SignalUnboundSubscription(Guid key, TopicDescription value)
 		{
-			_receiver.UnsubscribeTopic(value);
+			lock (_subscribed)
+				if (_subscribed.Has(key))
+					_subscribed.Remove(key);
 		}
 	}
 }

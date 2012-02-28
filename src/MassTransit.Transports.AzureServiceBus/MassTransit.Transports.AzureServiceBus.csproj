@@ -92,7 +92,6 @@
     <Compile Include="TopicClientImpl.cs" />
     <Compile Include="TopicDescriptionImpl.cs" />
     <Compile Include="TopicImpl.cs" />
-    <Compile Include="Internal\NameHelper.cs" />
     <Compile Include="Util\JetbrainsCodeAnnotations.cs" />
     <Compile Include="Management\NamespaceManagerExtensions.cs" />
   </ItemGroup>

@@ -48,9 +48,7 @@ module Queue =
 
   /// Perform a receive using a message receiver and a timeout.
   let recv (client : MessageReceiver) timeout =
-    let bRecv = client.BeginReceive : TimeSpan * AsyncCallback * obj -> IAsyncResult
-    async {
-      return! Async.FromBeginEnd(timeout, bRecv, client.EndReceive) }
+    async { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
   
   let send (client : MessageSender) message =
     async {
@@ -59,9 +57,18 @@ module Queue =
   
   let newReceiver (mf : MessagingFactory) (desc : PathBasedEntity) =
     async {
-      return! Async.FromBeginEnd(desc.Path,
-                      (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
-                      mf.EndCreateMessageReceiver) }
+      let! wrapped = Async.FromBeginEnd(desc.Path,
+                       (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
+                       mf.EndCreateMessageReceiver)
+      return { new MessageReceiver with 
+                   member x.BeginReceive(timeout, callback, state) =
+                     wrapped.BeginReceive(timeout, callback, state)
+                   member x.EndReceive(result) =
+                     wrapped.EndReceive(result) 
+                   member x.IsClosed = 
+                     wrapped.IsClosed 
+                   member x.Close () =
+                     wrapped.Close() } }
   
   [<Extension;CompiledName("Exists")>]
   let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 

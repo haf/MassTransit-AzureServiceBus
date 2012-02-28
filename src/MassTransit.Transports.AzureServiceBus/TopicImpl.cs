@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using MassTransit.AzureServiceBus;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;

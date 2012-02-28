@@ -15,6 +15,7 @@ using System;
 using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.Pipeline.Inspectors;
 using MassTransit.Services.Graphite.Configuration;
 using MassTransit.TestFramework;
 using MassTransit.TestFramework.Fixtures;
@@ -64,6 +65,12 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				});
 
 			dinner_id = CombGuid.Generate();
+
+			PipelineViewer.Trace(PublisherBus.OutboundPipeline);
+			Console.WriteLine("Inbound:");
+			Console.WriteLine();
+			PipelineViewer.Trace(SubscriberBus.InboundPipeline);
+
 			PublisherBus.Publish<Rat>(new LargeRat("peep", dinner_id));
 		}
 	
@@ -73,7 +80,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[Then]
 		public void cat_ate_small_rat()
 		{
-			_receivedSmallRat.WaitUntilCompleted(8.Seconds()).ShouldBeTrue();
+			_receivedSmallRat.WaitUntilCompleted(60.Seconds()).ShouldBeTrue();
 			_receivedSmallRat.Value.ShouldEqual(new SmallRat("peep", dinner_id));
 		}
 

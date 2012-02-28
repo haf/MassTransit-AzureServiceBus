@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace MassTransit.Transports.AzureServiceBus.Internal
+namespace MassTransit.AzureServiceBus
 {
 	public static class NameHelper
 	{

@@ -43,14 +43,31 @@ module Topic =
       async {
         let! exists = desc |> exists nm
         if exists then return! (then_create_subscription () : Async<SubscriptionDescription>)
-        try
-          let beginCreate = nm.BeginCreateTopic : string * AsyncCallback * obj -> IAsyncResult
-          logger.DebugFormat("creating topic '{0}'", desc)
-          let! tdesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateTopic)
-          return! first_create ()
-        with | :? MessagingEntityAlreadyExistsException -> return! then_create_subscription () }
+        else
+          try
+            let beginCreate = nm.BeginCreateTopic : string * AsyncCallback * obj -> IAsyncResult
+            logger.DebugFormat("creating topic '{0}'", desc)
+            let! tdesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateTopic)
+            return! first_create ()
+          with | :? MessagingEntityAlreadyExistsException -> return! then_create_subscription () }
     and then_create_subscription ()  : Async<SubscriptionDescription> =
       async {
         let beginCreate = nm.BeginCreateSubscription : string * string * AsyncCallback * obj -> IAsyncResult
         return! Async.FromBeginEnd(desc.Path, subName, beginCreate, nm.EndCreateSubscription) }
     first_create ()
+
+  let newReceiver (sub : SubscriptionDescription) (mf : MessagingFactory) (desc : PathBasedEntity) =
+     async {
+      let wrapped = mf.CreateSubscriptionClient(desc.Path, sub.Name)
+      return { new MessageReceiver with 
+                   member x.BeginReceive(timeout, callback, state) =
+                     wrapped.BeginReceive(timeout, callback, state)
+                   member x.EndReceive(result) =
+                     wrapped.EndReceive(result) 
+                   member x.IsClosed = 
+                     wrapped.IsClosed 
+                   member x.Close () =
+                     wrapped.Close() } }
+
+  let unsubscribe (nm : NamespaceManager) (desc : TopicDescription) =
+    async { return failwith "todo" }
