@@ -25,11 +25,6 @@ namespace MassTransit.Transports.AzureServiceBus.Internal
 			return t.ContinueWith(tt => tt.IsFaulted ? new Task(() => { }) : t);
 		}
 
-		public static Task Then(this Task first, Action next)
-		{
-			throw new NotImplementedException();
-		}
-
 		public static Task Then([NotNull] this Task first, [NotNull] Func<Task> next)
 		{
 			if (first == null) throw new ArgumentNullException("first");
@@ -56,15 +51,6 @@ namespace MassTransit.Transports.AzureServiceBus.Internal
 						catch (Exception exc) { tcs.TrySetException(exc); }
 					}
 				}, TaskContinuationOptions.ExecuteSynchronously);
-		}
-
-		public static Task<T2> Then<T2>(this Task first, Func<T2> next)
-		{
-			throw new NotImplementedException();
-		}
-		public static Task<T2> Then<T2>(this Task first, Func<Task<T2>> next)
-		{
-			throw new NotImplementedException();
 		}
 
 		public static Task Then<T1>(this Task<T1> first, Action<T1> next)
