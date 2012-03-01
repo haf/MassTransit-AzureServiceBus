@@ -31,11 +31,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			_inner.EnableBatchedOperations = true;
 		}
 
-		internal QueueDescriptionImpl(Microsoft.ServiceBus.Messaging.QueueDescription inner)
-		{
-			_inner = inner;
-		}
-
 		public bool Equals(QueueDescription other)
 		{
 			if (ReferenceEquals(null, other)) return false;

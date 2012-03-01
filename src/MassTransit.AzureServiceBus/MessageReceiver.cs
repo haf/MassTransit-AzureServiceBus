@@ -12,10 +12,12 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
+using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.AzureServiceBus
 {
+	[UsedImplicitly] // in F#
 	public interface MessageReceiver
 	{
 		/// <summary>

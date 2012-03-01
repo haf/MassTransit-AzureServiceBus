@@ -1,8 +1,10 @@
 using System;
 using System.Text;
+using MassTransit.Util;
 
 namespace MassTransit.AzureServiceBus
 {
+	[UsedImplicitly] // from F#
 	public static class NameHelper
 	{
 		static readonly Random _r = new Random();

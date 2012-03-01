@@ -7,12 +7,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class TopicDescriptionImpl : TopicDescription
 	{
 		readonly Microsoft.ServiceBus.Messaging.TopicDescription _description;
-
-		public TopicDescriptionImpl(Microsoft.ServiceBus.Messaging.TopicDescription description)
-		{
-			_description = description;
-		}
-
+		
 		public TopicDescriptionImpl(string path)
 		{
 			_description = new Microsoft.ServiceBus.Messaging.TopicDescription(path);

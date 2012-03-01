@@ -12,12 +12,14 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
+using MassTransit.Util;
 
 namespace MassTransit.AzureServiceBus
 {
 	/// <summary>
 	/// Receiver specific settings; value object.
 	/// </summary>
+	[UsedImplicitly] // from f#
 	public interface ReceiverSettings
 	{
 		/// <summary>

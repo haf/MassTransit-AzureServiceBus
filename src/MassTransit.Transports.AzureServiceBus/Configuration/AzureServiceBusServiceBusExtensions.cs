@@ -9,9 +9,7 @@ using MassTransit.Exceptions;
 using MassTransit.Pipeline.Configuration;
 using MassTransit.Pipeline.Inspectors;
 using MassTransit.Pipeline.Sinks;
-using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
-using Microsoft.ServiceBus;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
@@ -31,6 +29,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 			configurator.ReceiveFrom(credentials.BuildUri());
 		}
 
+		[UsedImplicitly] // in public API
 		public static void ReceiveFromComponents<T>(this T configurator,
 			PreSharedKeyCredentials creds)
 			where T : ServiceBusConfigurator
