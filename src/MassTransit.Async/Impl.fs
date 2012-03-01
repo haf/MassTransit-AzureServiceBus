@@ -38,3 +38,13 @@ type QDesc(path) =
       if d <> null then d.Path = path else false
   override x.Equals o =
     (x :> QueueDescription).CompareTo o = 0
+
+type MsgSender(wrapped : Microsoft.ServiceBus.Messaging.MessageSender) =
+  interface MessageSender with
+    member x.BeginSend(timeout, callback, state) =
+      wrapped.BeginSend(timeout, callback, state)
+    member x.EndSend(result) =
+      wrapped.EndSend(result)
+  interface IDisposable with
+    member x.Dispose() =
+      wrapped.Close()

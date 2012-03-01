@@ -58,7 +58,7 @@ Async.RunSynchronously( qdesc |> delete nm )
 let random = Random()
 let mf = mfFac ()
 counter.Post CounterMessage.Start
-let sender = Async.RunSynchronously(qdesc |> newSender mf nm)
+let sender = new MsgSender(Async.RunSynchronously(qdesc |> newSender mf nm))
 for i in 1 .. concurrency do
   async {
     let ctoken = Async.DefaultCancellationToken
