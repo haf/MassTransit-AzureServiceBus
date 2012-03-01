@@ -83,14 +83,11 @@
     <Compile Include="TopicSubscriptionObserver.cs" />
     <Compile Include="TransportFactoryImpl.cs" />
     <Compile Include="Subscriber.cs" />
-    <Compile Include="SubscriberImpl.cs" />
     <Compile Include="SubscriptionDescription.cs" />
     <Compile Include="Testing\AzureServiceBusScenarioBuilder.cs" />
     <Compile Include="Topic.cs" />
     <Compile Include="TopicClient.cs" />
-    <Compile Include="TopicClientImpl.cs" />
     <Compile Include="TopicDescriptionImpl.cs" />
-    <Compile Include="TopicImpl.cs" />
     <Compile Include="Util\JetbrainsCodeAnnotations.cs" />
     <Compile Include="Management\NamespaceManagerExtensions.cs" />
   </ItemGroup>
