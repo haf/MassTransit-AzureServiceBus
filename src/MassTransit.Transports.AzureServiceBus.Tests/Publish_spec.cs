@@ -10,6 +10,7 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
+// ReSharper disable InconsistentNaming
 
 using System;
 using Magnum;
@@ -27,18 +28,16 @@ using MassTransit.Transports.AzureServiceBus.Configuration;
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
 	[Integration]
-	public class Publish_spec
+	public class When_publishing_concrete_type_and_subscribing_interface
 		: EndpointTestFixture<TransportFactoryImpl>
 	{
 		Guid dinner_id;
-		Future<SmallRat> _receivedSmallRat;
-		Future<LargeRat> _receivedLargeRat;
+		Future<Rat> _receivedAnyRat;
 
 		[When]
 		public void a_large_rat_is_published()
 		{
-			_receivedSmallRat = new Future<SmallRat>();
-			_receivedLargeRat = new Future<LargeRat>();
+			_receivedAnyRat = new Future<Rat>();
 
 			var details = new AccountDetails();
 
@@ -52,11 +51,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			SubscriberBus = SetupServiceBus(details.BuildUri("subscriber"), cfg =>
 				{
-					cfg.Subscribe(s =>
-						{
-							s.Handler<LargeRat>(_receivedLargeRat.Complete);
-							s.Handler<SmallRat>(_receivedSmallRat.Complete);
-						});
+					cfg.Subscribe(s => s.Handler<Rat>(_receivedAnyRat.Complete).Transient());
 
 					cfg.UseGraphite(g => 
 						g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.subscriber"));
@@ -66,41 +61,26 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			dinner_id = CombGuid.Generate();
 
-			PipelineViewer.Trace(PublisherBus.OutboundPipeline);
 			Console.WriteLine("Inbound:");
 			Console.WriteLine();
 			PipelineViewer.Trace(SubscriberBus.InboundPipeline);
 
-			PublisherBus.Publish<Rat>(new LargeRat("peep", dinner_id));
+			// wait for the inbound transport to become ready before publishing
+			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, TimeSpan.MaxValue);
+
+			PublisherBus.Publish<Rat>(new SmallRat("peep", dinner_id));
+
+			PipelineViewer.Trace(PublisherBus.OutboundPipeline);
 		}
 	
 		protected IServiceBus PublisherBus { get; private set; }
 		protected IServiceBus SubscriberBus { get; private set; }
 
 		[Then]
-		public void cat_ate_small_rat()
+		public void cat_ate_rat()
 		{
-			_receivedSmallRat.WaitUntilCompleted(60.Seconds()).ShouldBeTrue();
-			_receivedSmallRat.Value.ShouldEqual(new SmallRat("peep", dinner_id));
-		}
-
-		[Then, Description("As big as they get")]
-		public void cat_are_polymorphically_large_rat()
-		{
-			_receivedLargeRat.WaitUntilCompleted(8.Seconds()).ShouldBeTrue("Should have received large rat message");
-			_receivedLargeRat.Value.ShouldEqual(new LargeRat("peep", dinner_id));
-		}
-
-		[Finally]
-		public void DisposeAll()
-		{
-		}
-
-		class LargeRat : SmallRat
-		{
-			public LargeRat(string sound, Guid correlationId) : base(sound, correlationId)
-			{
-			}
+			_receivedAnyRat.WaitUntilCompleted(15.Seconds()).ShouldBeTrue();
+			_receivedAnyRat.Value.ShouldEqual(new SmallRat("peep", dinner_id));
 		}
 
 		class SmallRat : Rat, IEquatable<Rat>

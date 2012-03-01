@@ -20,6 +20,7 @@ using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using MessageSender = MassTransit.AzureServiceBus.MessageSender;
 using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
 using SBQDesc = Microsoft.ServiceBus.Messaging.QueueDescription;
 using SBTDesc = Microsoft.ServiceBus.Messaging.TopicDescription;
@@ -98,45 +99,33 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 		                                                     NamespaceManager nm,
 		                                                     Topic topic)
 		{
-			var timeoutPolicy = ExceptionPolicy
-				.InCaseOf<TimeoutException>()
-				.CircuitBreak(50.Milliseconds(), 5);
-
 			return Task.Factory.StartNew<TopicClient>(() => new TopicClientImpl(messagingFactory, nm));
 		}
 
-		public static Task<QueueClient> TryCreateQueueClient(
+		public static Task<MessageSender> TryCreateMessageSender(
 			[NotNull] this MessagingFactory mf,
-			[NotNull] NamespaceManager nm,
 			[NotNull] QueueDescription description,
 			int prefetchCount)
 		{
 			if (mf == null) throw new ArgumentNullException("mf");
 			if (description == null) throw new ArgumentNullException("description");
 
-			//return Task.Factory.FromAsync<string, MessageReceiver>(
-			//    mf.BeginCreateMessageReceiver,
-			//    mf.EndCreateMessageReceiver,
-			//    description.Path, null);
-			// where's the BeginCreateQueueClient??!
-
 			return Task.Factory.StartNew(() =>
 				{
-					Func<SBQClient> queue_client = () =>
-						{
-							var qc = mf.CreateQueueClient(description.Path);
-							qc.PrefetchCount = prefetchCount;
-							return qc;
-						};
+					var qc = mf.CreateQueueClient(description.Path);
+					qc.PrefetchCount = prefetchCount;
+					return new MessageSenderImpl(qc) as MessageSender;
+				});
+		}
 
-					Func<Task<SBQClient>> drain = () =>
-						{
-							return nm.TryDeleteQueue(description.Path)
-								.ContinueWith(tDel => nm.TryCreateQueue(description)).Unwrap()
-								.ContinueWith(tCreate => queue_client());
-						};
-
-					return new QueueClientImpl(queue_client(), drain) as QueueClient;
+		public static Task<MessageSender> TryCreateMessageSender(
+			[NotNull] this MessagingFactory mf,
+			[NotNull] TopicDescription description)
+		{
+			return Task.Factory.StartNew(() =>
+				{
+					var s = mf.CreateTopicClient(description.Path);
+					return new MessageSenderImpl(s) as MessageSender;
 				});
 		}
 

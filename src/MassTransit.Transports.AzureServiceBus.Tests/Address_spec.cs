@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Magnum.TestFramework;
+using MassTransit.AzureServiceBus;
 using MassTransit.Configurators;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using NUnit.Framework;
@@ -55,7 +56,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		[Then]
 		public void details_should_have_correct_app_name()
 		{
-			_address.Details.Application
+			_address.Details.QueueOrTopicName
 				.ShouldEqual("my-application");
 		}
 
@@ -173,6 +174,88 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			results.Count().ShouldEqual(1);
 			results.First().Key.ShouldBeEqualTo(key);
+		}
+	}
+
+	[Scenario]
+	public class When_creating_topic_address
+	{
+		// subjects
+		AzureServiceBusEndpointAddress _queueAddress;
+		AzureServiceBusEndpointAddress _topicAddress;
+		
+		// assertion data
+		string _topicName;
+
+		class A
+		{
+		}
+
+		[Given]
+		public void a_normal_address_and_its_topic_corresponding_address()
+		{
+			_queueAddress = AzureServiceBusEndpointAddressImpl.Parse(
+				TestDataFactory.ApplicationEndpoint);
+
+			var formatter = new AzureMessageNameFormatter();
+			_topicName = formatter.GetMessageName(typeof (A)).ToString();
+
+			_topicAddress = _queueAddress.ForTopic(_topicName);
+
+			Assert.Throws<ArgumentNullException>(
+				() => _queueAddress.ForTopic(null));
+		}
+
+		[Then]
+		public void topic_address_has_same_password()
+		{
+			_queueAddress.Uri.UserInfo
+				.ShouldEqual(_topicAddress.Uri.UserInfo);
+		}
+
+		[Then]
+		public void topic_address_has_same_host()
+		{
+			_queueAddress.Uri.Host
+				.ShouldEqual(_topicAddress.Uri.Host);
+		}
+
+		[Then]
+		public void queue_address_has_queue_description()
+		{
+			_queueAddress.QueueDescription.ShouldNotBeNull();
+		}
+
+		[Then]
+		public void queue_address_hasnt_got_topic_description()
+		{
+			_queueAddress.TopicDescription.ShouldBeNull();
+		}
+
+		[Then]
+		public void topic_address_hasnt_got_queue_description()
+		{
+			_topicAddress.QueueDescription.ShouldBeNull();
+		}
+
+		[Then]
+		public void topic_address_got_topic_description()
+		{
+			_topicAddress.TopicDescription.ShouldNotBeNull();
+		}
+
+		[Then]
+		public void topic_address_contains_topic_name()
+		{
+			_topicAddress.TopicDescription.Path
+				.ShouldContain(_topicName);
+		}
+
+		[Then]
+		public void topic_address_uri_tells_its_topic()
+		{
+			_topicAddress.Uri.PathAndQuery
+				.ShouldContain("topic=true");
 		}
 	}
 }

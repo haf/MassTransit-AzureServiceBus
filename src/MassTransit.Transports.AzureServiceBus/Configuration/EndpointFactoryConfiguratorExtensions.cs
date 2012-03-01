@@ -31,6 +31,8 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 
 			configurator.AddTransportFactory(tfacCfg.Build);
 
+			configurator.UseJsonSerializer();
+
 			return configurator;
 		}
 	}

@@ -79,7 +79,7 @@ type Receiver(desc   : QueueDescription,
   /// Creates a new child token from the parent cancellation token source
   let childTokenFrom ( cts : CancellationTokenSource ) =
     let childCTS = new CancellationTokenSource()
-    let reg = cts.Token.Register(fun () -> childCTS.Cancel()) // what to do with the IDisposable...?
+    let reg = cts.Token.Register(fun () -> childCTS.Dispose()) // what to do with the IDisposable...?
     childCTS
 
   let getToken ( cts : CancellationTokenSource ) = cts.Token
@@ -151,7 +151,7 @@ type Receiver(desc   : QueueDescription,
     let (Pair(mf, rs)) = pair
     logger.InfoFormat("closing {0} receivers and their single messaging factory", rs.Length)
     if not(mf.IsClosed) then
-      try         mf.Close()
+      try         mf.Close() // this statement has cost a LOT of money in developer time, waiting for a timeout
       with | x -> logger.Error("could not close messaging factory", x)
     for r in rs do
       if not(r.IsClosed) then
@@ -222,15 +222,17 @@ type Receiver(desc   : QueueDescription,
 
       and started state cts =
         async {
-          logger.Debug "started"
+          logger.DebugFormat("started '{0}'", desc.Path)
           let! msg = inbox.Receive()
           match msg with
           | Pause ->
             cts.Cancel() 
             return! paused state
 
-          | Halt(chan) -> 
+          | Halt(chan) ->
+            logger.DebugFormat("halt '{0}'", desc.Path)
             cts.Cancel()
+            logger.DebugFormat("moving to halted state '{0}'", desc.Path)
             return! halted state chan
 
           | SubscribeQueue(qd, cc) ->
@@ -264,7 +266,7 @@ type Receiver(desc   : QueueDescription,
               return! started state cts
 
             | Some( childCts, recvSet ) ->
-              childCts.Cancel() ; childCts.Dispose()
+              childCts.Cancel()
               recvSet |> List.iter (fun set -> closePair set)
               let tsubs' = state.TSubs.Remove(td)
               return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
@@ -273,7 +275,7 @@ type Receiver(desc   : QueueDescription,
 
       and paused state =
         async {
-          logger.Debug "paused"
+          logger.DebugFormat("paused '{0}'", desc.Path)
           let! msg = inbox.Receive()
           match msg with
           | Start -> return! starting state
@@ -281,8 +283,8 @@ type Receiver(desc   : QueueDescription,
           | _ as x -> logger.Warn(sprintf "got %A, despite being paused" x) }
 
       and halted state chan =
-        async { 
-          logger.Debug "halted"
+        async {
+          logger.DebugFormat("halted '{0}'", desc.Path)
           let subs =
             asyncSeq {
              for x in (state.QSubs |> Seq.collect (fun x -> snd x.Value)) do yield x

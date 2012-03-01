@@ -10,11 +10,6 @@ namespace MassTransit.Transports.AzureServiceBus
 	public interface Subscriber : IDisposable
 	{
 		/// <summary>
-		/// Gets the subscription id for this subscriber.
-		/// </summary>
-		Guid SubscriptionId { get; }
-
-		/// <summary>
 		/// 
 		/// </summary>
 		/// <returns>Task with Result = null if no further messages</returns>

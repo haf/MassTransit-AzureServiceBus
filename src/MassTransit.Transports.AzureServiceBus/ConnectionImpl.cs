@@ -12,8 +12,6 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.AzureServiceBus;
@@ -24,7 +22,7 @@ using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
+using MessageSender = MassTransit.AzureServiceBus.MessageSender;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -39,10 +37,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		static readonly ILog _log = Logger.Get(typeof (ConnectionImpl));
 	
 		bool _disposed;
-		QueueClient _queue;
-
-		readonly ReaderWriterLockedDictionary<Guid, Tuple<TopicClient, Subscriber>> _subscribers
-			= new ReaderWriterLockedDictionary<Guid, Tuple<TopicClient, Subscriber>>();
+		MessageSender _messageSender;
 		
 		public ConnectionImpl(
 			[NotNull] AzureServiceBusEndpointAddress endpointAddress,
@@ -76,9 +71,9 @@ namespace MassTransit.Transports.AzureServiceBus
 			_log.DebugFormat("created connection impl for address ('{0}')", endpointAddress);
 		}
 
-		public QueueClient Queue
+		public MessageSender MessageSender
 		{
-			get { return _queue; }
+			get { return _messageSender; }
 		}
 
 		public void Dispose()
@@ -94,8 +89,11 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			try
 			{
-				if (_queue != null)
-					_queue.Dispose();
+				if (_messageSender != null)
+					_messageSender.Dispose();
+
+				if (!_messagingFactory.IsClosed)
+					_messagingFactory.Close();
 			}
 			finally
 			{
@@ -108,17 +106,18 @@ namespace MassTransit.Transports.AzureServiceBus
 			Disconnect();
 
 			_log.DebugFormat("Connecting '{0}'", _endpointAddress);
-
+			
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
-			_queue = _endpointAddress
-						.CreateQueue()
-						.Then(_ => 
-							_messagingFactory.TryCreateQueueClient(_endpointAddress.NamespaceManager,
-								_endpointAddress.QueueDescription, _prefetchCount))
-						.Result;
+			_messageSender = _endpointAddress.QueueDescription != null
+			                 	? _endpointAddress.CreateQueue()
+			                 	  	.Then(_ =>
+			                 	  		_messagingFactory.TryCreateMessageSender(_endpointAddress.QueueDescription, _prefetchCount))
+			                 	  	.Result
+			                 	: _messagingFactory.TryCreateMessageSender(_endpointAddress.TopicDescription)
+									.Result;
 
-			if (_queue == null)
-				throw new TransportException(_endpointAddress.Uri, "The create queue client task returned null.");
+			if (_messageSender == null)
+				throw new TransportException(_endpointAddress.Uri, "The create message sender on messaging factory returned null.");
 		}
 
 		public void Disconnect()

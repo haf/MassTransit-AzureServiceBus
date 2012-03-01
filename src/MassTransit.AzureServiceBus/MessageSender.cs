@@ -12,38 +12,16 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using System.Threading.Tasks;
 using Microsoft.ServiceBus.Messaging;
 
-namespace MassTransit.Transports.AzureServiceBus
+namespace MassTransit.AzureServiceBus
 {
 	/// <summary>
 	/// Queue/endpoint consumer.
 	/// </summary>
-	public interface QueueClient : IDisposable
+	public interface MessageSender : IDisposable
 	{
-		ReceiveMode Mode { get; }
-		int PrefetchCount { get; }
-		string Path { get; }
-
-		/// <summary>
-		/// Start receiving a message (possibly null).
-		/// </summary>
-		/// <returns></returns>
-		Task<BrokeredMessage> Receive();
-
-		Task<BrokeredMessage> Receive(TimeSpan serverWaitTime);
-		Task Send(BrokeredMessage message);
-		
-		/// <summary>
-		/// Drains the queue by deleting and re-creating it.
-		/// </summary>
-		void Drain();
-
 		IAsyncResult BeginSend(BrokeredMessage message, AsyncCallback callback, object state);
 		void EndSend(IAsyncResult result);
-
-		IAsyncResult BeginReceive(TimeSpan serverWaitTime, AsyncCallback callback, object state);
-		BrokeredMessage EndReceive(IAsyncResult result);
 	}
 }

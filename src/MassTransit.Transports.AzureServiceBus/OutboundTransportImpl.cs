@@ -9,6 +9,7 @@ using MassTransit.Logging;
 using Microsoft.ServiceBus.Messaging;
 using ILog = MassTransit.Logging.ILog;
 using MassTransit.Transports.AzureServiceBus.Internal;
+using MessageSender = MassTransit.AzureServiceBus.MessageSender;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -95,11 +96,11 @@ namespace MassTransit.Transports.AzureServiceBus
 			
 			Interlocked.Increment(ref _messagesInFlight);
 
-			connection.Queue.BeginSend(message, ar =>
+			connection.MessageSender.BeginSend(message, ar =>
 				{
-					var tuple = ar.AsyncState as Tuple<QueueClient, BrokeredMessage>;
+					var tuple = ar.AsyncState as Tuple<MessageSender, BrokeredMessage>;
 					var msg = tuple.Item2;
-					var queueClient = tuple.Item1;
+					var sender = tuple.Item1;
 
 					try
 					{
@@ -109,7 +110,7 @@ namespace MassTransit.Transports.AzureServiceBus
 						// MessagingEntityNotFoundException.
 						Interlocked.Decrement(ref _messagesInFlight);
 
-						queueClient.EndSend(ar);
+						sender.EndSend(ar);
 
 						Address.LogEndSend(msg.MessageId);
 					}
@@ -128,7 +129,7 @@ namespace MassTransit.Transports.AzureServiceBus
 						msg.Dispose();
 						throw;
 					}
-				}, Tuple.Create(connection.Queue, message));
+				}, Tuple.Create(connection.MessageSender, message));
 		}
 
 		// call only if first time gotten server busy exception

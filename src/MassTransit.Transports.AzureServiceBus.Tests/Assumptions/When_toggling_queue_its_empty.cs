@@ -24,7 +24,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 	[Scenario, Integration]
 	public class When_toggling_queue_its_empty
 	{
-		MessageSender client;
+		Microsoft.ServiceBus.Messaging.MessageSender client;
 		NamespaceManager nm;
 		QueueDescription desc;
 

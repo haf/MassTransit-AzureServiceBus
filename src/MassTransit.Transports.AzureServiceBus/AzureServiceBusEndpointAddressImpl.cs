@@ -6,8 +6,9 @@ using MassTransit.Configurators;
 using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using QDesc = MassTransit.AzureServiceBus.QueueDescription;
 using MassTransit.Async;
+using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
+using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -19,7 +20,8 @@ namespace MassTransit.Transports.AzureServiceBus
 			public string UsernameIssuer { get; set; }
 			public string PasswordSharedSecret { get; set; }
 			public string Namespace { get; set; }
-			public string Application { get; set; }
+			public string QueueOrTopicName { get; set; }
+			public AddressType AddressType { get; set; }
 		}
 
 		readonly Uri _friendlyUri;
@@ -28,9 +30,18 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly TokenProvider _tp;
 		readonly Func<MessagingFactory> _mff;
 		readonly NamespaceManager _nm;
-		QDesc _queueDescription;
 
-		AzureServiceBusEndpointAddressImpl([NotNull] Data data)
+		readonly QueueDescription _queueDescription;
+		readonly TopicDescription _topicDescription;
+
+		internal enum AddressType
+		{
+			Queue,
+			Topic
+		}
+
+		AzureServiceBusEndpointAddressImpl([NotNull] Data data,
+			AddressType addressType)
 		{
 			if (data == null)
 				throw new ArgumentNullException("data");
@@ -41,36 +52,42 @@ namespace MassTransit.Transports.AzureServiceBus
 			                                                    _data.PasswordSharedSecret);
 
 			var sbUri = ServiceBusEnvironment.CreateServiceUri("sb", _data.Namespace, string.Empty);
-			_mff = () => Microsoft.ServiceBus.Messaging.MessagingFactory.Create(sbUri, _tp);
+			_mff = () => MessagingFactory.Create(sbUri, _tp);
 
 			_nm = new NamespaceManager(sbUri, _tp);
 
-			_rebuiltUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}", 
+			string suffix = "";
+			if (addressType == AddressType.Queue)
+				_queueDescription = new QueueDescriptionImpl(data.QueueOrTopicName);
+			else
+			{
+				_topicDescription = new TopicDescriptionImpl(data.QueueOrTopicName);
+				suffix = "?topic=true";
+			}
+
+			_rebuiltUri = new Uri(string.Format("azure-sb://{0}:{1}@{2}/{3}{4}", 
 				data.UsernameIssuer,
 				data.PasswordSharedSecret,
-				data.Namespace, 
-				data.Application));
-
-			_friendlyUri = new Uri(string.Format("azure-sb://{0}/{1}",
 				data.Namespace,
-				data.Application));
+				data.QueueOrTopicName,
+				suffix));
 
-			_queueDescription = new QueueDescriptionImpl(data.Application);
+			_friendlyUri = new Uri(string.Format("azure-sb://{0}/{1}{2}",
+				data.Namespace,
+				data.QueueOrTopicName,
+				suffix));
 		}
 
-		[NotNull]
 		public TokenProvider TokenProvider
 		{
 			get { return _tp; }
 		}
 
-		[NotNull]
 		public Func<MessagingFactory> MessagingFactoryFactory
 		{
 			get { return _mff; }
 		}
 
-		[NotNull]
 		public NamespaceManager NamespaceManager
 		{
 			get { return _nm; }
@@ -78,12 +95,35 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public Task<Unit> CreateQueue()
 		{
+			if (QueueDescription == null)
+				throw new InvalidOperationException("Cannot create queue is the endpoint address is not for a queue (but for a topic)");
+
 			return _nm.CreateAsync(QueueDescription);
 		}
 
-		public QDesc QueueDescription
+		public QueueDescription QueueDescription
 		{
 			get { return _queueDescription; }
+		}
+
+		public TopicDescription TopicDescription
+		{
+			get { return _topicDescription; }
+		}
+
+		public AzureServiceBusEndpointAddress ForTopic(string topicName)
+		{
+			if (topicName == null) 
+				throw new ArgumentNullException("topicName");
+
+			return new AzureServiceBusEndpointAddressImpl(new Data
+				{
+					AddressType = AddressType.Topic,
+					Namespace = _data.Namespace,
+					PasswordSharedSecret = _data.PasswordSharedSecret,
+					UsernameIssuer = _data.UsernameIssuer,
+					QueueOrTopicName = topicName,
+				}, AddressType.Topic);
 		}
 
 		[NotNull]
@@ -119,6 +159,8 @@ namespace MassTransit.Transports.AzureServiceBus
 			return _friendlyUri.ToString();
 		}
 
+		// factory methods:
+
 		public static AzureServiceBusEndpointAddressImpl Parse([NotNull] Uri uri)
 		{
 			if (uri == null)
@@ -127,7 +169,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			Data data;
 			IEnumerable<ValidationResult> results;
 			return TryParseInternal(uri, out data, out results)
-			       	? new AzureServiceBusEndpointAddressImpl(data)
+			       	? new AzureServiceBusEndpointAddressImpl(data, data.AddressType)
 			       	: ParseFailed(uri, results);
 		}
 
@@ -138,7 +180,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			Data data;
 			if (TryParseInternal(inputUri, out data, out validationResults))
 			{
-				address = new AzureServiceBusEndpointAddressImpl(data);
+				address = new AzureServiceBusEndpointAddressImpl(data, data.AddressType);
 				return true;
 			}
 			address = null;
@@ -181,7 +223,8 @@ namespace MassTransit.Transports.AzureServiceBus
 					Namespace = uri.Host.Contains(".") 
 									? uri.Host.Substring(0, uri.Host.IndexOf('.')) 
 									: uri.Host,
-					Application = uri.AbsolutePath.TrimStart('/')
+					QueueOrTopicName = uri.AbsolutePath.TrimStart('/'),
+					AddressType = uri.PathAndQuery.Contains("topic=true") ? AddressType.Topic : AddressType.Queue
 				};
 
 			results = null;
