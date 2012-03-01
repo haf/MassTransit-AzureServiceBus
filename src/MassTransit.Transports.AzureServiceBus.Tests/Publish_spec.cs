@@ -17,7 +17,6 @@ using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
 using MassTransit.AzureServiceBus.Util;
-using MassTransit.Services.Graphite.Configuration;
 using MassTransit.TestFramework;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
@@ -41,8 +40,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			PublisherBus = SetupServiceBus(details.BuildUri("publisher"), cfg =>
 				{
-					cfg.UseGraphite(g => 
-						g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.publisher"));
+					//cfg.UseGraphite(g =>
+					//    g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.publisher"));
 
 					cfg.UseAzureServiceBusRouting();
 				});
@@ -51,8 +50,8 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				{
 					cfg.Subscribe(s => s.Handler<Rat>(_receivedAnyRat.Complete).Transient());
 
-					cfg.UseGraphite(g => 
-						g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.subscriber"));
+					//cfg.UseGraphite(g => 
+					//    g.SetGraphiteDetails("192.168.81.130", 8125, "mt.asb.pubspec.subscriber"));
 
 					cfg.UseAzureServiceBusRouting();
 				});

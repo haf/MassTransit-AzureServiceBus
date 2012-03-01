@@ -4,11 +4,11 @@
 #r @"..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Async.dll"
 #r @"..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll"
 #r @"..\packages\MassTransit.2.1.0-prerelease\lib\net40\MassTransit.dll"
-#r @"..\packages\Graphite.NET.1.1\lib\net40\Graphite.dll"
+//#r @"..\packages\Graphite.NET.1.1\lib\net40\Graphite.dll"
 #I @"..\packages\NLog.2.0.0.2000\lib\net20"
 #r "NLog.dll"
 NLog.Config.SimpleConfigurator.ConfigureForConsoleLogging()
-#r @"..\packages\MassTransit.NLog.2.1.2\lib\net40\MassTransit.NLogIntegration.dll"
+#r @"..\packages\MassTransit.NLog.2.1.0-prerelease\lib\net40\MassTransit.NLogIntegration.dll"
 MassTransit.Logging.Logger.UseLogger(MassTransit.NLogIntegration.Logging.NLogLogger()) // MT logging
 #r @"C:\Program Files\Windows Azure SDK\v1.6\ServiceBus\ref\Microsoft.ServiceBus.dll"
 #r @"..\MassTransit.AzureServiceBus\bin\Debug\MassTransit.AzureServiceBus.dll"
@@ -35,7 +35,7 @@ open System.Runtime.Serialization
 open System.Threading
 open Microsoft.ServiceBus
 open Microsoft.ServiceBus.Messaging
-open Graphite.StatsD
+//open Graphite.StatsD
 
 [<Serializable>] type A(item : int) =
                    member x.Item = item
@@ -51,7 +51,7 @@ let mfFac = (fun () -> let mfs = MessagingFactorySettings(TokenProvider = tp,
 let deserializer (message : BrokeredMessage) = (*printfn "Deserializing message: %s" <| message.ToString() ; *) message.GetBody<A>()
 let concurrency = 100 // concurrent outstanding messages
 let counter = counter ()
-let client = new StatsDClient("192.168.81.130", 8125, "mt.asb")
+//let client = new StatsDClient("192.168.81.130", 8125, "mt.asb")
 
 // Producer:
 Async.RunSynchronously( qdesc |> delete nm )
@@ -64,13 +64,13 @@ for i in 1 .. concurrency do
     let ctoken = Async.DefaultCancellationToken
     while ctoken.IsCancellationRequested |> not do
       let num = random.Next(0, 25)
-      do! A(num) |> send sender 
+      do! A(num) |> send sender
       counter.Post (Sent(1))
-      client.Increment(1, 1.0, "producer.send") |> ignore }
+      (*client.Increment(1, 1.0, "producer.send") |> ignore*) }
   |> Async.Start
 
 // Receiver:
-let r = new Receiver(qdesc, mfFac, nm)
+let r = new Receiver(qdesc, mfFac, nm, "consumeproduce-receiver")
 async {
   r.Start()
   let token = Async.DefaultCancellationToken
@@ -83,7 +83,7 @@ async {
       // this would have to go in the MT framework somehow, would be async instead of sync and would run on a fiber of its own
       ThreadPool.QueueUserWorkItem((fun mm -> (mm :?> BrokeredMessage).Complete()), bm) |> ignore
       counter.Post (Received(1))
-      client.Increment(1, 1.0, "receiver.receive") |> ignore
+      (*client.Increment(1, 1.0, "receiver.receive") |> ignore*)
   ()
 } |> Async.Start
 
@@ -97,5 +97,5 @@ counter.PostAndReply(fun chan -> Report(chan))
 r.Start()
 r.Pause()
 (r :> IDisposable).Dispose()
-(client :> IDisposable).Dispose()
+//(client :> IDisposable).Dispose()
 Async.CancelDefaultToken ()

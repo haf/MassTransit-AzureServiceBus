@@ -50,20 +50,12 @@
       <HintPath>..\packages\FSharpx.Core.1.4.120213\lib\FSharpx.Observable.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Graphite">
-      <HintPath>..\packages\Graphite.NET.1.1\lib\net40\Graphite.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Magnum">
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit">
-      <HintPath>..\packages\MassTransit.2.1.1\lib\net40\MassTransit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MassTransit.Transports.Msmq">
-      <HintPath>..\packages\MassTransit.2.1.1\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
+      <HintPath>..\packages\MassTransit.2.1.0-prerelease\lib\net40\MassTransit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus">

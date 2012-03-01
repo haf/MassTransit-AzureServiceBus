@@ -48,24 +48,16 @@
       <Project>{ccd26eda-5048-4752-863d-4301173dcc93}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <Reference Include="Graphite">
-      <HintPath>..\packages\Graphite.NET.1.1\lib\net40\Graphite.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Magnum">
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit">
-      <HintPath>..\packages\MassTransit.2.1.2\lib\net40\MassTransit.dll</HintPath>
+      <HintPath>..\packages\MassTransit.2.1.0-prerelease\lib\net40\MassTransit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit.NLogIntegration">
-      <HintPath>..\packages\MassTransit.NLog.2.1.2\lib\net40\MassTransit.NLogIntegration.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MassTransit.Transports.Msmq">
-      <HintPath>..\packages\MassTransit.2.1.2\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
+      <HintPath>..\packages\MassTransit.NLog.2.1.0-prerelease\lib\net40\MassTransit.NLogIntegration.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus">
