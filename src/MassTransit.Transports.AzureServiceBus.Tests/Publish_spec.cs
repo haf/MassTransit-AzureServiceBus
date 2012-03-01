@@ -16,7 +16,6 @@ using System;
 using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
-using MassTransit.Pipeline.Inspectors;
 using MassTransit.Services.Graphite.Configuration;
 using MassTransit.TestFramework;
 using MassTransit.TestFramework.Fixtures;
@@ -60,16 +59,16 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			dinner_id = CombGuid.Generate();
 
-			Console.WriteLine("Inbound:");
-			Console.WriteLine();
-			PipelineViewer.Trace(SubscriberBus.InboundPipeline);
+			//Console.WriteLine("Inbound:");
+			//Console.WriteLine();
+			//PipelineViewer.Trace(SubscriberBus.InboundPipeline);
 
 			// wait for the inbound transport to become ready before publishing
 			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, TimeSpan.MaxValue);
 
 			PublisherBus.Publish<Rat>(new SmallRat("peep", dinner_id));
 
-			PipelineViewer.Trace(PublisherBus.OutboundPipeline);
+			//PipelineViewer.Trace(PublisherBus.OutboundPipeline);
 		}
 	
 		protected IServiceBus PublisherBus { get; private set; }
