@@ -43,6 +43,7 @@ using (ServiceBusFactory.New(sbc =>
  * Purging of queues by deleting them and re-creating them. [Done]
  * Maximum performance. A middle ground of low latency (50 ms) and high throughput (batching, concurrent receives). [Ongoing]
  * Polymorphic Publish-Subscribe [Ongoing]
+ * Smooth asynchronous transient fault handling [Ongoing] (AsyncRetry.fs)
  
 ## Compiling the code
 
