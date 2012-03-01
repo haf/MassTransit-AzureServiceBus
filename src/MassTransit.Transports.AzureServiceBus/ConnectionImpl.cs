@@ -42,11 +42,9 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public ConnectionImpl(
 			[NotNull] AzureServiceBusEndpointAddress endpointAddress,
-			[NotNull] TokenProvider tokenProvider,
 			int prefetchCount = 1000) // todo: configuration setting
 		{
 			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
-			if (tokenProvider == null) throw new ArgumentNullException("tokenProvider");
 
 			_endpointAddress = endpointAddress;
 			_prefetchCount = prefetchCount;
