@@ -49,18 +49,29 @@ using (ServiceBusFactory.New(sbc =>
 In order to compile the tests, you have to have a class called `AccountDetails` similar to this:
 
 ```
-namespace MassTransit.Transports.AzureServiceBus.Configuration
+using System;
+using MassTransit.Transports.AzureServiceBus.Configuration;
+
+namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
 {
 	// WARNING: note: DO NOT RENAME this file, or you'll commit the account details
 
 	/// <summary>
-	/// 	Configuration handler for account details
+	/// 	Actual AccountDetails
 	/// </summary>
-	public static class AccountDetails
+	public class AccountDetails
+		: PreSharedKeyCredentials
 	{
+		static readonly PreSharedKeyCredentials _instance = new Credentials(IssuerName, Key, Namespace, Application);
+
 		private static string ENV(string name)
 		{
 			return Environment.GetEnvironmentVariable(name);
+		}
+
+		public static string Key
+		{
+			get { return ENV("AccountDetailsKey") ?? "adfmald0f9j23lkmsd+Ww4mAHwKZUJ1jKwTLdc="; }
 		}
 
 		public static string IssuerName
@@ -68,17 +79,46 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 			get { return ENV("AccountDetailsIssuerName") ?? "owner"; }
 		}
 
-		public static string Key
-		{
-			get { return ENV("AccountDetailsKey") ?? "bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc="; }
-		}
-
 		public static string Namespace
 		{
-			get { return ENV("AccountDetailsNamespace") ?? "my-namespace"; }
+			get { return ENV("AccountDetailsNamespace") ?? "mt"; }
+		}
+
+		public static string Application
+		{
+			get { return ENV("Application") ?? "my-application"; }
+		}
+
+		string PreSharedKeyCredentials.IssuerName
+		{
+			get { return _instance.IssuerName; }
+		}
+
+		string PreSharedKeyCredentials.Key
+		{
+			get { return _instance.Key; }
+		}
+
+		string PreSharedKeyCredentials.Namespace
+		{
+			get { return _instance.Namespace; }
+		}
+
+		string PreSharedKeyCredentials.Application
+		{
+			get { return Application; }
+		}
+
+		public Uri BuildUri(string application = null)
+		{
+			return _instance.BuildUri(application);
+		}
+
+		public PreSharedKeyCredentials WithApplication(string application)
+		{
+			return _instance.WithApplication(application);
 		}
 	}
-}
-```
+}```
 
-Place this file in `src\MassTransit.Transports.AzureServiceBus\Configuration`.
+Place this file in `src\MassTransit.Transports.AzureServiceBus.Tests\Framework\AccountDetails.cs`.
