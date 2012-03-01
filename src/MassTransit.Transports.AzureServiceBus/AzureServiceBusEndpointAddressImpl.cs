@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Magnum.Extensions;
 using MassTransit.AzureServiceBus;
 using MassTransit.Configurators;
 using MassTransit.Transports.AzureServiceBus.Util;
@@ -52,7 +53,17 @@ namespace MassTransit.Transports.AzureServiceBus
 			                                                    _data.PasswordSharedSecret);
 
 			var sbUri = ServiceBusEnvironment.CreateServiceUri("sb", _data.Namespace, string.Empty);
-			_mff = () => MessagingFactory.Create(sbUri, _tp);
+
+			var mfs = new MessagingFactorySettings
+				{
+					TokenProvider = _tp,
+					NetMessagingTransportSettings =
+						{
+							// todo: configuration setting
+							BatchFlushInterval = 50.Milliseconds()
+						}
+				};
+			_mff = () => MessagingFactory.Create(sbUri, mfs);
 
 			_nm = new NamespaceManager(sbUri, _tp);
 

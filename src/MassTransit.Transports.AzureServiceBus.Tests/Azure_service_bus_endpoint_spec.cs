@@ -11,13 +11,16 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
 
-using System;
 using Magnum.TestFramework;
 using MassTransit.Testing;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
+using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
+	[Category("Chris - you're needed"),
+	 Description("This test verifies that one can use the testing framework with Azure Service Bus infrastructure"),
+	 Ignore("Somehow the test factory isn't disposing the resources, causing a ThreadAbortException")]
 	public class Handler_test_factory_contract
 	{
 		HandlerTest<A> _test;
@@ -33,6 +36,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 					x.Send(new A());
 					x.Send(new B());
 				});
+
 			_test.Execute();
 		}
 

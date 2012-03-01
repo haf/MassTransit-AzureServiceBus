@@ -12,8 +12,6 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using Magnum.Extensions;
-using Magnum.Threading;
 using MassTransit.AzureServiceBus;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
@@ -26,19 +24,22 @@ using MessageSender = MassTransit.AzureServiceBus.MessageSender;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
-	/// <summary>Connection to Azure Service Bus message broker.</summary>
-	public class ConnectionImpl 
+	/// <summary>
+	/// 	Connection to Azure Service Bus message broker.
+	/// </summary>
+	public class ConnectionImpl
 		: Connection
 	{
 		readonly AzureServiceBusEndpointAddress _endpointAddress;
 		readonly int _prefetchCount;
-		readonly MessagingFactory _messagingFactory;
 
 		static readonly ILog _log = Logger.Get(typeof (ConnectionImpl));
-	
+
 		bool _disposed;
+
 		MessageSender _messageSender;
-		
+		MessagingFactory _messagingFactory;
+
 		public ConnectionImpl(
 			[NotNull] AzureServiceBusEndpointAddress endpointAddress,
 			[NotNull] TokenProvider tokenProvider,
@@ -55,18 +56,6 @@ namespace MassTransit.Transports.AzureServiceBus
 			 * a factory creates 3 receivers. Each receiver can process up to 10 messages per second.
 			 * The prefetch count should not exceed 20*3*10 = 600.By default, QueueClient.PrefetchCount
 			 * is set to 0, which means that no additional messages are fetched from the service. */
-
-			var mfs = new MessagingFactorySettings
-				{
-					TokenProvider = tokenProvider,
-					NetMessagingTransportSettings =
-						{
-							// todo: configuration setting
-							BatchFlushInterval = 50.Milliseconds()
-						}
-				};
-
-			_messagingFactory = MessagingFactory.Create(_endpointAddress.NamespaceManager.Address, mfs);
 
 			_log.DebugFormat("created connection impl for address ('{0}')", endpointAddress);
 		}
@@ -89,11 +78,10 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			try
 			{
+				Disconnect();
+
 				if (_messageSender != null)
 					_messageSender.Dispose();
-
-				if (!_messagingFactory.IsClosed)
-					_messagingFactory.Close();
 			}
 			finally
 			{
@@ -106,15 +94,18 @@ namespace MassTransit.Transports.AzureServiceBus
 			Disconnect();
 
 			_log.DebugFormat("Connecting '{0}'", _endpointAddress);
-			
+
+			if (_messagingFactory == null)
+				_messagingFactory = _endpointAddress.MessagingFactoryFactory();
+
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
 			_messageSender = _endpointAddress.QueueDescription != null
 			                 	? _endpointAddress.CreateQueue()
 			                 	  	.Then(_ =>
-			                 	  		_messagingFactory.TryCreateMessageSender(_endpointAddress.QueueDescription, _prefetchCount))
+			                 	  	      _messagingFactory.TryCreateMessageSender(_endpointAddress.QueueDescription, _prefetchCount))
 			                 	  	.Result
 			                 	: _messagingFactory.TryCreateMessageSender(_endpointAddress.TopicDescription)
-									.Result;
+			                 	  	.Result;
 
 			if (_messageSender == null)
 				throw new TransportException(_endpointAddress.Uri, "The create message sender on messaging factory returned null.");
@@ -122,7 +113,12 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public void Disconnect()
 		{
-			_log.DebugFormat("disconnecting (nop) '{0}'", _endpointAddress);
+			_log.DebugFormat("disconnecting '{0}'", _endpointAddress);
+
+			if (_messagingFactory != null)
+				_messagingFactory.Close();
+
+			_messagingFactory = null;
 		}
 	}
 }

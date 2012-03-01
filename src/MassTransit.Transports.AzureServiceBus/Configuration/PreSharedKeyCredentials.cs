@@ -16,6 +16,9 @@ using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
+	/// <summary>
+	/// Implementors of this interface should know how to create a uri based on the credentials supplied.
+	/// </summary>
 	public interface PreSharedKeyCredentials
 	{
 		string IssuerName { get; }

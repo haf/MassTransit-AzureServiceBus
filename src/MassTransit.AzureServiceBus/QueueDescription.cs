@@ -16,8 +16,10 @@ using System;
 namespace MassTransit.AzureServiceBus
 {
 	public interface QueueDescription
-		: IEquatable<QueueDescription>, IComparable<QueueDescription>, 
-		IComparable, PathBasedEntity,
+		: IEquatable<QueueDescription>,
+		IComparable<QueueDescription>,
+		IComparable,
+		PathBasedEntity,
 		EntityDescription
 	{
 		TimeSpan LockDuration { get; }

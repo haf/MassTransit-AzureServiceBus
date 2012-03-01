@@ -56,10 +56,16 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		}
 
 		[Then]
-		public void handler_binding_should_have_been_added()
+		public void should_have_called_add_binding_at_last_some_time()
 		{
-			handler.Verify(x => x.AddBinding(It.IsAny<ConnectionBinding<ConnectionImpl>>()), Times.Once(),
+			handler.Verify(x => x.AddBinding(It.IsAny<ConnectionBinding<ConnectionImpl>>()), Times.AtLeastOnce(),
 				"the connection handler was never bound to any management");
+		}
+
+		[Then]
+		public void should_have_called_add_binding_with_PerConnectionReceiver_once()
+		{
+			handler.Verify(x => x.AddBinding(It.IsAny<PerConnectionReceiver>()), Times.Once());
 		}
 
 		[Then]

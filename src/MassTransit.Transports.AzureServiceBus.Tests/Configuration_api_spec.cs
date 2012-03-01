@@ -19,7 +19,7 @@ using AccountDetails = MassTransit.Transports.AzureServiceBus.Tests.Framework.Ac
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	[Scenario]
+	[Scenario, Integration]
 	public class Configuration_api_spec
 	{
 		[Test]
@@ -27,7 +27,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		{
 			using (ServiceBusFactory.New(sbc =>
 				{
-					sbc.ReceiveFrom(string.Format("azure-sb://owner:{0}@myNamespace/my-application", AccountDetails.Key));
+					sbc.ReceiveFrom(string.Format("azure-sb://owner:{0}@mt-client/my-application", AccountDetails.Key));
 					sbc.UseNLog();
 					sbc.UseAzureServiceBusRouting();
 				}))
@@ -40,7 +40,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		{
 			using (ServiceBusFactory.New(sbc =>
 			{
-				sbc.ReceiveFromComponents("owner", AccountDetails.Key, "myNamespace", "my-application");
+				sbc.ReceiveFromComponents("owner", AccountDetails.Key, "mt-client", "my-application");
 				sbc.UseNLog();
 				sbc.UseAzureServiceBusRouting();
 			}))

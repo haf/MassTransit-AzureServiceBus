@@ -10,6 +10,15 @@ namespace MassTransit.Testing
 		public AzureServiceBusScenarioBuilder([NotNull] PreSharedKeyCredentials credentials)
 			: base(credentials.BuildUri())
 		{
+			ConfigureEndpointFactory(x =>
+				{
+					x.UseAzureServiceBus();
+				});
+
+			ConfigureBus(x =>
+				{
+					x.UseAzureServiceBusRouting();
+				});
 		}
 	}
 }

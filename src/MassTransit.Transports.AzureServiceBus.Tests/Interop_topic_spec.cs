@@ -41,8 +41,14 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			}
 			finally
 			{
-				if (nm.TopicExists(mname.Name))
-					nm.DeleteTopic(mname.Name);
+				try
+				{
+					if (nm.TopicExists(mname.Name))
+						nm.DeleteTopic(mname.Name);
+				}
+				catch
+				{
+				}
 			}
 		}
 

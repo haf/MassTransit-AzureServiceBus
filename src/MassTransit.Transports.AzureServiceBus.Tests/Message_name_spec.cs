@@ -26,7 +26,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		public void Should_handle_nested_classes()
 		{
 			_f.GetMessageName(typeof (Nested)).Name
-				.ShouldEqual("MassTransit.Transports.AzureServiceBus.Tests..When_converting_a_type_to_a_message_name-Nested");
+				.ShouldEqual("MassTransit.Transports.AzureServiceBus.Tests..Message_name_spec-Nested");
 		}
 
 		[Then]
