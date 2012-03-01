@@ -119,6 +119,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
 			return _instance.WithApplication(application);
 		}
 	}
-}```
+}
+```
 
 Place this file in `src\MassTransit.Transports.AzureServiceBus.Tests\Framework\AccountDetails.cs`.
