@@ -15,8 +15,8 @@ using System;
 using System.Threading.Tasks;
 using MassTransit.Async;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
-using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Management
 {

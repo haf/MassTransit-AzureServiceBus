@@ -13,7 +13,7 @@
 
 using System;
 using System.Threading.Tasks;
-using MassTransit.Util;
+using MassTransit.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 

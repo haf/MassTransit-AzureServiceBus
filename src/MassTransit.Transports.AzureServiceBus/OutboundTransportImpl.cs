@@ -5,6 +5,7 @@ using System.Threading;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
 using Microsoft.ServiceBus.Messaging;
 using ILog = MassTransit.Logging.ILog;
@@ -35,8 +36,8 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly AzureServiceBusEndpointAddress _address;
 
 		public OutboundTransportImpl(
-			[Util.NotNull] AzureServiceBusEndpointAddress address,
-			[Util.NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
+			[NotNull] AzureServiceBusEndpointAddress address,
+			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
 		{
 			if (address == null) throw new ArgumentNullException("address");
 			if (connectionHandler == null) throw new ArgumentNullException("connectionHandler");

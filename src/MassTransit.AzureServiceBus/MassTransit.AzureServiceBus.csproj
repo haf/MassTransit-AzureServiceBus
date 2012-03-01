@@ -69,6 +69,7 @@
     <Compile Include="ReceiverSettings.cs" />
     <Compile Include="TopicDescription.cs" />
     <Compile Include="Unit.cs" />
+    <Compile Include="Util\JetbrainsCodeAnnotations.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

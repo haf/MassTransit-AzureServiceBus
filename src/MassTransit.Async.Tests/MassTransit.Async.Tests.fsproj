@@ -37,7 +37,6 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <ItemGroup>
-    <Compile Include="Module1.fs" />
     <None Include="packages.config" />
     <None Include="Retries.fsx" />
     <Compile Include="Impl.fs" />

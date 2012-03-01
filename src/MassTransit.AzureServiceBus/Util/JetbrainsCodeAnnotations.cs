@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MassTransit.Transports.AzureServiceBus.Util
+namespace MassTransit.AzureServiceBus.Util
 {
 	/*
 	 * Copyright 2007-2011 JetBrains s.r.o.

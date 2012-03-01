@@ -1,6 +1,6 @@
 using System;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.EndpointConfigurators;
-using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {

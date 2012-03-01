@@ -16,10 +16,10 @@ using System.IO;
 using System.Text;
 using Magnum.Caching;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Context;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
-using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
 using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 

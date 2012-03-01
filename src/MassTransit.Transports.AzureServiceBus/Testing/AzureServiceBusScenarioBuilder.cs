@@ -1,6 +1,6 @@
-﻿using MassTransit.Testing.ScenarioBuilders;
+﻿using MassTransit.AzureServiceBus.Util;
+using MassTransit.Testing.ScenarioBuilders;
 using MassTransit.Transports.AzureServiceBus.Configuration;
-using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Testing
 {

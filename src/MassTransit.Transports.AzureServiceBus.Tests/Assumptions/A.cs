@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using MassTransit.Transports.AzureServiceBus.Util;
+using MassTransit.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests.Assumptions
 {

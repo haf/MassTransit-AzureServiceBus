@@ -1,5 +1,5 @@
 using System;
-using MassTransit.Transports.AzureServiceBus.Util;
+using MassTransit.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 

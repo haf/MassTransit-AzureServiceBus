@@ -14,10 +14,10 @@
 using System;
 using System.Collections.Generic;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
-using MassTransit.Transports.AzureServiceBus.Util;
 using Magnum.Extensions;
 
 namespace MassTransit.Transports.AzureServiceBus

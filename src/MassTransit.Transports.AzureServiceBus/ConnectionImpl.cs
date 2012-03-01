@@ -13,11 +13,11 @@
 
 using System;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;
-using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using MessageSender = MassTransit.AzureServiceBus.MessageSender;

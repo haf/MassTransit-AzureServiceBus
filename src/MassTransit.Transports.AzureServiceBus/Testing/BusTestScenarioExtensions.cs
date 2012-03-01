@@ -12,9 +12,9 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Testing.TestInstanceConfigurators;
 using MassTransit.Transports.AzureServiceBus.Configuration;
-using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Testing
 {

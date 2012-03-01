@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using MassTransit.Async;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
-using MassTransit.Transports.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
 using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 

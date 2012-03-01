@@ -13,7 +13,7 @@
 
 using System;
 using System.Threading.Tasks;
-using MassTransit.Transports.AzureServiceBus.Util;
+using MassTransit.AzureServiceBus.Util;
 using Microsoft.ServiceBus.Messaging;
 using MessageSender = MassTransit.AzureServiceBus.MessageSender;
 using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;

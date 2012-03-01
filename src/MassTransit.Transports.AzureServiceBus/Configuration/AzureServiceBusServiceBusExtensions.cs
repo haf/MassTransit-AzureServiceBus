@@ -4,12 +4,12 @@ using Magnum.Extensions;
 using Magnum.Reflection;
 using MassTransit.Async;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.BusConfigurators;
 using MassTransit.Exceptions;
 using MassTransit.Pipeline.Configuration;
 using MassTransit.Pipeline.Inspectors;
 using MassTransit.Pipeline.Sinks;
-using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {

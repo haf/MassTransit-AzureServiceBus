@@ -84,7 +84,6 @@
     <Compile Include="TransportFactoryImpl.cs" />
     <Compile Include="Testing\AzureServiceBusScenarioBuilder.cs" />
     <Compile Include="TopicDescriptionImpl.cs" />
-    <Compile Include="Util\JetbrainsCodeAnnotations.cs" />
     <Compile Include="Management\NamespaceManagerExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

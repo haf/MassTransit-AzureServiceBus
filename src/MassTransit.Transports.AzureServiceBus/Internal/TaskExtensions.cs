@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using MassTransit.Transports.AzureServiceBus.Util;
+using MassTransit.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Internal
 {

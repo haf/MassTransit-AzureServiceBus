@@ -16,11 +16,11 @@ using System;
 using Magnum;
 using Magnum.Extensions;
 using Magnum.TestFramework;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Services.Graphite.Configuration;
 using MassTransit.TestFramework;
 using MassTransit.TestFramework.Fixtures;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
-using MassTransit.Transports.AzureServiceBus.Util;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests

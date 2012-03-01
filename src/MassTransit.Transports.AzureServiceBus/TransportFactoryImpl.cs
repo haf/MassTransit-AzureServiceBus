@@ -2,10 +2,10 @@ using System;
 using Magnum.Extensions;
 using Magnum.Threading;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
-using MassTransit.Transports.AzureServiceBus.Util;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -109,7 +109,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			return _connCache.Retrieve(address.Uri, () =>
 				{
-					var connection = new ConnectionImpl(address, address.TokenProvider);
+					var connection = new ConnectionImpl(address);
 					var connectionHandler = new ConnectionHandlerImpl<ConnectionImpl>(connection);
 
 					return connectionHandler;
