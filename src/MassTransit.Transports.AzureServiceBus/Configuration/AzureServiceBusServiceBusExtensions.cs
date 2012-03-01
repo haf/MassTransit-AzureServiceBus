@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Magnum.Extensions;
 using Magnum.Reflection;
+using MassTransit.Async;
 using MassTransit.AzureServiceBus;
 using MassTransit.BusConfigurators;
 using MassTransit.Exceptions;
@@ -212,8 +213,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 				 * to one of the interfaces that itself doesn't implement any interfaces).
 				 */
 
-				if (!nm.TopicExists(topic))
-					nm.CreateTopic(topic);
+				nm.CreateAsync(new TopicDescriptionImpl(topic)).Wait();
 
 				yield return type;
 			}

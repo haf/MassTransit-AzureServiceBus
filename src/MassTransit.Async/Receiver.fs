@@ -48,7 +48,9 @@ and Concurrency = uint32
 /// it corresponds to.
 type WorkerState =
   { QSubs : Map<QueueDescription, CancellationTokenSource * ReceiverSet list>;
-    TSubs : Map<TopicDescription, CancellationTokenSource * ReceiverSet list> }
+    TSubs : Map<TopicDescription, 
+                // unsubscribe action
+                (unit -> Async<unit>) * CancellationTokenSource * ReceiverSet list> }
 
 /// A pair of a messaging factory and a list of message receivers that
 /// were created from that messaging factory.
@@ -214,7 +216,7 @@ type Receiver(desc   : QueueDescription,
           // start all subscriptions
           state.QSubs
           |> Seq.map (fun x -> x.Value)
-          |> Seq.append (state.TSubs |> Seq.map(fun x -> x.Value))
+          |> Seq.append (state.TSubs |> Seq.map(fun x -> let (sd,cts,rs) = x.Value in cts,rs))
           |> Seq.collect (fun ctsAndRs -> snd ctsAndRs)
           |> Seq.collect (fun (Pair(_, rs)) -> rs)
           |> Seq.iter (fun r -> Async.Start(r |> worker, ct.Token))
@@ -255,7 +257,7 @@ type Receiver(desc   : QueueDescription,
             let! sub = td |> Topic.subscribe nm receiverName
             let! pairs = initReceiverSet' (Topic.newReceiver sub) td
             do! childAsyncCts |> getToken |> startPairsAsync pairs
-            let tsubs' = state.TSubs.Add(td, (childAsyncCts, pairs))
+            let tsubs' = state.TSubs.Add(td, ((fun () -> sub |> Topic.unsubscribe nm td), childAsyncCts, pairs))
             return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
 
           | UnsubscribeTopic td ->
@@ -265,10 +267,11 @@ type Receiver(desc   : QueueDescription,
               logger.WarnFormat("Called UnsubscribeTopic('{0}') on non-subscribed topic!", td.Path) 
               return! started state cts
 
-            | Some( childCts, recvSet ) ->
+            | Some( unsubscribe, childCts, recvSet ) ->
               childCts.Cancel()
               recvSet |> List.iter (fun set -> closePair set)
               let tsubs' = state.TSubs.Remove(td)
+              do! unsubscribe ()
               return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
 
           | Start -> return! started state cts }
@@ -287,10 +290,14 @@ type Receiver(desc   : QueueDescription,
           logger.DebugFormat("halted '{0}'", desc.Path)
           let subs =
             asyncSeq {
-             for x in (state.QSubs |> Seq.collect (fun x -> snd x.Value)) do yield x
-             for x in (state.TSubs |> Seq.collect (fun x -> snd x.Value)) do yield x }
-          for pair in subs do
-            closePair pair
+             for x in (state.QSubs |> Seq.collect (fun x -> snd x.Value))
+               do yield x
+             for x in (state.TSubs |> Seq.collect (fun x -> let (s,cts,rs) = x.Value in rs)) do
+               yield x }
+          for rs in subs do
+            closePair rs
+          for unsub in state.TSubs |> Seq.map (fun x -> let (s, _, _) = x.Value in s) do
+            do! unsub ()
           do! clearLocks ()
           // then exit
           chan.Reply() }

@@ -92,7 +92,7 @@ module Queue =
   
   /// Create a queue from the given queue description synchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("CreateAsync")>]
-  let createSync nm desc = 
+  let createAsync nm desc = 
     Async.StartAsTask(
       async {
         do! create nm desc

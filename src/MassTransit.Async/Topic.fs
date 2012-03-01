@@ -36,25 +36,35 @@ module Topic =
   let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
     async { return! Async.FromBeginEnd(desc.Path, nm.BeginTopicExists, nm.EndTopicExists) }
 
-  /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Create")>]
-  let subscribe (nm : NamespaceManager) (subName : string) (desc : TopicDescription)  : Async<SubscriptionDescription> =
-    let rec first_create () =
+  let create (nm : NamespaceManager) (desc : TopicDescription) = 
+    let rec create' () =
       async {
         let! exists = desc |> exists nm
-        if exists then return! (then_create_subscription () : Async<SubscriptionDescription>)
+        if exists then return ()
         else
           try
             let beginCreate = nm.BeginCreateTopic : string * AsyncCallback * obj -> IAsyncResult
             logger.DebugFormat("creating topic '{0}'", desc)
             let! tdesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateTopic)
-            return! first_create ()
-          with | :? MessagingEntityAlreadyExistsException -> return! then_create_subscription () }
-    and then_create_subscription ()  : Async<SubscriptionDescription> =
-      async {
-        let beginCreate = nm.BeginCreateSubscription : string * string * AsyncCallback * obj -> IAsyncResult
-        return! Async.FromBeginEnd(desc.Path, subName, beginCreate, nm.EndCreateSubscription) }
-    first_create ()
+            return! create' ()
+          with | :? MessagingEntityAlreadyExistsException -> return () }
+    create' ()
+    
+  [<Extension;CompiledName("CreateAsync")>]
+  let createAsync nm desc = 
+    Async.StartAsTask(
+        async {
+          do! create nm desc
+          return Unit() })
+
+  /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
+  [<Extension;CompiledName("Subscribe")>]
+  let subscribe (nm : NamespaceManager) (subName : string) (desc : TopicDescription)  : Async<SubscriptionDescription> =
+    async {
+      do! create nm desc
+      let beginCreate = nm.BeginCreateSubscription : string * string * AsyncCallback * obj -> IAsyncResult
+      return! Async.FromBeginEnd(desc.Path, subName, beginCreate, nm.EndCreateSubscription) }
 
   let newReceiver (sub : SubscriptionDescription) (mf : MessagingFactory) (desc : PathBasedEntity) =
      async {
@@ -69,5 +79,6 @@ module Topic =
                    member x.Close () =
                      wrapped.Close() } }
 
-  let unsubscribe (nm : NamespaceManager) (desc : TopicDescription) =
-    async { return failwith "todo" }
+  let unsubscribe (nm : NamespaceManager) (desc : TopicDescription) (sub : SubscriptionDescription) =
+    async {
+      do! Async.FromBeginEnd(desc.Path, sub.Name, nm.BeginDeleteSubscription, nm.EndDeleteSubscription) }
