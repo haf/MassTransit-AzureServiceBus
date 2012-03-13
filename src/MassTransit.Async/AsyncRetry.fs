@@ -17,43 +17,65 @@ namespace MassTransit.Async
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
-/// Composition of policies for retrying
+open System
+open System.Threading
+
 [<AutoOpen>]
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module AsyncRetry =
   
-  open System
-  open System.Threading
-  open MassTransit.Async.Retry
-
   let logger = MassTransit.Logging.Logger.Get("MassTransit.Async.AsyncRetry")
 
+  type ShouldRetry = ShouldRetry of (RetryCount * LastException -> bool * RetryDelay)
+  and RetryCount = int
+  and LastException = exn
+  and RetryDelay = TimeSpan
+  and PolicyDescription = string
+
+  type RetryPolicy = RetryPolicy of ShouldRetry * PolicyDescription
+
+  type RetryResult<'T> = 
+    | RetrySuccess of 'T
+    | RetryFailure of exn
+    
+  type Retry<'T> = Retry of (RetryPolicy -> RetryResult<'T>)
+
+  type RetryPolicies() =
+  
+    static member NoRetry () : RetryPolicy =
+      RetryPolicy( ShouldRetry (fun (retryCount, _) -> (retryCount < 1, TimeSpan.Zero)), 
+        "This policy never retries" )
+    
+    static member Retry (retryCount : int , intervalBewteenRetries : RetryDelay) : RetryPolicy =
+      RetryPolicy( ShouldRetry (fun (currentRetryCount, _) -> (currentRetryCount < retryCount, intervalBewteenRetries)), 
+        sprintf "This policy retries %i times" retryCount)
+    
+    static member Retry (currentRetryCount : int) : RetryPolicy =
+      RetryPolicies.Retry(currentRetryCount, TimeSpan.Zero)
+
   // async work, continuation, retries left, maybe exception
-  let rec bind w f policy : Async<'T> =
-    async {
-      let r = retry { return (async { let! v = w in return v } |> Async.RunSynchronously) }
-      let v = Retry.runUnwrap policy r
-      return! f v }
-//    match n with
-//    | 0 -> async { let! v = w in return! f v }
-//    | _ ->
-//      async {
-//        try let! v = w in return! f v
-//        with ex ->
-//          logger.Warn("retry failed", ex)
-//          return! bind w f (n-1) }
-
+  let bind w f policy : Async<'T> =
+    let rec bind' retryCount =
+      async {
+        let (RetryPolicy(ShouldRetry shouldRetry, description)) = policy
+        try
+          let! v = w
+          return f v
+        with e ->
+          logger.Info(sprintf "AsyncRetry.bind caught %A, using %s" e description)
+          let retryCount' = retryCount + 1
+          match shouldRetry(retryCount, e) with
+          | (true, retryDelay) -> // make the retryDelay into an Async<unit> rather than TimeSpan and migrate all usages of retry to this monad
+              do! Async.Sleep <| retryDelay.Milliseconds
+              return! bind' retryCount'
+          | (false, _) -> 
+              return raise <| e }
+    bind' 0
   let ret a = async { return a }
-
   let delay f = async { return! f() }
-
   let tryWith f handler =
     async {
-      try
-        return! f
-      with
-      | x -> return! handler x }
- 
+      try return! f
+      with x -> return! handler x }
   let using resource work = 
     async {
       use r = resource
@@ -69,24 +91,14 @@ module AsyncRetry =
     member x.Using<'T, 'U when 'T :> IDisposable>(resource : 'T, work : ('T -> Async<'U>)) = 
       using resource work
 
-  let asyncRetry = AsyncRetryBuilder(FaultPolicies.finalPolicy)// (1) // (finalPolicy)
+    /// retry timeouts 9 times with a ts delay if fAcc returns true and the generic parameter matches the exception
+  let exnRetryLong<'ex when 'ex :> exn> fAcc ts =
+    RetryPolicy( ShouldRetry(fun (count, ex) -> count < 9 && (match box ex with | :? 'ex -> fAcc(ex :?> 'ex) | _ -> false), ts),
+      sprintf "This policy catches %s exceptions 9 times if the passed f-n accepts the exception" <| typeof<'ex>.Name )
 
-//type RetryBuilder(max) = 
-//  member x.Return a = a               // Enable 'return'
-//  member x.Delay f  = f                // Gets wrapped body and returns it (as it is)
-//                                       // so that the body is passed to 'Run'
-//  member x.Zero  = failwith "Zero"    // Support if .. then 
-//  member x.Run f =                    // Gets function created by 'Delay'
-//    let rec loop = function
-//      | 0, Some(ex) -> raise ex
-//      | n, _        -> try f() with ex -> loop (n-1, Some(ex))
-//    loop(max, None)
-//
-//let retry = RetryBuilder(4)
+  /// retry timeouts 9 times with a ts delay if the generic parameter matches the exception
+  let exnRetry<'ex when 'ex :> exn> = exnRetryLong<'ex> (fun _ -> true)
 
-
-//      try 
-//        let! v = work
-//        return! f v
-//      with e ->
-//        return! bind work f }
+  let exnRetryCust<'ex when 'ex :> exn> f =
+    RetryPolicy ( ShouldRetry( fun (c, e) -> (match box e with | :? 'ex -> f(c,e) | _ -> false, TimeSpan.Zero)),
+      sprintf "This policy catches %s exceptions and continues if the passed f-n returns true"  <| typeof<'ex>.Name )

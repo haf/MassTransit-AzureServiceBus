@@ -3,7 +3,7 @@
 module FaultPolicies =
 
   open System
-  open MassTransit.Async.Retry
+  open MassTransit.Async.AsyncRetry
 
   open System.ServiceModel
   open System.Net.Sockets
@@ -66,13 +66,16 @@ module FaultPolicies =
   /// and let that decide on whether to continue retrying.
   let compose p1 p2 =
     // http://fssnip.net/7h
+    let (RetryPolicy(ShouldRetry(fn), description1))  = p1
+    let (RetryPolicy(ShouldRetry(fn'), description2)) = p2
     RetryPolicy(ShouldRetry( (fun (c,e) ->
-      let (RetryPolicy(ShouldRetry(fn)))  = p1
-      let (RetryPolicy(ShouldRetry(fn'))) = p2
       let (cont, delay) = fn(c,e)
-      if cont then cont, delay 
+      if cont then cont, delay
       else
         let (cont', delay') = fn'(c,e)
-        cont', delay') ))
+        cont', delay') ),
+      sprintf "Composed policy of { '%s', '%s' }" description1 description2)
 
   let finalPolicy = Seq.fold compose (RetryPolicies.NoRetry()) transients
+
+  let asyncRetry = AsyncRetryBuilder(finalPolicy)// (1) // (finalPolicy)

@@ -43,7 +43,7 @@ module Retry =
             retryFunc' retryPolicy
         | RetryFailure exn -> RetryFailure exn )
 
-    member self.Delay (f : unit -> Retry<'T>) : Retry<'T> = 
+    member self.Delay (f : unit -> Retry<'T>) : Retry<'T> =
       Retry (fun retryPolicy ->
         let resultCell : option<RetryResult<'T>> ref = ref None 
         let lastExceptionCell : exn ref = ref null

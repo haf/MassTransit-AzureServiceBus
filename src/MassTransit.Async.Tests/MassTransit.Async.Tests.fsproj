@@ -42,6 +42,7 @@
     <Compile Include="Impl.fs" />
     <None Include="app.config" />
     <Compile Include="Faults and Retries.fs" />
+    <Compile Include="ContextSetUp.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">

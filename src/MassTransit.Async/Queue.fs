@@ -27,6 +27,7 @@ module Queue =
 
   open MassTransit.Logging
   open MassTransit.AzureServiceBus
+  open MassTransit.Async.FaultPolicies
   
   let logger = Logger.Get("MassTransit.Async.Queue")
 
@@ -48,15 +49,15 @@ module Queue =
 
   /// Perform a receive using a message receiver and a timeout.
   let recv (client : MessageReceiver) timeout =
-    asyncRetry { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
+    async { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
   
   let send (client : MessageSender) message =
-    asyncRetry {
+    async {
       use bm = new BrokeredMessage(message)
       do! Async.FromBeginEnd(bm, client.BeginSend, client.EndSend) : Async<unit> }
   
   let newReceiver (mf : MessagingFactory) (desc : PathBasedEntity) =
-    asyncRetry {
+    async {
       let! wrapped = Async.FromBeginEnd(desc.Path,
                        (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
                        mf.EndCreateMessageReceiver)
@@ -72,7 +73,7 @@ module Queue =
   
   [<Extension;CompiledName("Exists")>]
   let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
-    asyncRetry { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
+    async { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
 
   [<Extension;CompiledName("ExistsAsync")>]
   let existsAsync nm desc = Async.StartAsTask(exists nm desc)
@@ -80,7 +81,7 @@ module Queue =
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Create")>]
   let rec create (nm : NamespaceManager) (desc : QueueDescription) =
-    asyncRetry {
+    async {
       let! exists = desc |> exists nm
       if exists then return ()
       else
