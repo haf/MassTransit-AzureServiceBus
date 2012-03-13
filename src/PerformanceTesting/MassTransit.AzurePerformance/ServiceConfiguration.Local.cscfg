@@ -10,7 +10,7 @@
 		</ConfigurationSettings>
 	</Role>
 	<Role name="MassTransit.AzurePerformance.Sender">
-		<Instances count="1" />
+		<Instances count="3" />
 		<ConfigurationSettings>
 			<Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
 		</ConfigurationSettings>
