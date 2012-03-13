@@ -61,7 +61,7 @@ module Retry =
             currentRetryCountCell := 1 + !currentRetryCountCell
             match shouldRetry(!currentRetryCountCell, !lastExceptionCell) with
             | (true, retryDelay) ->
-                Thread.Sleep(retryDelay)
+                Thread.Sleep(retryDelay) // TODO: change into continuation passing style
             | (false, _) -> 
                 canRetryCell := false
       

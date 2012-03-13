@@ -16,8 +16,7 @@ module FaultPolicies =
   ///   [2.14358881; 4.594972986; 9.849732676; 21.11377675; 45.25925557; 97.01723378;
   ///    207.9650567; 445.7915685; 955.5938177; 2048.400215; 4390.927778;
   ///    9412.343651; 20176.19453; 20176.19453]
-  let expBack x =
-    let cut = 13.0
+  let expBack x cut =
     let fx x' = 1.1**(8.0*x')
     match x with 
     | _ when x <= cut -> fx x
@@ -32,7 +31,7 @@ module FaultPolicies =
       yield exnRetryCust<ServerBusyException>
       // But are you TOO busy? Hey, let me get you a cup of tea!
       yield exnRetryCust<ServerTooBusyException> }
-    |> Seq.map(fun f -> f (fun (count, ex) -> count < 10, TimeSpan.FromMilliseconds(expBack(float count))))
+    |> Seq.map(fun f -> f (fun (count, ex) -> count < 10, TimeSpan.FromMilliseconds(expBack (float count) 13.0)))
 
   /// this should be in the service bus innards, not in a client library; except perhaps if we can't send messages anymore
   /// and then it should possibly throw HeartBeatMissingException or something similar
