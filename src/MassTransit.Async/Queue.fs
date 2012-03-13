@@ -48,15 +48,15 @@ module Queue =
 
   /// Perform a receive using a message receiver and a timeout.
   let recv (client : MessageReceiver) timeout =
-    async { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
+    asyncRetry { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
   
   let send (client : MessageSender) message =
-    async {
+    asyncRetry {
       use bm = new BrokeredMessage(message)
       do! Async.FromBeginEnd(bm, client.BeginSend, client.EndSend) : Async<unit> }
   
   let newReceiver (mf : MessagingFactory) (desc : PathBasedEntity) =
-    async {
+    asyncRetry {
       let! wrapped = Async.FromBeginEnd(desc.Path,
                        (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
                        mf.EndCreateMessageReceiver)
@@ -72,7 +72,7 @@ module Queue =
   
   [<Extension;CompiledName("Exists")>]
   let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
-    async { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
+    asyncRetry { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
 
   [<Extension;CompiledName("ExistsAsync")>]
   let existsAsync nm desc = Async.StartAsTask(exists nm desc)
@@ -80,15 +80,16 @@ module Queue =
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Create")>]
   let rec create (nm : NamespaceManager) (desc : QueueDescription) =
-    async {
+    asyncRetry {
       let! exists = desc |> exists nm
       if exists then return ()
-      try
-        let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
-        logger.DebugFormat("creating queue '{0}'", desc)
-        let! ndesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateQueue)
-        return! desc |> create nm
-      with | :? MessagingEntityAlreadyExistsException -> return () }
+      else
+        try
+          let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
+          logger.DebugFormat("creating queue '{0}'", desc)
+          let! ndesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateQueue)
+          return! desc |> create nm
+        with | :? MessagingEntityAlreadyExistsException -> return () }
   
   /// Create a queue from the given queue description synchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("CreateAsync")>]

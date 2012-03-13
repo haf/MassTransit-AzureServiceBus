@@ -79,7 +79,7 @@ module Retry =
       retryFunc retryPolicy
 
   /// Performs the retry run, but throws the exception is RetryFailure<'T> is returned
-  let runUnwrap retry policy =
+  let runUnwrap policy retry =
     match run retry policy with
     | RetrySuccess(t) -> t
     | RetryFailure(ex) -> raise ex

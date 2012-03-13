@@ -29,19 +29,30 @@ module AsyncRetry =
   let logger = MassTransit.Logging.Logger.Get("MassTransit.Async.AsyncRetry")
 
   // async work, continuation, retries left, maybe exception
-  let rec bind w f n : Async<'T> =
-    match n with
-    | 0 -> async { let! v = w in return! f v }
-    | _ ->
-      async {
-        try let! v = w in return! f v
-        with ex ->
-          logger.Warn("retry failed", ex)
-          return! bind w f (n-1) }
+  let rec bind w f policy : Async<'T> =
+    async {
+      let r = retry { return (async { let! v = w in return v } |> Async.RunSynchronously) }
+      let v = Retry.runUnwrap policy r
+      return! f v }
+//    match n with
+//    | 0 -> async { let! v = w in return! f v }
+//    | _ ->
+//      async {
+//        try let! v = w in return! f v
+//        with ex ->
+//          logger.Warn("retry failed", ex)
+//          return! bind w f (n-1) }
 
   let ret a = async { return a }
 
   let delay f = async { return! f() }
+
+  let tryWith f handler =
+    async {
+      try
+        return! f
+      with
+      | x -> return! handler x }
  
   let using resource work = 
     async {
@@ -54,10 +65,11 @@ module AsyncRetry =
     member x.ReturnFrom(a) = a
     member x.Delay(f) = delay f
     member x.Zero() = ()
+    member x.TryWith(work, handler) = tryWith work handler
     member x.Using<'T, 'U when 'T :> IDisposable>(resource : 'T, work : ('T -> Async<'U>)) = 
       using resource work
 
-  let asyncRetry = AsyncRetryBuilder(1) // (finalPolicy)
+  let asyncRetry = AsyncRetryBuilder(FaultPolicies.finalPolicy)// (1) // (finalPolicy)
 
 //type RetryBuilder(max) = 
 //  member x.Return a = a               // Enable 'return'

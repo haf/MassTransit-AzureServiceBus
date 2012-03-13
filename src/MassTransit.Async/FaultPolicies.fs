@@ -36,7 +36,7 @@ module FaultPolicies =
 
   /// this should be in the service bus innards, not in a client library; except perhaps if we can't send messages anymore
   /// and then it should possibly throw HeartBeatMissingException or something similar
-  let badNetwork = 
+  let badNetwork =
     seq { 
       yield exnRetry<CommunicationException>          // communication exception?
       yield exnRetry<MessagingCommunicationException> // then we need another one as well!
@@ -57,7 +57,7 @@ module FaultPolicies =
 
   /// The composition of azure, network and overloaded errors
   let transients = 
-    seq { 
+    seq {
       yield! serverOverloaded
       yield! badNetwork
       yield! badAzure }
