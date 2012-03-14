@@ -30,18 +30,18 @@ open MassTransit.Async.AsyncRetry
 
 type internal Agent<'T> = AutoCancelAgent<'T>
 
+/// concurrently outstanding asynchronous requests (workers)
+type Concurrency = uint32
+
 /// communication with the worker agent
 type RecvMsg =
-  Start
+  | Start
   | Pause
   | Halt of AsyncReplyChannel<unit>
   | SubscribeQueue of QueueDescription * Concurrency
   | UnsubscribeQueue of QueueDescription
   | SubscribeTopic of TopicDescription * Concurrency
   | UnsubscribeTopic of TopicDescription
-
-/// concurrently outstanding asynchronous requests (workers)
-and Concurrency = uint32
 
 /// State-keeping structure, mapping a description to a pair of cancellation token source and
 /// receiver set list. The CancellationTokenSource can be used to stop the subscription that
@@ -150,15 +150,16 @@ type Receiver(desc   : QueueDescription,
 
   /// Closes the pair of a messaging factory and a list of receivers
   let closePair pair =
-    let (Pair(mf, rs)) = pair
-    logger.InfoFormat("closing {0} receivers and their single messaging factory", rs.Length)
-    if not(mf.IsClosed) then
-      try         mf.Close() // this statement has cost a LOT of money in developer time, waiting for a timeout
-      with | x -> logger.Error("could not close messaging factory", x)
-    for r in rs do
-      if not(r.IsClosed) then
-        try         r.Close()
-        with | x -> logger.Error("could not close receiver", x)
+    match pair with
+    Pair(mf, rs) ->
+      logger.InfoFormat("closing {0} receivers and their single messaging factory", rs.Length)
+      if not(mf.IsClosed) then
+        try         mf.Close() // this statement has cost a LOT of money in developer time, waiting for a timeout
+        with | x -> logger.Error("could not close messaging factory", x)
+      for r in rs do
+        if not(r.IsClosed) then
+          try         r.Close()
+          with | x -> logger.Error("could not close receiver", x)
 
   /// An agent that implements the reactor pattern, reacting to messages.
   /// The mutually recursive function 'initial' uses the explicit functional

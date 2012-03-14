@@ -31,7 +31,9 @@ module FaultPolicies =
       yield exnRetryCust<ServerBusyException>
       // But are you TOO busy? Hey, let me get you a cup of tea!
       yield exnRetryCust<ServerTooBusyException> }
-    |> Seq.map(fun f -> f (fun (count, ex) -> count < 10, TimeSpan.FromMilliseconds(expBack (float count) 13.0)))
+    |> Seq.map(fun f -> f (fun (count, ex) -> count < 10,
+                                              fun ex -> async { do! (float count, 13.0) ||> expBack |> int |> Async.Sleep  })
+              )
 
   /// this should be in the service bus innards, not in a client library; except perhaps if we can't send messages anymore
   /// and then it should possibly throw HeartBeatMissingException or something similar
@@ -41,7 +43,7 @@ module FaultPolicies =
       yield exnRetry<MessagingCommunicationException> // then we need another one as well!
       yield exnRetryLong<SocketException> (fun ex -> ex.SocketErrorCode = SocketError.TimedOut)
       yield exnRetry<ProtocolException> }
-    |> Seq.map (fun pBuild -> pBuild <| TimeSpan.FromMilliseconds(5.0))
+    |> Seq.map (fun pBuild -> pBuild (fun ex -> async { do! Async.Sleep 5 }))
 
   /// these should not ever be seen by a consumer of the client library and should count towards downtime of ASB.
   let badAzure = 
@@ -52,7 +54,7 @@ module FaultPolicies =
       yield exnRetry<ServerErrorException>
       yield exnRetry<EndpointNotFoundException>
       yield exnRetryLong<UnauthorizedAccessException> (fun e -> e.Message.Contains("Error:Code:500:SubCode:T9002")) }
-    |> Seq.map (fun pBuild -> pBuild <| TimeSpan.FromMilliseconds(1.0))
+    |> Seq.map (fun pBuild -> pBuild (fun ex -> async { do! Async.Sleep 1 }))
 
   /// The composition of azure, network and overloaded errors
   let transients = 
@@ -60,21 +62,6 @@ module FaultPolicies =
       yield! serverOverloaded
       yield! badNetwork
       yield! badAzure }
-
-  /// Compose p1 and p2 together, such that if the first policy says to retry
-  /// then use that policy to retry, otherwise call the second policy's decision method
-  /// and let that decide on whether to continue retrying.
-  let compose p1 p2 =
-    // http://fssnip.net/7h
-    let (RetryPolicy(ShouldRetry(fn), description1))  = p1
-    let (RetryPolicy(ShouldRetry(fn'), description2)) = p2
-    RetryPolicy(ShouldRetry( (fun (c,e) ->
-      let (cont, delay) = fn(c,e)
-      if cont then cont, delay
-      else
-        let (cont', delay') = fn'(c,e)
-        cont', delay') ),
-      sprintf "Composed policy of { '%s', '%s' }" description1 description2)
 
   let finalPolicy = Seq.fold compose (RetryPolicies.NoRetry()) transients
 
