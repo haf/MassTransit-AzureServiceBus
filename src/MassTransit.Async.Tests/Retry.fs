@@ -151,6 +151,7 @@ let ``Using disposes correctly``() =
   |> Async.RunSynchronously
   
   Assert.That( !disposed, Is.True, "should have been disposed" )
+  Assert.That( !c, Is.EqualTo(0), "because we don't retry anything" )
 
 [<Test>]
 let ``Using disposes correctly with tryWith``() =
@@ -161,7 +162,6 @@ let ``Using disposes correctly with tryWith``() =
   let disposable =
     { new IDisposable with
         member __.Dispose() = disposed := true }
-
 
   builder {
     try
