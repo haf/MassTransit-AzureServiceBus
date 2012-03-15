@@ -135,10 +135,41 @@ let ``Retry(2):returnFrom should be called thrice (two retries)``() =
   Assert.Throws<TestException>(fun _ -> builder { return! failer } |> Async.RunSynchronously |> printfn "%i") |> ignore
   Assert.That(!c, Is.EqualTo(3), "because even return!-type expressions should be retried (they can be used interchangeably with do!)")
 
-// Transient Faults:
+[<Test>]
+let ``Using disposes correctly``() =
+  
+  let builder, failer, c = setup <| RetryPolicies.Retry(1)
+
+  let disposed = ref false
+  let disposable =
+    { new IDisposable with
+        member __.Dispose() = disposed := true }
+
+  builder {
+   use d = disposable
+   () }
+  |> Async.RunSynchronously
+  
+  Assert.That( !disposed, Is.True, "should have been disposed" )
 
 [<Test>]
-let ``each consecutive number in expback should be at least twice previous``() =
-  let numbers = [for i in 1.0 .. 14.0 do yield expBack i 15.0]
-  let zipped = Seq.zip (Seq.take (numbers.Length - 1) numbers) (List.tail numbers)
-  zipped |> Seq.iter (fun (prev, next) -> Assert.That(prev * 2.0, Is.LessThanOrEqualTo(next)))
+let ``Using disposes correctly with tryWith``() =
+
+  let builder, failer, c = setup <| RetryPolicies.Retry(1)
+
+  let disposed = ref false
+  let disposable =
+    { new IDisposable with
+        member __.Dispose() = disposed := true }
+
+
+  builder {
+    try
+      use d = disposable
+      do! failer
+      ()
+    with _ -> () }
+  |> Async.RunSynchronously
+
+  Assert.That( !disposed, Is.True, "should have been disposed" )
+  Assert.That( !c, Is.EqualTo(2), "should have been called twice; one retry" )

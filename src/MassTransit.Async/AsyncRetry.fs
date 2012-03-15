@@ -104,6 +104,8 @@ module AsyncRetry =
 
   let delay f = async { return! f() }
 
+  let zero () = async { () }
+
   let tryWith f handler =
     async {
       try return! f // Went like this: f |> delay |> (fun f -> tryWith f handler)
@@ -119,7 +121,7 @@ module AsyncRetry =
     member x.Return(a) = ret a
     member x.ReturnFrom(a) = retFrom a policy
     member x.Delay(f) = delay f
-    member x.Zero() = ()
+    member x.Zero() = zero ()
     member x.TryWith(work, handler) = tryWith work handler
     member x.Using<'T, 'U when 'T :> IDisposable>(resource : 'T, work : ('T -> Async<'U>)) = 
       using resource work

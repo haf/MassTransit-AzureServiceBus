@@ -41,8 +41,9 @@
     <None Include="Retries.fsx" />
     <Compile Include="Impl.fs" />
     <None Include="app.config" />
-    <Compile Include="Faults and Retries.fs" />
+    <Compile Include="Retry.fs" />
     <Compile Include="ContextSetUp.fs" />
+    <Compile Include="TransientFaults.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
