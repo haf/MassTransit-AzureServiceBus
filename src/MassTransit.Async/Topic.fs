@@ -27,6 +27,7 @@ module Topic =
 
   open MassTransit.Logging
   open MassTransit.AzureServiceBus
+  open MassTransit.Async.FaultPolicies
   
   let logger = Logger.Get("MassTransit.Async.Topic")
 
@@ -34,12 +35,12 @@ module Topic =
 
   [<Extension;CompiledName("Exists")>]
   let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
-    async { return! Async.FromBeginEnd(desc.Path, nm.BeginTopicExists, nm.EndTopicExists) }
+    asyncRetry { return! Async.FromBeginEnd(desc.Path, nm.BeginTopicExists, nm.EndTopicExists) }
 
   [<Extension;CompiledName("Create")>]
   let create (nm : NamespaceManager) (desc : TopicDescription) = 
     let rec create' () =
-      async {
+      asyncRetry {
         let! exists = desc |> exists nm
         if exists then return ()
         else
@@ -61,7 +62,7 @@ module Topic =
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Subscribe")>]
   let subscribe (nm : NamespaceManager) (subName : string) (desc : TopicDescription)  : Async<SubscriptionDescription> =
-    async {
+    asyncRetry {
       do! create nm desc
       let beginCreate = nm.BeginCreateSubscription : string * string * AsyncCallback * obj -> IAsyncResult
       return! Async.FromBeginEnd(desc.Path, subName, beginCreate, nm.EndCreateSubscription) }
@@ -80,5 +81,5 @@ module Topic =
                      wrapped.Close() } }
 
   let unsubscribe (nm : NamespaceManager) (desc : TopicDescription) (sub : SubscriptionDescription) =
-    async {
+    asyncRetry {
       do! Async.FromBeginEnd(desc.Path, sub.Name, nm.BeginDeleteSubscription, nm.EndDeleteSubscription) }

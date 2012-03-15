@@ -65,4 +65,4 @@ module FaultPolicies =
 
   let finalPolicy = Seq.fold compose (RetryPolicies.NoRetry()) transients
 
-  let asyncRetry = AsyncRetryBuilder(finalPolicy)// (1) // (finalPolicy)
+  let asyncRetry = AsyncRetryBuilder finalPolicy // (1) // (finalPolicy)

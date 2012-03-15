@@ -36,7 +36,7 @@ module Queue =
   /// Create a queue description from a path name asynchronously
   [<Extension;CompiledName("Desc")>]
   let desc (nm : NamespaceManager) name =
-    async {
+    asyncRetry {
       let! exists = Async.FromBeginEnd(name, nm.BeginQueueExists, nm.EndQueueExists)
       let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
       return! if exists then Async.FromBeginEnd(name, nm.BeginGetQueue, nm.EndGetQueue)
@@ -57,7 +57,7 @@ module Queue =
       do! Async.FromBeginEnd(bm, client.BeginSend, client.EndSend) : Async<unit> }
   
   let newReceiver (mf : MessagingFactory) (desc : PathBasedEntity) =
-    async {
+    asyncRetry {
       let! wrapped = Async.FromBeginEnd(desc.Path,
                        (fun (p, ar, state) -> mf.BeginCreateMessageReceiver(p, ar, state)),
                        mf.EndCreateMessageReceiver)
@@ -73,7 +73,7 @@ module Queue =
   
   [<Extension;CompiledName("Exists")>]
   let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
-    async { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
+    asyncRetry { return! Async.FromBeginEnd(desc.Path, nm.BeginQueueExists, nm.EndQueueExists) }
 
   [<Extension;CompiledName("ExistsAsync")>]
   let existsAsync nm desc = Async.StartAsTask(exists nm desc)
@@ -81,7 +81,7 @@ module Queue =
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Create")>]
   let rec create (nm : NamespaceManager) (desc : QueueDescription) =
-    async {
+    asyncRetry {
       let! exists = desc |> exists nm
       if exists then return ()
       else
@@ -103,14 +103,15 @@ module Queue =
   /// Delete a queue from the given queue description asynchronously; never throws MessagingEntityNotFoundException.
   [<Extension;CompiledName("Delete")>]
   let rec delete (nm : NamespaceManager) (desc : QueueDescription) =
-    async {
+    asyncRetry {
       let! exists = desc |> exists nm
       if exists then return ()
-      try
-        logger.DebugFormat("deleting queue '{0}'", desc)
-        do! Async.FromBeginEnd(desc.Path, nm.BeginDeleteQueue, nm.EndDeleteQueue)
-        return! desc |> delete nm
-      with | :? MessagingEntityNotFoundException -> return () }
+      else
+        try
+          logger.DebugFormat("deleting queue '{0}'", desc)
+          do! Async.FromBeginEnd(desc.Path, nm.BeginDeleteQueue, nm.EndDeleteQueue)
+          return! desc |> delete nm
+        with :? MessagingEntityNotFoundException -> return () }
 
   /// Delete a queue from the given queue description synchronously; never throws MessagingEntityNotFoundException.
   [<Extension;CompiledName("DeleteAsync")>]
@@ -132,7 +133,7 @@ module Queue =
 
   /// Create a new message sender from the messaging factory and the queue description
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =
-    async {
+    asyncRetry {
       do! desc |> create nm
       logger.Debug "starting sender"
       return! Async.FromBeginEnd((desc.Path),

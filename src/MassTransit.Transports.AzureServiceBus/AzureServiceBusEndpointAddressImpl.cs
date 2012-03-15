@@ -61,7 +61,8 @@ namespace MassTransit.Transports.AzureServiceBus
 						{
 							// todo: configuration setting
 							BatchFlushInterval = 50.Milliseconds()
-						}
+						},
+					OperationTimeout = 3.Seconds()
 				};
 			_mff = () => MessagingFactory.Create(sbUri, mfs);
 
