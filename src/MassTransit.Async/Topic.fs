@@ -49,7 +49,7 @@ module Topic =
             logger.DebugFormat("creating topic '{0}'", desc)
             let! tdesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateTopic)
             return! create' ()
-          with | :? MessagingEntityAlreadyExistsException -> return () }
+          with :? MessagingEntityAlreadyExistsException -> return () }
     create' ()
     
   [<Extension;CompiledName("CreateAsync")>]

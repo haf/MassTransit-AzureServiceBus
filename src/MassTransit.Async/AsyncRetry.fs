@@ -87,9 +87,9 @@ module AsyncRetry =
             let! v = w
             return! f v
           with e ->
-            logger.Info(sprintf "AsyncRetry.bind caught %A, using %s" e description)
             match shouldRetry(retryCount, e) with
             | (true, retryEffect) -> // make the retryDelay into an Async<unit> rather than TimeSpan and migrate all usages of retry to this monad
+                logger.Info(sprintf "AsyncRetry.bind caught %A, using %s" e description)
                 do! retryEffect e
                 let retryCount' = retryCount + 1
                 return! bind' retryCount'
