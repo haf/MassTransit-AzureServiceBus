@@ -27,6 +27,7 @@ module Queue =
 
   open MassTransit.Logging
   open MassTransit.AzureServiceBus
+  open MassTransit.Async.FaultPolicies
   
   let logger = Logger.Get("MassTransit.Async.Queue")
 
@@ -83,12 +84,13 @@ module Queue =
     async {
       let! exists = desc |> exists nm
       if exists then return ()
-      try
-        let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
-        logger.DebugFormat("creating queue '{0}'", desc)
-        let! ndesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateQueue)
-        return! desc |> create nm
-      with | :? MessagingEntityAlreadyExistsException -> return () }
+      else
+        try
+          let beginCreate = nm.BeginCreateQueue : string * AsyncCallback * obj -> IAsyncResult
+          logger.DebugFormat("creating queue '{0}'", desc)
+          let! ndesc = Async.FromBeginEnd(desc.Path, beginCreate, nm.EndCreateQueue)
+          return! desc |> create nm
+        with | :? MessagingEntityAlreadyExistsException -> return () }
   
   /// Create a queue from the given queue description synchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("CreateAsync")>]

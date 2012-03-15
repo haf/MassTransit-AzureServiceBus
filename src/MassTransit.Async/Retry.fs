@@ -43,7 +43,7 @@ module Retry =
             retryFunc' retryPolicy
         | RetryFailure exn -> RetryFailure exn )
 
-    member self.Delay (f : unit -> Retry<'T>) : Retry<'T> = 
+    member self.Delay (f : unit -> Retry<'T>) : Retry<'T> =
       Retry (fun retryPolicy ->
         let resultCell : option<RetryResult<'T>> ref = ref None 
         let lastExceptionCell : exn ref = ref null
@@ -61,7 +61,7 @@ module Retry =
             currentRetryCountCell := 1 + !currentRetryCountCell
             match shouldRetry(!currentRetryCountCell, !lastExceptionCell) with
             | (true, retryDelay) ->
-                Thread.Sleep(retryDelay)
+                Thread.Sleep(retryDelay) // TODO: change into continuation passing style
             | (false, _) -> 
                 canRetryCell := false
       
@@ -79,7 +79,7 @@ module Retry =
       retryFunc retryPolicy
 
   /// Performs the retry run, but throws the exception is RetryFailure<'T> is returned
-  let runUnwrap retry policy =
+  let runUnwrap policy retry =
     match run retry policy with
     | RetrySuccess(t) -> t
     | RetryFailure(ex) -> raise ex

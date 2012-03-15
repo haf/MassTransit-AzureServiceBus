@@ -76,8 +76,8 @@
     <None Include="packages.config" />
     <None Include="app.config" />
     <Compile Include="Retry.fs" />
-    <Compile Include="FaultPolicies.fs" />
     <Compile Include="AsyncRetry.fs" />
+    <Compile Include="FaultPolicies.fs" />
     <Compile Include="Topic.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="Receiver.fs" />

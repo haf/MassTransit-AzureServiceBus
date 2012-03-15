@@ -41,6 +41,9 @@
     <None Include="Retries.fsx" />
     <Compile Include="Impl.fs" />
     <None Include="app.config" />
+    <Compile Include="Retry.fs" />
+    <Compile Include="ContextSetUp.fs" />
+    <Compile Include="TransientFaults.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
@@ -68,6 +71,18 @@
     <Reference Include="FSharp.Core" />
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.2.0.0.2000\lib\net20\NLog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.5.9.10348\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.mocks">
+      <HintPath>..\packages\NUnit.2.5.9.10348\lib\nunit.mocks.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="pnunit.framework">
+      <HintPath>..\packages\NUnit.2.5.9.10348\lib\pnunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
