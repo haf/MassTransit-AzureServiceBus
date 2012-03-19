@@ -5,9 +5,9 @@ require 'fileutils'
 
 task :ensure_account_details do
   targ = 'src/MassTransit.Transports.AzureServiceBus.Tests/Framework/AccountDetails.cs'
-  unless File.exists? targ then
-    FileUtils.cp 'build_support/AccountDetails.cs', targ
-  end
+  unless File.exists? targ then ; FileUtils.cp 'build_support/AccountDetails.cs', targ ; end
+  targ = targ.gsub(/\.cs/,'.fs')
+  unless File.exists? targ then ; FileUtils.cp 'build_support/AccountDetails.fs', targ ; end
 end
 
 task :ensure_packages do
