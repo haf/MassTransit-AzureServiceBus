@@ -42,13 +42,13 @@ namespace MassTransit.AzurePerformance.Receiver
 			var watch = new Stopwatch();
 			var datapoints = new LinkedList<DataPoint>();
 			var senders = new LinkedList<IEndpoint>();
-			var allSendersUp = new CountdownEvent(
-				Convert.ToInt32(RoleEnvironment.GetConfigurationSettingValue("WaitForNumberOfSenders")));
+			var maxSenders = Convert.ToInt32(RoleEnvironment.GetConfigurationSettingValue("WaitForNumberOfSenders"));
+			var allSendersUp = new CountdownEvent(maxSenders);
 			var creds = new AccountDetails();
 			
 			using (var sb = ServiceBusFactory.New(sbc =>
 				{
-					sbc.ReceiveFromComponents(creds);
+					sbc.ReceiveFrom(creds.BuildUri("receiver"));
 
 					sbc.SetPurgeOnStartup(true);
 					sbc.UseNLog();
@@ -59,15 +59,27 @@ namespace MassTransit.AzurePerformance.Receiver
 				UnsubscribeAction unsubscribeMe = null;
 				unsubscribeMe += sb.SubscribeHandler<SenderUp>(su =>
 					{
-						lock (senders) 
-							senders.AddLast(sb.GetEndpoint(su.Source));
-						
-						allSendersUp.Signal();
+						_logger.Info("received SenderUp!");
+
+						lock (senders)
+						{
+							var endpoint = sb.GetEndpoint(su.Source);
+							if (!senders.Any(x => x.Address.Uri.Equals(endpoint.Address.Uri)) 
+								&& allSendersUp.CurrentCount < maxSenders)
+							{
+								senders.AddLast(endpoint);
+								allSendersUp.Signal();
+							}
+						}
 					});
 
+				_logger.Info("waiting for all senders ...");
 				allSendersUp.Wait();
 
-				senders.Each(sender => sender.Send<ReadySetGo>(new {}));
+				_logger.Info("sending 'ReadySetGo' to all senders");
+
+				lock (senders)
+					senders.Each(sender => sender.Send<ReadySetGo>(new {}));
 
 				//unsubscribeMe = sb.SubscribeHandler<IConsumeContext<ZoomZoom>>(consumeContext =>
 				unsubscribeMe += sb.SubscribeHandler<ZoomZoom>(payment =>
@@ -111,7 +123,9 @@ namespace MassTransit.AzurePerformance.Receiver
 
 				PipelineViewer.Trace(sb.InboundPipeline);
 
+				_logger.Info("waiting for all messages!");
 				stopping.WaitOne();
+
 
 				sb.GetEndpoint(creds.BuildUri("sender")).Send<ZoomDone>(new{});
 			}
