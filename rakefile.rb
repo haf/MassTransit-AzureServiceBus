@@ -8,6 +8,8 @@ task :ensure_account_details do
   unless File.exists? targ then ; FileUtils.cp 'build_support/AccountDetails.cs', targ ; end
   targ = 'src/MassTransit.Async/AccountDetails.fs'
   unless File.exists? targ then ; FileUtils.cp 'build_support/AccountDetails.fs', targ ; end
+  targ = 'src/PerformanceTesting/MassTransit.AzurePerformance/ServiceConfiguration.Cloud.cscfg'
+  unless File.exists? targ then ; FileUtils.cp 'build_support/ServiceConfiguration.Cloud.cscfg', targ ; end
 end
 
 task :ensure_packages do
