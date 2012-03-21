@@ -75,7 +75,7 @@ type Receiver(desc   : QueueDescription,
               newMf  : (unit -> MessagingFactory),
               nm     : NamespaceManager,
               receiverName : string,
-              ?settings : ReceiverSettings) =
+              ?settings : ReceiverSettings) as x =
 
   let sett = defaultArg settings (ReceiverDefaults() :> ReceiverSettings)
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
@@ -131,21 +131,18 @@ type Receiver(desc   : QueueDescription,
     async {
       while true do
         //logger.Debug "worker loop"
-        let! bmsg = sett.ReceiveTimeout |> recv client
-        if bmsg <> null then
-          logger.Debug(sprintf "received message on '%s'" (desc.ToString()))
-          messages.Add bmsg
-        else
-          //logger.Debug("got null msg due to timeout receiving")
-          () }
+        try
+          let! bmsg = sett.ReceiveTimeout |> recv client
+          if bmsg <> null then
+            logger.Debug(sprintf "received message on '%s'" (desc.ToString()))
+            messages.Add bmsg
+        with e -> error.Trigger(x, new ReceiverExceptionEventArgs(e)) }
           
   let startPairsAsync pairs token =
     async {
       for Pair(mf, rs) in pairs do
         for r in rs do 
-          match Async.Start(Async.Catch(r |> worker), token) with
-          | Choice1Of2 () -> ()
-          | Choice2Of2 ex -> error.Trigger( }
+          Async.Start ((r |> worker), token) }
 
   /// cleans out the message buffer and disposes all messages therein
   let clearLocks () =
@@ -305,11 +302,13 @@ type Receiver(desc   : QueueDescription,
              do yield x
            for x in (state.TSubs |> Seq.collect (fun x -> let (s,cts,rs) = x.Value in rs)) do
              yield x }
-        for rs in subs do
-          closePair rs
-        for unsub in state.TSubs |> Seq.map (fun x -> let (s, _, _) = x.Value in s) do
-          do! unsub ()
-        do! clearLocks ()
+        try
+          for rs in subs do
+            closePair rs
+          for unsub in state.TSubs |> Seq.map (fun x -> let (s, _, _) = x.Value in s) do
+            do! unsub ()
+          do! clearLocks ()
+        with e -> logger.Error("unable to clean up actor", e)
         // then exit
         chan.Reply() }
     initial ())

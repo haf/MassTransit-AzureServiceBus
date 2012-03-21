@@ -49,10 +49,10 @@ module Queue =
 
   /// Perform a receive using a message receiver and a timeout.
   let recv (client : MessageReceiver) timeout =
-    async { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
+    asyncRetry { return! Async.FromBeginEnd(timeout, client.BeginReceive , client.EndReceive) }
   
   let send (client : MessageSender) message =
-    async {
+    asyncRetry {
       use bm = new BrokeredMessage(message)
       do! Async.FromBeginEnd(bm, client.BeginSend, client.EndSend) : Async<unit> }
   
