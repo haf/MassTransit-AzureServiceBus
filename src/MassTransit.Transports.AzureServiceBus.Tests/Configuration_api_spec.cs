@@ -19,7 +19,7 @@ using AccountDetails = MassTransit.Transports.AzureServiceBus.Tests.Framework.Ac
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	[Scenario, Integration]
+	[Scenario, Integration, Explicit("uses faulty data")]
 	public class Configuration_api_spec
 	{
 		[Test]

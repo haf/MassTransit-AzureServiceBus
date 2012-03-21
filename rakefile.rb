@@ -21,14 +21,17 @@ task :ensure_packages do
   end
 end
 
-task :compile => [:ensure_packages, :ensure_account_details] do
-  sh 'msbuild src/MassTransit-AzureServiceBus.sln'
+msbuild :compile => [:ensure_packages, :ensure_account_details] do |msb|
+  msb.solution = 'src/MassTransit-AzureServiceBus.sln'
+  msb.properties :Configuration => CONFIGURATION
+  msb.targets    :Build
+  msb.verbosity = "minimal"
 end
 
 nunit :test => [:ensure_account_details, :release] do |n|
-  asms = Dir.glob("./src/MassTransit.*.Tests/bin/#{CONFIGURATION}/*.Tests.dll")
-  puts asms.inspect
-  n.command = Dir.glob('./src/packages/NUnit*/Tools/nunit-console.exe').first
+  asms = Dir.glob("#{File.dirname(__FILE__)}/src/MassTransit.*.Tests/bin/#{CONFIGURATION}/*.Tests.dll")
+  puts "Running nunit with assemblies: #{asms.inspect}"
+  n.command = Dir.glob("#{File.dirname(__FILE__)}/src/packages/NUnit*/Tools/nunit-console.exe").first
   n.assemblies = asms
   n.options '/framework=net-4.0'
 end
