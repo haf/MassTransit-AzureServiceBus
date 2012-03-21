@@ -56,6 +56,12 @@ type WorkerState =
 /// were created from that messaging factory.
 and ReceiverSet = Pair of MessagingFactory * MessageReceiver list
 
+type ReceiverExceptionEventArgs(ex:Exception) =
+    inherit EventArgs()
+    member this.Exception = ex
+    
+type ExceptionRaised = delegate of obj * ReceiverExceptionEventArgs -> unit
+
 type ReceiverDefaults() =
   interface ReceiverSettings with
     member x.Concurrency = 1u
@@ -77,6 +83,8 @@ type Receiver(desc   : QueueDescription,
   /// The 'scratch' buffer that tunnels messages from the ASB receivers
   /// to the consumers of the Receiver class.
   let messages = new BlockingCollection<_>(int <| sett.BufferSize)
+  
+  let error  = new Event<ExceptionRaised, ReceiverExceptionEventArgs>()
 
   /// Creates a new child token from the parent cancellation token source
   let childTokenFrom ( cts : CancellationTokenSource ) =
@@ -135,7 +143,9 @@ type Receiver(desc   : QueueDescription,
     async {
       for Pair(mf, rs) in pairs do
         for r in rs do 
-          Async.Start(r |> worker, token) }
+          match Async.Start(Async.Catch(r |> worker), token) with
+          | Choice1Of2 () -> ()
+          | Choice2Of2 ex -> error.Trigger( }
 
   /// cleans out the message buffer and disposes all messages therein
   let clearLocks () =
@@ -192,117 +202,122 @@ type Receiver(desc   : QueueDescription,
   /// 
   let a = Agent<RecvMsg>.Start(fun inbox ->
 
-      let rec initial () =
-        async {
-          logger.Debug "initial"
-          let! msg = inbox.Receive ()
-          match msg with
-          | Start ->
-            // create WorkerState for initial subscription (that of the queue)
-            // and move to the started state
-            let! rSet = initReceiverSet' newReceiver desc
-            let mappedRSet = Map.empty |> Map.add desc (new CancellationTokenSource(), rSet)
-            return! starting { QSubs = mappedRSet ; TSubs = Map.empty }
-          | Halt(chan) -> return! halted { QSubs = Map.empty; TSubs = Map.empty } chan
-          | _ ->
-            // because we only care about the Start message in the initial state,
-            // we will ignore all other messages.
-            return! initial () }
+    let rec initial () =
+      async {
+        logger.Debug "initial"
+        let! msg = inbox.Receive ()
+        match msg with
+        | Start ->
+          // create WorkerState for initial subscription (that of the queue)
+          // and move to the started state
+          let! rSet = initReceiverSet' newReceiver desc
+          let mappedRSet = Map.empty |> Map.add desc (new CancellationTokenSource(), rSet)
+          return! starting { QSubs = mappedRSet ; TSubs = Map.empty }
+        | Halt(chan) -> return! halted { QSubs = Map.empty; TSubs = Map.empty } chan
+        | _ ->
+          // because we only care about the Start message in the initial state,
+          // we will ignore all other messages.
+          return! initial () }
 
-      and starting state =
-        async {
-          logger.Debug "starting"
-          do! desc |> create nm
-          use ct = new CancellationTokenSource ()
-          // start all subscriptions
-          state.QSubs
-          |> Seq.map (fun x -> x.Value)
-          |> Seq.append (state.TSubs |> Seq.map(fun x -> let (sd,cts,rs) = x.Value in cts,rs))
-          |> Seq.collect (fun ctsAndRs -> snd ctsAndRs)
-          |> Seq.collect (fun (Pair(_, rs)) -> rs)
-          |> Seq.iter (fun r -> Async.Start(r |> worker, ct.Token))
-          return! started state ct }
+    and starting state =
+      async {
+        logger.Debug "starting"
+        do! desc |> create nm
+        use ct = new CancellationTokenSource ()
+        // start all subscriptions
+        state.QSubs
+        |> Seq.map (fun x -> x.Value)
+        |> Seq.append (state.TSubs |> Seq.map(fun x -> let (sd,cts,rs) = x.Value in cts,rs))
+        |> Seq.collect (fun ctsAndRs -> snd ctsAndRs)
+        |> Seq.collect (fun (Pair(_, rs)) -> rs)
+        |> Seq.iter (fun r -> Async.Start(r |> worker, ct.Token))
+        return! started state ct }
 
-      and started state cts =
-        async {
-          logger.DebugFormat("started '{0}'", desc.Path)
-          let! msg = inbox.Receive()
-          match msg with
-          | Pause ->
-            cts.Cancel() 
-            return! paused state
+    and started state cts =
+      async {
+        logger.DebugFormat("started '{0}'", desc.Path)
+        let! msg = inbox.Receive()
+        match msg with
+        | Pause ->
+          cts.Cancel() 
+          return! paused state
 
-          | Halt(chan) ->
-            logger.DebugFormat("halt '{0}'", desc.Path)
-            cts.Cancel()
-            logger.DebugFormat("moving to halted state '{0}'", desc.Path)
-            return! halted state chan
+        | Halt(chan) ->
+          logger.DebugFormat("halt '{0}'", desc.Path)
+          cts.Cancel()
+          logger.DebugFormat("moving to halted state '{0}'", desc.Path)
+          return! halted state chan
 
-          | SubscribeQueue(qd, cc) ->
-            logger.DebugFormat("SubscribeQueue '{0}'", qd.Path)
-            do! qd |> create nm
-            // create new receiver sets for the queue description and kick them off as workflows
-            let childAsyncCts = childTokenFrom cts // get a new child token to control the computation with
-            let! recvSet = initReceiverSet' newReceiver qd // initialize the receivers and potentially new messaging factories
-            do! childAsyncCts |> getToken |> startPairsAsync recvSet // start the actual async workflow
-            let qsubs' = state.QSubs.Add(qd, (childAsyncCts, recvSet)) // update the subscriptions mapping, from description to cts*ReceiverSet list.
-            return! started { QSubs = qsubs' ; TSubs = state.TSubs } cts
+        | SubscribeQueue(qd, cc) ->
+          logger.DebugFormat("SubscribeQueue '{0}'", qd.Path)
+          do! qd |> create nm
+          // create new receiver sets for the queue description and kick them off as workflows
+          let childAsyncCts = childTokenFrom cts // get a new child token to control the computation with
+          let! recvSet = initReceiverSet' newReceiver qd // initialize the receivers and potentially new messaging factories
+          do! childAsyncCts |> getToken |> startPairsAsync recvSet // start the actual async workflow
+          let qsubs' = state.QSubs.Add(qd, (childAsyncCts, recvSet)) // update the subscriptions mapping, from description to cts*ReceiverSet list.
+          return! started { QSubs = qsubs' ; TSubs = state.TSubs } cts
 
-          | UnsubscribeQueue qd ->
-            logger.Warn "SKIP:UnsubscribeQueue (TODO - do we even need this?)"
+        | UnsubscribeQueue qd ->
+          logger.Warn "SKIP:UnsubscribeQueue (TODO - do we even need this?)"
+          return! started state cts
+
+        | SubscribeTopic(td, cc) ->
+          logger.DebugFormat("SubscribeTopic '{0}'", td.Path)
+          let childAsyncCts = childTokenFrom cts
+          let! sub = td |> Topic.subscribe nm receiverName
+          let! pairs = initReceiverSet' (Topic.newReceiver sub) td
+          do! childAsyncCts |> getToken |> startPairsAsync pairs
+          let tsubs' = state.TSubs.Add(td, ((fun () -> sub |> Topic.unsubscribe nm td), childAsyncCts, pairs))
+          return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
+
+        | UnsubscribeTopic td ->
+          logger.DebugFormat("UnsubscribeTopic '{0}'", td.Path)
+          match state.TSubs.TryFind td with
+          | None -> 
+            logger.WarnFormat("Called UnsubscribeTopic('{0}') on non-subscribed topic!", td.Path) 
             return! started state cts
 
-          | SubscribeTopic(td, cc) ->
-            logger.DebugFormat("SubscribeTopic '{0}'", td.Path)
-            let childAsyncCts = childTokenFrom cts
-            let! sub = td |> Topic.subscribe nm receiverName
-            let! pairs = initReceiverSet' (Topic.newReceiver sub) td
-            do! childAsyncCts |> getToken |> startPairsAsync pairs
-            let tsubs' = state.TSubs.Add(td, ((fun () -> sub |> Topic.unsubscribe nm td), childAsyncCts, pairs))
+          | Some( unsubscribe, childCts, recvSet ) ->
+            childCts.Cancel()
+            recvSet |> List.iter (fun set -> closePair set)
+            let tsubs' = state.TSubs.Remove(td)
+            do! unsubscribe ()
             return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
 
-          | UnsubscribeTopic td ->
-            logger.DebugFormat("UnsubscribeTopic '{0}'", td.Path)
-            match state.TSubs.TryFind td with
-            | None -> 
-              logger.WarnFormat("Called UnsubscribeTopic('{0}') on non-subscribed topic!", td.Path) 
-              return! started state cts
+        | Start -> return! started state cts }
 
-            | Some( unsubscribe, childCts, recvSet ) ->
-              childCts.Cancel()
-              recvSet |> List.iter (fun set -> closePair set)
-              let tsubs' = state.TSubs.Remove(td)
-              do! unsubscribe ()
-              return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
+    and paused state =
+      async {
+        logger.DebugFormat("paused '{0}'", desc.Path)
+        let! msg = inbox.Receive()
+        match msg with
+        | Start -> return! starting state
+        | Halt(chan) -> return! halted state chan
+        | _ as x -> logger.Warn(sprintf "got %A, despite being paused" x) }
 
-          | Start -> return! started state cts }
+    and halted state chan =
+      async {
+        logger.DebugFormat("halted '{0}'", desc.Path)
+        let subs =
+          asyncSeq {
+           for x in (state.QSubs |> Seq.collect (fun x -> snd x.Value))
+             do yield x
+           for x in (state.TSubs |> Seq.collect (fun x -> let (s,cts,rs) = x.Value in rs)) do
+             yield x }
+        for rs in subs do
+          closePair rs
+        for unsub in state.TSubs |> Seq.map (fun x -> let (s, _, _) = x.Value in s) do
+          do! unsub ()
+        do! clearLocks ()
+        // then exit
+        chan.Reply() }
+    initial ())
+  
+  do a.Error.Add(fun ex -> error.Trigger(x, new ReceiverExceptionEventArgs(ex)))
 
-      and paused state =
-        async {
-          logger.DebugFormat("paused '{0}'", desc.Path)
-          let! msg = inbox.Receive()
-          match msg with
-          | Start -> return! starting state
-          | Halt(chan) -> return! halted state chan
-          | _ as x -> logger.Warn(sprintf "got %A, despite being paused" x) }
-
-      and halted state chan =
-        async {
-          logger.DebugFormat("halted '{0}'", desc.Path)
-          let subs =
-            asyncSeq {
-             for x in (state.QSubs |> Seq.collect (fun x -> snd x.Value))
-               do yield x
-             for x in (state.TSubs |> Seq.collect (fun x -> let (s,cts,rs) = x.Value in rs)) do
-               yield x }
-          for rs in subs do
-            closePair rs
-          for unsub in state.TSubs |> Seq.map (fun x -> let (s, _, _) = x.Value in s) do
-            do! unsub ()
-          do! clearLocks ()
-          // then exit
-          chan.Reply() }
-      initial ())
+  [<CLIEvent>]
+  member __.Error = error.Publish
 
   /// Starts the receiver which starts the consuming from the service bus
   /// and creates the queue if it doesn't exist

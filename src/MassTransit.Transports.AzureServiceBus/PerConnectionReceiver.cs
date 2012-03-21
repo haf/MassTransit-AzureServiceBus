@@ -50,6 +50,7 @@ namespace MassTransit.Transports.AzureServiceBus
 				return;
 			
 			_receiver = ReceiverModule.StartReceiver(_address, _settings);
+			_receiver.Error += (sender, args) => _logger.Error("Error from receiver", args.Exception);
 			_onBound(_receiver);
 		}
 
