@@ -213,15 +213,19 @@ type Receiver(desc   : QueueDescription,
     let rec initial () =
       async {
         logger.Debug "initial"
+        let emptyState = { QSubs = Map.empty; TSubs = Map.empty }
         let! msg = inbox.Receive ()
         match msg with
         | Start ->
           // create WorkerState for initial subscription (that of the queue)
           // and move to the started state
-          let! rSet = initReceiverSet' newReceiver desc
-          let mappedRSet = Map.empty |> Map.add desc (new CancellationTokenSource(), rSet)
-          return! starting { QSubs = mappedRSet ; TSubs = Map.empty }
-        | Halt(chan) -> return! halting { QSubs = Map.empty; TSubs = Map.empty } (Some(chan))
+          try let! rSet = initReceiverSet' newReceiver desc
+              let mappedRSet = Map.empty |> Map.add desc (new CancellationTokenSource(), rSet)
+              return! starting { QSubs = mappedRSet ; TSubs = Map.empty }
+          with e -> return! asyncFaulted emptyState
+          
+        | Halt(chan) -> return! halting emptyState (Some(chan))
+
         | _ ->
           // because we only care about the Start message in the initial state,
           // we will ignore all other messages.
