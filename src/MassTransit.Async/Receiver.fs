@@ -42,6 +42,7 @@ type RecvMsg =
   | UnsubscribeQueue of QueueDescription
   | SubscribeTopic of TopicDescription * Concurrency
   | UnsubscribeTopic of TopicDescription
+  | AsyncFaultOccurred of exn
 
 /// State-keeping structure, mapping a description to a pair of cancellation token source and
 /// receiver set list. The CancellationTokenSource can be used to stop the subscription that
@@ -183,21 +184,27 @@ type Receiver(desc   : QueueDescription,
   /// * Starting (getting all messaging factories and receivers up and running)
   /// * Started (main message loop)
   /// * Paused (cancelling all async workflows)
-  /// * Halted (closing things)
+  /// * AsyncFaulted (something in some asynchronous threw an exception, and we need to be aware of this!)
+  /// * Halting (closing things)
+  /// * Halted (listening for the Halt message, or if that was what shut the actor down, simply replies on it)
   /// * Final (implicit; reference is GCed)
   /// 
   /// with transitions:
   /// -----------------
   /// Initial -> Starting
-  /// Initial -> Halted
+  /// Initial -> Halting
   /// 
   /// Starting -> Started
   /// 
   /// Started -> Paused
-  /// Started -> Halted
+  /// Started -> Halting
   /// 
   /// Paused -> Starting
-  /// Paused -> Halted
+  /// Paused -> Halting
+  ///
+  /// AsyncFaulted -> Halting
+  ///
+  /// Halting -> Halted
   /// 
   /// Halted -> Final (GC-ed here)
   /// 
@@ -214,7 +221,7 @@ type Receiver(desc   : QueueDescription,
           let! rSet = initReceiverSet' newReceiver desc
           let mappedRSet = Map.empty |> Map.add desc (new CancellationTokenSource(), rSet)
           return! starting { QSubs = mappedRSet ; TSubs = Map.empty }
-        | Halt(chan) -> return! halted { QSubs = Map.empty; TSubs = Map.empty } chan
+        | Halt(chan) -> return! halting { QSubs = Map.empty; TSubs = Map.empty } (Some(chan))
         | _ ->
           // because we only care about the Start message in the initial state,
           // we will ignore all other messages.
@@ -240,14 +247,14 @@ type Receiver(desc   : QueueDescription,
         let! msg = inbox.Receive()
         match msg with
         | Pause ->
-          cts.Cancel() 
+          cts.Cancel()
           return! paused state
 
         | Halt(chan) ->
           logger.DebugFormat("halt '{0}'", desc.Path)
-          cts.Cancel()
+          cts.Cancel() // may throw!
           logger.DebugFormat("moving to halted state '{0}'", desc.Path)
-          return! halted state chan
+          return! halting state (Some(chan))
 
         | SubscribeQueue(qd, cc) ->
           logger.DebugFormat("SubscribeQueue '{0}'", qd.Path)
@@ -286,7 +293,11 @@ type Receiver(desc   : QueueDescription,
             do! unsubscribe ()
             return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
 
-        | Start -> return! started state cts }
+        | Start -> return! started state cts
+        
+        | AsyncFaultOccurred(ex) ->
+          logger.Error("asynchronous error from actor", ex)
+          return! asyncFaulted state }
 
     and paused state =
       async {
@@ -294,12 +305,14 @@ type Receiver(desc   : QueueDescription,
         let! msg = inbox.Receive()
         match msg with
         | Start -> return! starting state
-        | Halt(chan) -> return! halted state chan
+        | Halt(chan) -> return! halting state (Some(chan))
         | _ as x -> logger.Warn(sprintf "got %A, despite being paused" x) }
 
-    and halted state chan =
+    and asyncFaulted state = async { return! halting state None }
+
+    and halting state (mChan : AsyncReplyChannel<unit> option) =
       async {
-        logger.DebugFormat("halted '{0}'", desc.Path)
+        logger.DebugFormat("halting '{0}'", desc.Path)
         let subs =
           asyncSeq {
            for x in (state.QSubs |> Seq.collect (fun x -> snd x.Value))
@@ -307,17 +320,31 @@ type Receiver(desc   : QueueDescription,
            for x in (state.TSubs |> Seq.collect (fun x -> let (s,cts,rs) = x.Value in rs)) do
              yield x }
         try
-          for rs in subs do
-            closePair rs
+          // let's do unsubscriptions first, and then Close can fail as much as it wants!
           for unsub in state.TSubs |> Seq.map (fun x -> let (s, _, _) = x.Value in s) do
             do! unsub ()
+          for rs in subs do
+            closePair rs
           do! clearLocks ()
         with e -> logger.Error("unable to clean up actor", e)
         // then exit
-        chan.Reply() }
+        logger.DebugFormat("halting complete", desc.Path)
+        return! halted mChan }
+      
+    and halted mChan =
+      async {
+        match mChan with
+        | None ->
+          let! m = inbox.Receive()
+          match m with
+          | Halt(chan) -> chan.Reply()
+          | _ -> return! halted None
+        | Some(chan) -> chan.Reply() }
+
     initial ())
   
   do a.Error.Add(fun ex -> error.Trigger(x, new ReceiverExceptionEventArgs(ex)))
+  do a.Error.Add(fun ex -> a.Post <| AsyncFaultOccurred ex)
 
   [<CLIEvent>]
   member __.Error = error.Publish
