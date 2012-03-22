@@ -9,3 +9,4 @@ AccountDetails.fs
 csx/
 Profiles/
 ServiceConfiguration.Cloud.cscfg
+TestResult.xml

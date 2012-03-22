@@ -131,18 +131,22 @@ type Receiver(desc   : QueueDescription,
     async {
       while true do
         //logger.Debug "worker loop"
-        try
-          let! bmsg = sett.ReceiveTimeout |> recv client
-          if bmsg <> null then
-            logger.Debug(sprintf "received message on '%s'" (desc.ToString()))
-            messages.Add bmsg
-        with e -> error.Trigger(x, new ReceiverExceptionEventArgs(e)) }
+        let! bmsg = sett.ReceiveTimeout |> recv client
+        if bmsg <> null then
+          logger.Debug(sprintf "received message on '%s'" (desc.ToString()))
+          messages.Add bmsg }
           
   let startPairsAsync pairs token =
-    async {
-      for Pair(mf, rs) in pairs do
-        for r in rs do 
-          Async.Start ((r |> worker), token) }
+    let work =
+      [ for Pair(mf, rs) in pairs do
+          for r in rs do 
+            yield async {
+              try do! worker r
+              with e -> error.Trigger(x, new ReceiverExceptionEventArgs(e)) } ]
+      |> Async.Parallel
+      |> Async.Ignore
+
+    Async.Start(work, token)
 
   /// cleans out the message buffer and disposes all messages therein
   let clearLocks () =
@@ -251,7 +255,7 @@ type Receiver(desc   : QueueDescription,
           // create new receiver sets for the queue description and kick them off as workflows
           let childAsyncCts = childTokenFrom cts // get a new child token to control the computation with
           let! recvSet = initReceiverSet' newReceiver qd // initialize the receivers and potentially new messaging factories
-          do! childAsyncCts |> getToken |> startPairsAsync recvSet // start the actual async workflow
+          do childAsyncCts |> getToken |> startPairsAsync recvSet // start the actual async workflow
           let qsubs' = state.QSubs.Add(qd, (childAsyncCts, recvSet)) // update the subscriptions mapping, from description to cts*ReceiverSet list.
           return! started { QSubs = qsubs' ; TSubs = state.TSubs } cts
 
@@ -264,7 +268,7 @@ type Receiver(desc   : QueueDescription,
           let childAsyncCts = childTokenFrom cts
           let! sub = td |> Topic.subscribe nm receiverName
           let! pairs = initReceiverSet' (Topic.newReceiver sub) td
-          do! childAsyncCts |> getToken |> startPairsAsync pairs
+          do childAsyncCts |> getToken |> startPairsAsync pairs
           let tsubs' = state.TSubs.Add(td, ((fun () -> sub |> Topic.unsubscribe nm td), childAsyncCts, pairs))
           return! started { QSubs = state.QSubs ; TSubs = tsubs' } cts
 
