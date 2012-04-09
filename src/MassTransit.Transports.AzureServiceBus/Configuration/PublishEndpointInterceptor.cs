@@ -15,7 +15,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		readonly ServiceBus _bus;
 		readonly IMessageNameFormatter _formatter;
 		readonly AzureServiceBusEndpointAddress _address;
-		readonly Dictionary<Type, MassTransit.UnsubscribeAction> _added;
+		readonly Dictionary<Type, UnsubscribeAction> _added;
 
 		public PublishEndpointInterceptor([NotNull] ServiceBus bus)
 		{
@@ -31,7 +31,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 
 			_formatter = inbound.MessageNameFormatter;
 			_address = inbound.Address.CastAs<AzureServiceBusEndpointAddress>();
-			_added = new Dictionary<Type, MassTransit.UnsubscribeAction>();
+			_added = new Dictionary<Type, UnsubscribeAction>();
 		}
 
 		void IOutboundMessageInterceptor.PreDispatch(ISendContext context)
