@@ -49,12 +49,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\AzureManagementEndpointManagement.cs" />
     <Compile Include="Configuration\Credentials.cs" />
     <Compile Include="Configuration\EndpointFactoryConfiguratorExtensions.cs" />
     <Compile Include="Configuration\AzureServiceBusServiceBusExtensions.cs" />
     <Compile Include="Configuration\AzureServiceBusFactoryConfiguratorImpl.cs" />
     <Compile Include="Configuration\PreSharedKeyCredentials.cs" />
     <Compile Include="Configuration\ReceiverSettingsImpl.cs" />
+    <Compile Include="Configuration\PublishEndpointInterceptor.cs" />
+    <Compile Include="Configuration\PublishEndpointSinkLocator.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="Properties\InternalsVisibleTo.cs" />
