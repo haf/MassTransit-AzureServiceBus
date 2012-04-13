@@ -59,7 +59,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 
 			configurator.AddBusConfigurator(busConf);
 
-			configurator.UseAzureServiceBus();
+			// configurator.UseAzureServiceBus();
 		}
 	}
 

@@ -54,6 +54,7 @@
     <Compile Include="Configuration\AzureServiceBusServiceBusExtensions.cs" />
     <Compile Include="Configuration\AzureServiceBusFactoryConfiguratorImpl.cs" />
     <Compile Include="Configuration\PreSharedKeyCredentials.cs" />
+    <Compile Include="Configuration\ReceiverSettingsImpl.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="Properties\InternalsVisibleTo.cs" />
@@ -93,7 +94,6 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
