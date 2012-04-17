@@ -79,5 +79,10 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		/// Sets the name for subscriptions.
 		/// </summary>
 		void SetReceiverName(string name);
+
+		/// <summary>
+		/// Sets the timeout for receiving a message using a single operation.
+		/// </summary>
+		void SetReceiveTimeout(TimeSpan timeout);
 	}
 }
