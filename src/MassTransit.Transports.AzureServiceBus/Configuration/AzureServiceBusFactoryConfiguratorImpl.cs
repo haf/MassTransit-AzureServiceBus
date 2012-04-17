@@ -30,6 +30,11 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
         {
         }
 
+        public void SetReceiveTimeout(TimeSpan timeout)
+        {
+            _settings.ReceiveTimeout = timeout;
+        }
+
         public void SetReceiverName(string name)
         {
             _settings.ReceiverName = name;

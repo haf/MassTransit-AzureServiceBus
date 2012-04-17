@@ -14,14 +14,10 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
             ReceiverName = NameHelper.GenerateRandomName();
         }
 
-        #region Implementation of ReceiverSettings
-
         public uint Concurrency { get; set; }
         public uint BufferSize { get; set; }
         public uint NThAsync { get; set; }
         public TimeSpan ReceiveTimeout { get; set; }
         public string ReceiverName { get; set; }
-
-        #endregion
     }
 }
