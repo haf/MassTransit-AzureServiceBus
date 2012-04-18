@@ -243,7 +243,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		#endregion
 	}
 
-	[Integration, Category("PolymorphicRouting")]
+	[Integration, Category("PolymorphicRouting"), Ignore("Next up for implementation!")]
 	public class When_publishing_subtype_interfaces_single_publish_and_subscribing_supertype
 		: EndpointTestFixture<TransportFactoryImpl>
 	{
