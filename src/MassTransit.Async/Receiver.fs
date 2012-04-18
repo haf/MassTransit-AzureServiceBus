@@ -63,22 +63,13 @@ type ReceiverExceptionEventArgs(ex:Exception) =
     
 type ExceptionRaised = delegate of obj * ReceiverExceptionEventArgs -> unit
 
-type ReceiverDefaults() =
-  interface ReceiverSettings with
-    member x.Concurrency = 1u
-    member x.BufferSize = 1000u
-    member x.NThAsync = 5u
-    member x.ReceiveTimeout = TimeSpan.FromMilliseconds 50.0
-
 /// Create a new receiver, with a queue description,
 /// a factory for messaging factories and some control flow data
 type Receiver(desc   : QueueDescription,
               newMf  : (unit -> MessagingFactory),
               nm     : NamespaceManager,
-              receiverName : string,
-              ?settings : ReceiverSettings) as x =
+              sett : ReceiverSettings) as x =
 
-  let sett = defaultArg settings (ReceiverDefaults() :> ReceiverSettings)
   let logger = MassTransit.Logging.Logger.Get(typeof<Receiver>)
 
   /// The 'scratch' buffer that tunnels messages from the ASB receivers
@@ -277,7 +268,8 @@ type Receiver(desc   : QueueDescription,
         | SubscribeTopic(td, cc) ->
           logger.DebugFormat("SubscribeTopic '{0}'", td.Path)
           let childAsyncCts = childTokenFrom cts
-          let! sub = td |> Topic.subscribe nm receiverName
+          let sub = sett.ReceiverName
+          do! td |> Topic.subscribe nm sub
           let! pairs = initReceiverSet' (Topic.newReceiver sub) td
           do childAsyncCts |> getToken |> startPairsAsync pairs
           let tsubs' = state.TSubs.Add(td, ((fun () -> sub |> Topic.unsubscribe nm td), childAsyncCts, pairs))
@@ -389,17 +381,10 @@ type Receiver(desc   : QueueDescription,
       a.PostAndReply(fun chan -> Halt(chan))
 
 type ReceiverModule =
-  /// <code>address</code> is required. <code>settings</code> is optional.
+  /// <code>address</code> is required. <code>settings</code> is required.
   static member StartReceiver(address  : AzureServiceBusEndpointAddress,
                               settings : ReceiverSettings) =
-    
-    match settings with 
-    | null -> let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()),
-                                   address.NamespaceManager, NameHelper.GenerateRandomName())
-              r.Start ()
-              r
-    | _    -> let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()),
-                                   address.NamespaceManager, NameHelper.GenerateRandomName(),
-                                   settings)
-              r.Start ()
-              r
+    let r = new Receiver(address.QueueDescription, (fun () -> address.MessagingFactoryFactory.Invoke()),
+                                   address.NamespaceManager, settings)
+    r.Start ()
+    r

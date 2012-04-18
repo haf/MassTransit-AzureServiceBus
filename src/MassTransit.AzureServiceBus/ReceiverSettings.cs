@@ -17,7 +17,7 @@ using MassTransit.Util;
 namespace MassTransit.AzureServiceBus
 {
 	/// <summary>
-	/// Receiver specific settings; value object.
+	/// Receiver specific settings
 	/// </summary>
 	[UsedImplicitly] // from f#
 	public interface ReceiverSettings
@@ -42,5 +42,10 @@ namespace MassTransit.AzureServiceBus
 		/// Gets the receive timeout passed to the service bus library.
 		/// </summary>
 		TimeSpan ReceiveTimeout { get;  }
+
+        /// <summary>
+        /// Gets the receiver name.
+        /// </summary>
+        string ReceiverName { get; }
 	}
 }

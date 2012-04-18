@@ -34,7 +34,6 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
-
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Retries.fsx" />
@@ -55,11 +54,15 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit">
-      <HintPath>..\packages\MassTransit.2.1.0-prerelease\lib\net40\MassTransit.dll</HintPath>
+      <HintPath>..\packages\MassTransit.2.1.1\lib\net40\MassTransit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit.NLogIntegration">
-      <HintPath>..\packages\MassTransit.NLog.2.1.0-prerelease\lib\net40\MassTransit.NLogIntegration.dll</HintPath>
+      <HintPath>..\packages\MassTransit.NLog.2.1.1\lib\net40\MassTransit.NLogIntegration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MassTransit.Transports.Msmq">
+      <HintPath>..\packages\MassTransit.2.1.1\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus">
@@ -73,15 +76,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.5.9.10348\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.mocks">
-      <HintPath>..\packages\NUnit.2.5.9.10348\lib\nunit.mocks.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="pnunit.framework">
-      <HintPath>..\packages\NUnit.2.5.9.10348\lib\pnunit.framework.dll</HintPath>
+      <HintPath>..\packages\NUnit.2.6.0.12054\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

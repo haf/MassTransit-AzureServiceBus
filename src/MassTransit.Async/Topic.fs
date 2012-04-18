@@ -37,6 +37,10 @@ module Topic =
   let exists (nm : NamespaceManager ) (desc : PathBasedEntity) = 
     asyncRetry { return! Async.FromBeginEnd(desc.Path, nm.BeginTopicExists, nm.EndTopicExists) }
 
+  [<Extension;CompiledName("SubscriptionExists")>]
+  let subexists (nm : NamespaceManager ) (desc : PathBasedEntity) (sub : string) = 
+    asyncRetry { return! Async.FromBeginEnd(desc.Path, sub, nm.BeginSubscriptionExists, nm.EndSubscriptionExists) }
+
   [<Extension;CompiledName("Create")>]
   let create (nm : NamespaceManager) (desc : TopicDescription) = 
     let rec create' () =
@@ -61,15 +65,22 @@ module Topic =
 
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Subscribe")>]
-  let subscribe (nm : NamespaceManager) (subName : string) (desc : TopicDescription)  : Async<SubscriptionDescription> =
+  let subscribe (nm : NamespaceManager) (subName : string) (desc : TopicDescription)  : Async<unit> =
     asyncRetry {
-      do! create nm desc
-      let beginCreate = nm.BeginCreateSubscription : string * string * AsyncCallback * obj -> IAsyncResult
-      return! Async.FromBeginEnd(desc.Path, subName, beginCreate, nm.EndCreateSubscription) }
+      let! exists = subName |> subexists nm desc
+      if exists then return ()
+      else
+          do! create nm desc
+          let beginCreate = nm.BeginCreateSubscription : string * string * AsyncCallback * obj -> IAsyncResult
+          try
+            let! sub = Async.FromBeginEnd(desc.Path, subName, beginCreate, nm.EndCreateSubscription)
+            return ()
+          with
+            | :? MessagingEntityAlreadyExistsException -> return () }
 
-  let newReceiver (sub : SubscriptionDescription) (mf : MessagingFactory) (desc : PathBasedEntity) =
+  let newReceiver (sub : string) (mf : MessagingFactory) (desc : PathBasedEntity) =
      async {
-      let wrapped = mf.CreateSubscriptionClient(desc.Path, sub.Name)
+      let wrapped = mf.CreateSubscriptionClient(desc.Path, sub)
       return { new MessageReceiver with 
                    member x.BeginReceive(timeout, callback, state) =
                      wrapped.BeginReceive(timeout, callback, state)
@@ -80,6 +91,6 @@ module Topic =
                    member x.Close () =
                      wrapped.Close() } }
 
-  let unsubscribe (nm : NamespaceManager) (desc : TopicDescription) (sub : SubscriptionDescription) =
+  let unsubscribe (nm : NamespaceManager) (desc : TopicDescription) (sub : string) =
     asyncRetry {
-      do! Async.FromBeginEnd(desc.Path, sub.Name, nm.BeginDeleteSubscription, nm.EndDeleteSubscription) }
+      do! Async.FromBeginEnd(desc.Path, sub, nm.BeginDeleteSubscription, nm.EndDeleteSubscription) }
