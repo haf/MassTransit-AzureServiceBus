@@ -5,6 +5,7 @@ using MassTransit.AzureServiceBus;
 using MassTransit.AzureServiceBus.Util;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
+using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Management;
 
 namespace MassTransit.Transports.AzureServiceBus
@@ -19,11 +20,21 @@ namespace MassTransit.Transports.AzureServiceBus
 		private readonly AzureMessageNameFormatter _formatter;
 		private bool _disposed;
 
+		private readonly ReceiverSettings _settings;
+
 		public TransportFactoryImpl()
+			: this(new ReceiverSettingsImpl())
+		{
+			
+		}
+
+		public TransportFactoryImpl(ReceiverSettings settings)
 		{
 			_addresses = new ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress>();
 			_connCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>>();
 			_formatter = new AzureMessageNameFormatter();
+
+			_settings = settings;
 
 			_logger.Debug("created new transport factory");
 		}
@@ -65,8 +76,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			var client = GetConnection(address);
 
-			return new InboundTransportImpl(address, client,
-				new AzureManagementImpl(settings.PurgeExistingMessages, address), MessageNameFormatter);
+			return new InboundTransportImpl(address, client, new AzureManagementImpl(settings.PurgeExistingMessages, address), MessageNameFormatter, _settings);
 		}
 
 		public virtual IOutboundTransport BuildOutbound(ITransportSettings settings)
@@ -100,7 +110,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 			if (address.Scheme != Scheme)
 				throw new EndpointException(address,
-				                            string.Format("Address must start with 'stomp' not '{0}'", address.Scheme));
+											string.Format("Address must start with 'stomp' not '{0}'", address.Scheme));
 		}
 
 		private ConnectionHandler<ConnectionImpl> GetConnection(AzureServiceBusEndpointAddress address)

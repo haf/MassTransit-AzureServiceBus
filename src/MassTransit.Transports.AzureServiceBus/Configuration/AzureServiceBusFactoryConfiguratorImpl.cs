@@ -1,14 +1,17 @@
 ﻿using System;
+using MassTransit.AzureServiceBus;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
 	public class AzureAzureServiceBusFactoryConfiguratorImpl
 		: AzureServiceBusFactoryConfigurator
 	{
+		private readonly ReceiverSettingsImpl _settings = new ReceiverSettingsImpl();
+
 		public ITransportFactory Build()
 		{
 			//var tokenProvider = ConfigFactory.CreateTokenProvider();
-			return new TransportFactoryImpl();
+			return new TransportFactoryImpl(_settings);
 		}
 
 		public void SetLockDuration(TimeSpan lockDuration)
@@ -25,6 +28,16 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 
 		public void SetBatchedOperations(bool enabled)
 		{
+		}
+
+		public void SetReceiveTimeout(TimeSpan timeout)
+		{
+			_settings.ReceiveTimeout = timeout;
+		}
+
+		public void SetReceiverName(string name)
+		{
+			_settings.ReceiverName = name;
 		}
 	}
 
@@ -61,5 +74,15 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		/// topics and queues.
 		/// </summary>
 		void SetBatchedOperations(bool enabled);
+
+		/// <summary>
+		/// Sets the name for subscriptions.
+		/// </summary>
+		void SetReceiverName(string name);
+
+		/// <summary>
+		/// Sets the timeout for receiving a message using a single operation.
+		/// </summary>
+		void SetReceiveTimeout(TimeSpan timeout);
 	}
 }

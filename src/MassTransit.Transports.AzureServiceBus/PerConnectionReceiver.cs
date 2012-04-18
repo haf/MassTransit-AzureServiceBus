@@ -28,7 +28,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 		public PerConnectionReceiver(
 			[NotNull] AzureServiceBusEndpointAddress address, 
-			[CanBeNull] ReceiverSettings settings, 
+			[NotNull] ReceiverSettings settings, 
 			[NotNull] Action<Receiver> onBound, 
 			[NotNull] Action<Receiver> onUnbound)
 		{

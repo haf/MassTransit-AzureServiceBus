@@ -28,7 +28,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 			var tfacCfg = new AzureAzureServiceBusFactoryConfiguratorImpl();
 
 			configure(tfacCfg);
-
+            
 			configurator.AddTransportFactory(tfacCfg.Build);
 
 			configurator.UseJsonSerializer();
