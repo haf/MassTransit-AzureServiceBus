@@ -369,7 +369,7 @@ type Receiver(desc   : QueueDescription,
   /// or otherwise returns null.
   member x.Get(timeout : TimeSpan) =
     let mutable item = null
-    let _ = messages.TryTake(&item, timeout.Milliseconds)
+    let _ = messages.TryTake(&item, timeout)
     item
 
   member x.Consume() = asyncSeq { while true do yield messages.Take() }
