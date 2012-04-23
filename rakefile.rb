@@ -13,6 +13,7 @@ task :ensure_account_details do
   unless File.exists? targ then ; FileUtils.cp 'build_support/ServiceConfiguration.Cloud.cscfg', targ ; end
 end
 
+desc "Ensure that all NuGet packages are here"
 task :ensure_packages do
   Dir.glob("./src/**/packages.config") do |cfg|
     sh %Q[src/.nuget/NuGet.exe install "#{cfg}" -o "src/packages"] do |ok, res|
@@ -21,6 +22,7 @@ task :ensure_packages do
   end
 end
 
+desc "Compile Solution"
 msbuild :compile => [:ensure_packages, :ensure_account_details] do |msb|
   msb.solution = 'src/MassTransit-AzureServiceBus.sln'
   msb.properties :Configuration => CONFIGURATION
@@ -28,7 +30,8 @@ msbuild :compile => [:ensure_packages, :ensure_account_details] do |msb|
   msb.verbosity = "minimal"
 end
 
-nunit :test => [:ensure_account_details, :release] do |n|
+desc "Run Tests"
+nunit :test => [:ensure_account_details, :release, :compile] do |n|
   asms = Dir.glob("#{File.dirname(__FILE__)}/src/MassTransit.*.Tests/bin/#{CONFIGURATION}/*.Tests.dll")
   puts "Running nunit with assemblies: #{asms.inspect}"
   n.command = Dir.glob("#{File.dirname(__FILE__)}/src/packages/NUnit*/Tools/nunit-console.exe").first
@@ -36,4 +39,5 @@ nunit :test => [:ensure_account_details, :release] do |n|
   n.options '/framework=net-4.0'
 end
 
+desc "Compile Solution, Run Tests"
 task :default => [:release, :compile, :test]
