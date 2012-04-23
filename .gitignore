@@ -11,3 +11,4 @@ build/
 Profiles/
 ServiceConfiguration.Cloud.cscfg
 TestResult.xml
+SolutionVersion.cs
