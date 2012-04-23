@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using MassTransit.Async;
 using MassTransit.AzureServiceBus;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
 	/// <summary>

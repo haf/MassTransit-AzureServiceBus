@@ -16,14 +16,22 @@ using MassTransit.AzureServiceBus.Util;
 using MassTransit.Testing.TestInstanceConfigurators;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 
+#pragma warning disable 1591
+// ReSharper disable CheckNamespace
+
 namespace MassTransit.Testing
 {
 	public static class BusTestScenarioExtensions
 	{
+		/// <summary>
+		/// Create a new testing scenario with Azure Service Bus.
+		/// Note: currently recommended to use the loopback scenario builder.
+		/// </summary>
 		public static void UseAzureServiceBusBusScenario(
-			this TestInstanceConfigurator<BusTestScenario> configurator, 
+			[NotNull] this TestInstanceConfigurator<BusTestScenario> configurator,
 			[NotNull] PreSharedKeyCredentials credentials)
 		{
+			if (configurator == null) throw new ArgumentNullException("configurator");
 			if (credentials == null) throw new ArgumentNullException("credentials");
 			configurator.UseScenarioBuilder(() => new AzureServiceBusScenarioBuilder(credentials));
 		}

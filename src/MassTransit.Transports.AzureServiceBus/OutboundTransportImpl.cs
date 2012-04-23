@@ -1,3 +1,16 @@
+// Copyright 2012 Henrik Feldt
+//  
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
+// this file except in compliance with the License. You may obtain a copy of the 
+// License at 
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0 
+// 
+// Unless required by applicable law or agreed to in writing, software distributed 
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// specific language governing permissions and limitations under the License.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,22 +20,23 @@ using Magnum.Threading;
 using MassTransit.AzureServiceBus;
 using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
-using Microsoft.ServiceBus.Messaging;
-using ILog = MassTransit.Logging.ILog;
 using MassTransit.Transports.AzureServiceBus.Internal;
+using Microsoft.ServiceBus.Messaging;
 using MessageSender = MassTransit.AzureServiceBus.MessageSender;
+
+#pragma warning disable 1591
 
 namespace MassTransit.Transports.AzureServiceBus
 {
 	/// <summary>
-	/// Outbound transport targeting the azure service bus.
+	/// 	Outbound transport targeting the azure service bus.
 	/// </summary>
 	public class OutboundTransportImpl
 		: IOutboundTransport
 	{
 		const int MaxOutstanding = 100;
 		const string BusyRetriesKey = "busy-retries";
-		static readonly ILog _logger = Logger.Get(typeof(OutboundTransportImpl));
+		static readonly ILog _logger = Logger.Get(typeof (OutboundTransportImpl));
 
 		bool _disposed;
 
@@ -35,6 +49,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		readonly AzureServiceBusEndpointAddress _address;
 
+		/// <summary>
+		/// 	c'tor
+		/// </summary>
 		public OutboundTransportImpl(
 			[NotNull] AzureServiceBusEndpointAddress address,
 			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
@@ -56,10 +73,15 @@ namespace MassTransit.Transports.AzureServiceBus
 				_address.Dispose();
 				_connectionHandler.Dispose();
 			}
-			finally { _disposed = true; }
+			finally
+			{
+				_disposed = true;
+			}
 		}
 
-		/// <summary>Gets the endpoint address this transport sends to.</summary>
+		/// <summary>
+		/// 	Gets the endpoint address this transport sends to.
+		/// </summary>
 		public IEndpointAddress Address
 		{
 			get { return _address; }
@@ -76,13 +98,13 @@ namespace MassTransit.Transports.AzureServiceBus
 						{
 							context.SerializeTo(body);
 							var bm = new BrokeredMessage(new MessageEnvelope(body.ToArray()));
-							
+
 							if (!string.IsNullOrWhiteSpace(context.CorrelationId))
 								bm.CorrelationId = context.CorrelationId;
-							
+
 							if (!string.IsNullOrWhiteSpace(context.MessageId))
 								bm.MessageId = context.MessageId;
-							
+
 							TrySendMessage(connection, bm);
 						}
 					});
@@ -94,7 +116,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			SpinWait.SpinUntil(() => _messagesInFlight < MaxOutstanding);
 
 			Address.LogBeginSend(message.MessageId);
-			
+
 			Interlocked.Increment(ref _messagesInFlight);
 
 			connection.MessageSender.BeginSend(message, ar =>
@@ -134,7 +156,7 @@ namespace MassTransit.Transports.AzureServiceBus
 		}
 
 		// call only if first time gotten server busy exception
-		private void RetryLoop(ConnectionImpl connection, BrokeredMessage bm)
+		void RetryLoop(ConnectionImpl connection, BrokeredMessage bm)
 		{
 			Address.LogSendRetryScheduled(bm.MessageId, _messagesInFlight, Interlocked.Increment(ref _sleeping));
 			// exception tells me to wait 10 seconds before retrying, so let's sleep 1 second instead,

@@ -21,9 +21,24 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 	/// </summary>
 	public interface PreSharedKeyCredentials
 	{
+		/// <summary>
+		/// Gets the issuer name as specified by Azure.
+		/// </summary>
 		string IssuerName { get; }
+		
+		/// <summary>
+		/// Gets the base64-encoded key for the service as specified by Azure.
+		/// </summary>
 		string Key { get; }
+
+		/// <summary>
+		/// Gets the namespace for the service as specified by Azure.
+		/// </summary>
 		string Namespace { get; }
+		
+		/// <summary>
+		/// What application is under authorization?
+		/// </summary>
 		string Application { get; }
 
 		/// <summary>

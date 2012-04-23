@@ -18,17 +18,22 @@ using MassTransit.AzureServiceBus;
 using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus.Management
 {
-	public class AzureManagementImpl
+	/// <summary>
+	/// Handles queue connection purging.
+	/// </summary>
+	public class PurgeImpl
 		: AzureManagement
 	{
-		static readonly ILog _logger = Logger.Get(typeof (AzureManagementImpl));
+		static readonly ILog _logger = Logger.Get(typeof (PurgeImpl));
 
 		readonly bool _purgeExistingMessages;
 		readonly AzureServiceBusEndpointAddress _address;
 
-		public AzureManagementImpl(bool purgeExistingMessages,
+		public PurgeImpl(bool purgeExistingMessages,
 			[NotNull] AzureServiceBusEndpointAddress address)
 		{
 			if (address == null)

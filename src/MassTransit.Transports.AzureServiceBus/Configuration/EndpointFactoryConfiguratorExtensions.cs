@@ -2,6 +2,8 @@ using System;
 using MassTransit.AzureServiceBus.Util;
 using MassTransit.EndpointConfigurators;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
 	public static class EndpointFactoryConfiguratorExtensions
@@ -28,7 +30,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 			var tfacCfg = new AzureAzureServiceBusFactoryConfiguratorImpl();
 
 			configure(tfacCfg);
-            
+
 			configurator.AddTransportFactory(tfacCfg.Build);
 
 			configurator.UseJsonSerializer();

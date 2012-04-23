@@ -2,6 +2,8 @@
 using MassTransit.Testing.ScenarioBuilders;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Testing
 {
 	public class AzureServiceBusScenarioBuilder
@@ -10,15 +12,8 @@ namespace MassTransit.Testing
 		public AzureServiceBusScenarioBuilder([NotNull] PreSharedKeyCredentials credentials)
 			: base(credentials.BuildUri())
 		{
-			ConfigureEndpointFactory(x =>
-				{
-					x.UseAzureServiceBus();
-				});
-
-			ConfigureBus(x =>
-				{
-					x.UseAzureServiceBusRouting();
-				});
+			ConfigureEndpointFactory(x => x.UseAzureServiceBus());
+			ConfigureBus(x => x.UseAzureServiceBusRouting());
 		}
 	}
 }

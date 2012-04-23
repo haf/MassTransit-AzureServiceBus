@@ -10,6 +10,10 @@ using MassTransit.Pipeline.Sinks;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
+	/// <summary>
+	/// Interceptor for bus.Publish calls; look in the endpoints of the bus for 
+	/// endpoints of the published message type. Highly cohesive with <see cref="PublishEndpointSinkLocator"/>.
+	/// </summary>
 	public class PublishEndpointInterceptor : IOutboundMessageInterceptor
 	{
 		readonly ServiceBus _bus;
@@ -17,6 +21,10 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		readonly AzureServiceBusEndpointAddress _address;
 		readonly Dictionary<Type, UnsubscribeAction> _added;
 
+		/// <summary>
+		/// c'tor
+		/// </summary>
+		/// <param name="bus"></param>
 		public PublishEndpointInterceptor([NotNull] ServiceBus bus)
 		{
 			if (bus == null) throw new ArgumentNullException("bus");

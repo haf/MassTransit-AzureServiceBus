@@ -11,8 +11,13 @@ using MassTransit.Async;
 using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
 using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus
 {
+	/// <summary>
+	/// implemntation, see <see cref="AzureServiceBusEndpointAddress"/>.
+	/// </summary>
 	public class AzureServiceBusEndpointAddressImpl 
 		: AzureServiceBusEndpointAddress
 	{

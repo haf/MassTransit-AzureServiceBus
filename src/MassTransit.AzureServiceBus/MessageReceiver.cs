@@ -17,6 +17,9 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace MassTransit.AzureServiceBus
 {
+	/// <summary>
+	/// Thing picking brokered messages from the network.
+	/// </summary>
 	[UsedImplicitly] // in F#
 	public interface MessageReceiver
 	{

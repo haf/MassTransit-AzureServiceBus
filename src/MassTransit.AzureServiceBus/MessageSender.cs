@@ -21,7 +21,14 @@ namespace MassTransit.AzureServiceBus
 	/// </summary>
 	public interface MessageSender : IDisposable
 	{
+		/// <summary>
+		/// Begin the asynchronous send of a message
+		/// </summary>
 		IAsyncResult BeginSend(BrokeredMessage message, AsyncCallback callback, object state);
+		
+		/// <summary>
+		/// End the asynchronous send of a message.
+		/// </summary>
 		void EndSend(IAsyncResult result);
 	}
 }

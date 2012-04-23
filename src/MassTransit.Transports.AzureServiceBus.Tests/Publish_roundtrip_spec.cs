@@ -46,7 +46,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			//PipelineViewer.Trace(LocalBus.OutboundPipeline);
 
 			// wait on the inbound to become ready so that it starts accepting subscriptions
-			LocalBus.Endpoint.InboundTransport.Receive(c => cc => { }, TimeSpan.MaxValue);
+			LocalBus.Endpoint.InboundTransport.Receive(c => cc => { }, 1.Milliseconds());
 
 			LocalBus.Publish(new A
 				{

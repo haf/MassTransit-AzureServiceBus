@@ -2,8 +2,13 @@ using System;
 using System.Runtime.Serialization;
 using MassTransit.AzureServiceBus;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus
 {
+	/// <summary>
+	/// See <see cref="TopicDescription"/>
+	/// </summary>
 	public class TopicDescriptionImpl : TopicDescription
 	{
 		readonly Microsoft.ServiceBus.Messaging.TopicDescription _description;

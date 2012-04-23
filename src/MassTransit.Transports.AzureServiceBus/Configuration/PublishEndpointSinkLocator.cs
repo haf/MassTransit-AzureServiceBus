@@ -1,5 +1,6 @@
 using System;
 using MassTransit.AzureServiceBus;
+using MassTransit.AzureServiceBus.Util;
 using MassTransit.Pipeline.Inspectors;
 using MassTransit.Pipeline.Sinks;
 
@@ -15,8 +16,13 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		readonly AzureServiceBusEndpointAddress _endpointAddress;
 		readonly Type _messageType;
 
-		public PublishEndpointSinkLocator(Type messageType, AzureServiceBusEndpointAddress endpointAddress)
+		/// <summary>
+		/// c'tor
+		/// </summary>
+		public PublishEndpointSinkLocator([NotNull] Type messageType, [NotNull] AzureServiceBusEndpointAddress endpointAddress)
 		{
+			if (messageType == null) throw new ArgumentNullException("messageType");
+			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
 			_endpointAddress = endpointAddress;
 			_messageType = messageType;
 		}

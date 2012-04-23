@@ -9,6 +9,9 @@ namespace MassTransit.Transports.AzureServiceBus
 	[Serializable]
 	public class MessageEnvelope
 	{
+		/// <summary>
+		/// c'tor
+		/// </summary>
 		public MessageEnvelope([NotNull] byte[] actualBody)
 		{
 			if (actualBody == null) throw new ArgumentNullException("actualBody");
@@ -21,6 +24,9 @@ namespace MassTransit.Transports.AzureServiceBus
 		{
 		}
 
+		/// <summary>
+		/// Gets the actual byte[] of the body.
+		/// </summary>
 		public byte[] ActualBody { get; protected set; }
 	}
 }

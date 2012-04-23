@@ -1,7 +1,10 @@
-﻿using Magnum.Extensions;
+﻿using System;
+using Magnum.Extensions;
 using MassTransit.AzureServiceBus.Util;
 using MassTransit.BusConfigurators;
 using MassTransit.Pipeline.Configuration;
+
+#pragma warning disable 1591
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
@@ -12,20 +15,28 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
 		/// uri by means of its components.
 		/// </summary>
 		public static void ReceiveFromComponents<T>(this T configurator, 
-			string issuerOrUsername, 
-			string defaultKeyOrPassword, string serviceBusNamespace,
-			string application)
+			[NotNull] string issuerOrUsername, 
+			[NotNull] string defaultKeyOrPassword, 
+			[NotNull] string serviceBusNamespace, 
+			[NotNull] string application)
 			where T : ServiceBusConfigurator
 		{
+			if (issuerOrUsername == null) throw new ArgumentNullException("issuerOrUsername");
+			if (defaultKeyOrPassword == null) throw new ArgumentNullException("defaultKeyOrPassword");
+			if (serviceBusNamespace == null) throw new ArgumentNullException("serviceBusNamespace");
+			if (application == null) throw new ArgumentNullException("application");
 			var credentials = new Credentials(issuerOrUsername, defaultKeyOrPassword, serviceBusNamespace, application);
 			configurator.ReceiveFrom(credentials.BuildUri());
 		}
 
-		[UsedImplicitly] // in public API
-		public static void ReceiveFromComponents<T>(this T configurator,
-			PreSharedKeyCredentials creds)
+		/// <summary>
+		/// Configure MassTransit to consume from Azure Service Bus.
+		/// </summary>
+		public static void ReceiveFromComponents<T>(this T configurator, 
+			[NotNull] PreSharedKeyCredentials creds)
 			where T : ServiceBusConfigurator
 		{
+			if (creds == null) throw new ArgumentNullException("creds");
 			configurator.ReceiveFrom(creds.BuildUri());
 		}
 

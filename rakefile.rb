@@ -17,6 +17,20 @@ task :ensure_account_details do
   unless File.exists? targ then ; FileUtils.cp 'build_support/ServiceConfiguration.Cloud.cscfg', targ ; end
 end
 
+desc "Update the common version information for the build. You can call this task without building."
+assemblyinfo :global_version => [:versioning] do |asm|
+  # Assembly file config
+  asm.product_name = 'MassTransit.Transports.AzureServiceBus'
+  asm.version = FORMAL_VERSION
+  asm.file_version = FORMAL_VERSION
+  asm.custom_attributes :AssemblyInformationalVersion => "#{BUILD_VERSION}",
+    :ComVisibleAttribute => false,
+    :CLSCompliantAttribute => false
+  asm.copyright = 'Henrik Feldt 2012'
+  asm.output_file = 'src/SolutionVersion.cs'
+  asm.namespaces "System", "System.Reflection", "System.Runtime.InteropServices", "System.Security"
+end
+
 desc "Ensure that all NuGet packages are here"
 task :ensure_packages do
   Dir.glob("./src/**/packages.config") do |cfg|
@@ -27,7 +41,7 @@ task :ensure_packages do
 end
 
 desc "Compile Solution"
-msbuild :compile => [:ensure_packages, :ensure_account_details] do |msb|
+msbuild :compile => [:ensure_packages, :ensure_account_details, :global_version] do |msb|
   msb.solution = 'src/MassTransit-AzureServiceBus.sln'
   msb.properties :Configuration => CONFIGURATION
   msb.targets    :Build
@@ -49,8 +63,11 @@ task :default => [:release, :compile, :test]
 
 task :nuspec_copy do
   conf_assert
-  FileList[File.join('src', "MassTransit.*/**/bin/#{CONFIGURATION}/MassTransit.Transports.AzureServiceBus.*")].collect{ |f|
-    to = File.join( 'build/nuspec/MassTransit.AzureServiceBus', "lib", FRAMEWORK )
+  FileList[File.join('src', "*/bin", CONFIGURATION, "MassTransit.*.{dll,xml}")].keep_if{ |f|
+    ff = f.downcase
+    !(ff.include?("test") || ff.include?("msmq"))
+  }.each { |f| 
+    to = File.join( 'build/nuspec', 'lib', FRAMEWORK )
     FileUtils.mkdir_p to
     cp f, to
     File.join(FRAMEWORK, File.basename(f))
@@ -63,8 +80,9 @@ desc "Create a nuspec for 'MassTransit.AzureServiceBus'"
 nuspec :nuspec => ['build/nuspec', :nuspec_copy] do |nuspec|
   conf_assert
   nuspec.id = "MassTransit.AzureServiceBus"
-  nuspec.version = BUILD_VERSION
+  nuspec.version = NUGET_VERSION
   nuspec.authors = "Henrik Feldt, MPS Broadband"
+  nuspec.owners = "Henrik Feldt"
   nuspec.description = "MassTransit transport library for Azure ServiceBus."
   nuspec.title = "MassTransit Azure ServiceBus Transport"
   nuspec.projectUrl = 'https://github.com/MassTransit/MassTransit-AzureServiceBus'
@@ -76,15 +94,14 @@ nuspec :nuspec => ['build/nuspec', :nuspec_copy] do |nuspec|
   nuspec.output_file = 'build/nuspec/MassTransit.AzureServiceBus.nuspec'
 end
 
-task :nugets => [:release, :nuspec, :nuget]
-
 directory 'build/nuget'
 
 desc "nuget pack 'MassTransit.AzureServiceBus'"
-nugetpack :nuget => ['build/nuget'] do |nuget|
-   nuget.command     = 'src/.nuget/NuGet.exe'
-   nuget.nuspec      = 'build/nuspec/MassTransit.AzureServiceBus.nuspec'
-   nuget.output      = 'build/nuget'
+nugetpack :nuget => ['build/nuget', :nuspec] do |nuget|
+  conf_assert
+  nuget.command     = 'src/.nuget/NuGet.exe'
+  nuget.nuspec      = 'build/nuspec/MassTransit.AzureServiceBus.nuspec'
+  nuget.output      = 'build/nuget'
 end
 
 desc "publishes (pushes) the nuget package 'MassTransit.AzureServiceBus'"
@@ -106,7 +123,7 @@ task :verify do
   end
 end
 
-task :versioning do 
+task :git do 
   v = SemVer.find
   if `git tag`.split("\n").include?("#{v.to_s}")
     raise "Version #{v.to_s} has already been released! You cannot release it twice."
@@ -120,7 +137,7 @@ task :versioning do
   `git push --tags`
 end
 
-desc "Perform a Release!"
-task :everything => [:verify, :default, :versioning, :publish] do
+desc "Perform a Full-on Release!"
+task :everything => [:verify, :default, :git, :publish] do
   puts 'done'
 end

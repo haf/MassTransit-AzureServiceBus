@@ -7,7 +7,7 @@ namespace MassTransit.Transports.AzureServiceBus.Internal
 	/// <summary>
 	/// Docs: http://blogs.msdn.com/b/pfxteam/archive/2010/11/21/10094564.aspx
 	/// </summary>
-	public static class TaskExtensions
+	internal static class TaskExtensions
 	{
 		class Unit
 		{

@@ -16,7 +16,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 		{
 			address = TestDataFactory.GetAddress();
 			
-			new AzureManagementImpl(true, address)
+			new PurgeImpl(true, address)
 				.Purge()
 				.Wait();
 		}

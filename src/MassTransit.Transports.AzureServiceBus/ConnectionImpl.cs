@@ -18,9 +18,10 @@ using MassTransit.Exceptions;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;
-using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using MessageSender = MassTransit.AzureServiceBus.MessageSender;
+
+#pragma warning disable 1591
 
 namespace MassTransit.Transports.AzureServiceBus
 {

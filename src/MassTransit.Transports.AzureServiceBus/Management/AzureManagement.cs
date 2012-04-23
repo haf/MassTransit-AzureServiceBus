@@ -12,6 +12,9 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Transports.AzureServiceBus.Management
 {
+	/// <summary>
+	/// Handles resourcse on connection binding and unbinding.
+	/// </summary>
 	public interface AzureManagement
 		: ConnectionBinding<ConnectionImpl>
 	{

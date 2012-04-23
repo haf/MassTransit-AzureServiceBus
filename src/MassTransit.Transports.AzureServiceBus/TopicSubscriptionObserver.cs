@@ -20,6 +20,8 @@ using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
 using Magnum.Extensions;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus
 {
 	/// <summary>

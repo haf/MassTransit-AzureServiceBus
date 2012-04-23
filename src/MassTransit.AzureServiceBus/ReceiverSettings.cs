@@ -43,9 +43,9 @@ namespace MassTransit.AzureServiceBus
 		/// </summary>
 		TimeSpan ReceiveTimeout { get;  }
 
-        /// <summary>
-        /// Gets the receiver name.
-        /// </summary>
-        string ReceiverName { get; }
+		/// <summary>
+		/// Gets the receiver name.
+		/// </summary>
+		string ReceiverName { get; }
 	}
 }

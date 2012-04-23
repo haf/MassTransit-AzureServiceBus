@@ -14,6 +14,8 @@
 using System;
 using Magnum.Extensions;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
 	/// <summary>

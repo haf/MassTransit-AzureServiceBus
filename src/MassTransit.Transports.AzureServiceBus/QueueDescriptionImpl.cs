@@ -15,8 +15,13 @@ using System;
 using System.Runtime.Serialization;
 using MassTransit.AzureServiceBus;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus
 {
+	/// <summary>
+	/// See <see cref="QueueDescription"/>
+	/// </summary>
 	public class QueueDescriptionImpl : QueueDescription
 	{
 		readonly Microsoft.ServiceBus.Messaging.QueueDescription _inner;

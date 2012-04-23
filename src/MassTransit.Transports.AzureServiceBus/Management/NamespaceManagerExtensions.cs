@@ -27,6 +27,9 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 	/// </summary>
 	public static class NamespaceManagerExtensions
 	{
+		/// <summary>
+		/// Asynchronously create a new message sender.
+		/// </summary>
 		public static Task<MessageSender> TryCreateMessageSender(
 			[NotNull] this MessagingFactory mf,
 			[NotNull] QueueDescription description,
@@ -43,6 +46,9 @@ namespace MassTransit.Transports.AzureServiceBus.Management
 				});
 		}
 
+		/// <summary>
+		/// Asynchronously create a new message sender.
+		/// </summary>
 		public static Task<MessageSender> TryCreateMessageSender(
 			[NotNull] this MessagingFactory mf,
 			[NotNull] TopicDescription description)

@@ -369,7 +369,12 @@ type Receiver(desc   : QueueDescription,
   /// or otherwise returns null.
   member x.Get(timeout : TimeSpan) =
     let mutable item = null
-    let _ = messages.TryTake(&item, timeout)
+    // concurrent queue doesn't like waiting TimeSpan.MaxValue
+    let t' = if timeout.TotalMilliseconds > float Int32.MaxValue
+             then Int32.MaxValue
+             else int <| timeout.TotalMilliseconds
+
+    let _ = messages.TryTake(&item, t')
     item
 
   member x.Consume() = asyncSeq { while true do yield messages.Take() }

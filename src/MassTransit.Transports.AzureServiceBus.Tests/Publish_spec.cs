@@ -67,7 +67,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				});
 
 			// wait for the inbound transport to become ready before publishing
-			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, TimeSpan.MaxValue);
+			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, 1.Milliseconds());
 
 			correlationId = CombGuid.Generate();
 			PublisherBus.Publish<CorrelatedSwedishRat>(new CorrImpl(correlationId, "meek"));
@@ -125,14 +125,14 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				});
 
 			// wait for the inbound transport to become ready before publishing
-			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, TimeSpan.MaxValue);
+			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, 1.Milliseconds());
 
 			PublisherBus.Publish<TMesg>(new
 				{
 					SoundsLike = "peep"
 				});
 
-			_receivedAnyRat.WaitUntilCompleted(15.Seconds()).ShouldBeTrue();
+			_receivedAnyRat.WaitUntilCompleted(20.Seconds()).ShouldBeTrue();
 		}
 
 		protected IServiceBus PublisherBus { get; private set; }
@@ -270,7 +270,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 				});
 
 			// wait for the inbound transport to become ready before publishing
-			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, TimeSpan.MaxValue);
+			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, 1.Milliseconds());
 
 			PublisherBus.Publish<SpecialSwedishRat>(new DanneDenGråafläckigaRåttan
 				{

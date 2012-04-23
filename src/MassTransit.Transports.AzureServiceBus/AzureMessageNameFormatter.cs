@@ -23,11 +23,17 @@ namespace MassTransit.Transports.AzureServiceBus
 	{
 		readonly DefaultMessageNameFormatter _formatter;
 
+		/// <summary>
+		/// c'tor
+		/// </summary>
 		public AzureMessageNameFormatter()
 		{
 			_formatter = new DefaultMessageNameFormatter("....", "--", "..", "-");
 		}
 
+		/// <summary>
+		/// Get the message name from the type of message
+		/// </summary>
 		public MessageName GetMessageName(Type type)
 		{
 			return _formatter.GetMessageName(type);

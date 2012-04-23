@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using MassTransit.Async;
 using MassTransit.AzureServiceBus;
 using MassTransit.AzureServiceBus.Util;
@@ -42,11 +41,14 @@ namespace MassTransit.Transports.AzureServiceBus
 			_onUnbound = onUnbound;
 		}
 
+		/// <summary>
+		/// Normal Receiver is started
+		/// </summary>
 		public void Bind(ConnectionImpl connection)
 		{
 			_logger.DebugFormat("starting receiver for '{0}'", _address);
 
-			if (_receiver != null) 
+			if (_receiver != null)
 				return;
 			
 			_receiver = ReceiverModule.StartReceiver(_address, _settings);
@@ -54,6 +56,9 @@ namespace MassTransit.Transports.AzureServiceBus
 			_onBound(_receiver);
 		}
 
+		/// <summary>
+		/// Normal Receiver is stopped/disposed
+		/// </summary>
 		public void Unbind(ConnectionImpl connection)
 		{
 			_logger.DebugFormat("stopping receiver for '{0}'", _address);
@@ -67,24 +72,15 @@ namespace MassTransit.Transports.AzureServiceBus
 			_receiver = null;
 		}
 
+		/// <summary>
+		/// Get a message from the queue (in memory one)
+		/// </summary>
 		public BrokeredMessage Get(TimeSpan timeout)
 		{
 			if (_receiver == null) 
 				throw new ApplicationException("Call Bind before calling Get");
 
 			return _receiver.Get(timeout);
-		}
-
-		public void SubscribeTopic([NotNull] TopicDescription value)
-		{
-			if (value == null) throw new ArgumentNullException("value");
-			_receiver.Subscribe(value);
-		}
-
-		public void UnsubscribeTopic([NotNull] TopicDescription value)
-		{
-			if (value == null) throw new ArgumentNullException("value");
-			_receiver.Unsubscribe(value);
 		}
 	}
 }

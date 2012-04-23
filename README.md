@@ -126,3 +126,7 @@ namespace MassTransit.Transports.AzureServiceBus.Tests.Framework
 ```
 
 Place this file in `src\MassTransit.Transports.AzureServiceBus.Tests\Framework\AccountDetails.cs`.
+
+## Contributing
+
+Download the code. Hack on it in a feature branch like described with [this flow](https://github.com/haf/Documently/wiki/Git-Workflow). Send a pull request to /develop from your feature branch.

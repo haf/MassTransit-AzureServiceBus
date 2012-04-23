@@ -23,6 +23,8 @@ using MassTransit.Transports.AzureServiceBus.Management;
 using Microsoft.ServiceBus.Messaging;
 using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
+#pragma warning disable 1591
+
 namespace MassTransit.Transports.AzureServiceBus
 {
 	/// <summary>
