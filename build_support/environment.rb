@@ -8,9 +8,9 @@ task :common => :versioning do
 end
 
 task :release => :common do
-  CONFIGURATION = 'Release'
+  ENV['CONFIGURATION'] = CONFIGURATION = 'Release'
 end
 
 task :debug => :common do
-  CONFIGURATION = 'Debug'
+  ENV['CONFIGURATION'] = CONFIGURATION = 'Debug'
 end
