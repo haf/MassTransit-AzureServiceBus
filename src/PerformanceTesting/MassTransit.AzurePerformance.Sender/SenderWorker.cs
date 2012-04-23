@@ -32,7 +32,7 @@ namespace MassTransit.AzurePerformance.Sender
 			using (var sb = ServiceBusFactory.New(sbc =>
 				{
 					sbc.ReceiveFromComponents(creds);
-
+					sbc.UseAzureServiceBus();
 					sbc.UseAzureServiceBusRouting();
 					sbc.UseNLog();
 					//sbc.UseGraphite();

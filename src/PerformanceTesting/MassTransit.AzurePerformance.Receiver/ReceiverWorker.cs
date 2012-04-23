@@ -52,7 +52,7 @@ namespace MassTransit.AzurePerformance.Receiver
 
 					sbc.SetPurgeOnStartup(true);
 					sbc.UseNLog();
-					
+					sbc.UseAzureServiceBus();
 					sbc.UseAzureServiceBusRouting();
 				}))
 			{
