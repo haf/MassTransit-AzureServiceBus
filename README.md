@@ -14,6 +14,7 @@ using (ServiceBusFactory.New(sbc =>
 		sbc.ReceiveFrom(
 			"azure-sb://owner:bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=@myNamespace/my-application"
 			);
+		sbc.UseAzureServiceBus();
 		sbc.UseAzureServiceBusRouting();
 	}))
 {
@@ -28,6 +29,7 @@ using (ServiceBusFactory.New(sbc =>
 {
 	sbc.ReceiveFromComponents("owner", "bjOAWQJalkmd9LKas0lsdklkdw4mAHwKZUJ1jKwTLdc=", 
 							  "myNamespace", "my-application");
+	sbc.UseAzureServiceBus();
 	sbc.UseAzureServiceBusRouting();
 }))
 {
