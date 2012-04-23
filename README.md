@@ -41,9 +41,9 @@ using (ServiceBusFactory.New(sbc =>
  * Sub-Pub over message types [Done]
  * Binding to specific topic on publish of message if subscriber exists in bus. [Done]
  * Purging of queues by deleting them and re-creating them. [Done]
- * Maximum performance. A middle ground of low latency (50 ms) and high throughput (batching, concurrent receives). [Ongoing]
- * Polymorphic Publish-Subscribe [Ongoing]
- * Smooth asynchronous transient fault handling [Ongoing] (AsyncRetry.fs)
+ * Smooth asynchronous transient fault handling [Done] (AsyncRetry.fs)
+ * Maximum performance. A middle ground of low latency (50 ms) and high throughput (batching, concurrent receives). [Done]
+ * Polymorphic Publish-Subscribe [Ongoing] 
  
 ## Compiling the code
 
