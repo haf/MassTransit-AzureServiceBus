@@ -7,6 +7,7 @@ packages/
 AccountDetails.cs
 AccountDetails.fs
 csx/
+build/
 Profiles/
 ServiceConfiguration.Cloud.cscfg
 TestResult.xml
