@@ -29,6 +29,7 @@ module FaultPolicies =
       yield exnRetryCust<TimeoutException>
       // busy? That's good! Ain't paying ya to do nothin'.
       yield exnRetryCust<ServerBusyException>
+      yield exnRetryCust<MessagingCommunicationException> // then we need another one as well!
       // But are you TOO busy? Hey, let me get you a cup of tea!
       yield exnRetryCust<ServerTooBusyException> }
     |> Seq.map(fun f -> f (fun (count, ex) -> count < 10,
@@ -40,7 +41,6 @@ module FaultPolicies =
   let badNetwork =
     seq { 
       yield exnRetry<CommunicationException>          // communication exception?
-      yield exnRetry<MessagingCommunicationException> // then we need another one as well!
       yield exnRetryLong<SocketException> (fun ex -> ex.SocketErrorCode = SocketError.TimedOut)
       yield exnRetry<ProtocolException> }
     |> Seq.map (fun pBuild -> pBuild (fun ex -> async { do! Async.Sleep 5 }))
