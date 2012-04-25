@@ -23,7 +23,8 @@ namespace MassTransit.AzureServiceBus
 	public interface ReceiverSettings
 	{
 		/// <summary>
-		/// Gets the number of concurrently outstanding requests.
+		/// Gets the number of concurrently outstanding requests
+		/// and the number of concurrently receiving workers per message type.
 		/// </summary>
 		uint Concurrency { get; }
 
