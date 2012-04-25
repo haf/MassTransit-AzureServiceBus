@@ -8,7 +8,7 @@ namespace MassTransit.Transports.AzureServiceBus.Configuration
         public ReceiverSettingsImpl()
         {
             Concurrency = 1u;
-            BufferSize = 1000u;
+            BufferSize = 5u;
             NThAsync = 5u;
             ReceiveTimeout = TimeSpan.FromMilliseconds(50.0);
             ReceiverName = NameHelper.GenerateRandomName();
