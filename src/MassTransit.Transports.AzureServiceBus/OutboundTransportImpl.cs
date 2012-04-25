@@ -125,6 +125,7 @@ namespace MassTransit.Transports.AzureServiceBus
 					var msg = tuple.Item2;
 					var sender = tuple.Item1;
 
+					Exception caught = null;
 					try
 					{
 						// if the queue is deleted in the middle of things here, then I can't recover
@@ -139,20 +140,40 @@ namespace MassTransit.Transports.AzureServiceBus
 					}
 					catch (ServerBusyException ex)
 					{
-						object val;
-						var hasVal = msg.Properties.TryGetValue(BusyRetriesKey, out val);
-						if (!hasVal) val = msg.Properties[BusyRetriesKey] = 1;
-						_logger.Warn(string.Format("Server Too Busy, for {0}'(st|nd|th) time", val), ex);
-
-						RetryLoop(connection, msg);
+						_logger.Warn(string.Format("server busy, retrying for msg #{0}", msg.MessageId), ex);
+						caught = ex;
 					}
-					catch (Exception)
+					catch (MessagingCommunicationException ex)
 					{
-						// dispose the message if it's not possible to send it
-						msg.Dispose();
-						throw;
+						_logger.Warn(string.Format("server sad, retrying for msg #{0}", msg.MessageId), ex);
+						caught = ex;
 					}
+					catch (Exception ex)
+					{
+						_logger.Error(string.Format("other exception for msg #{0}", msg.MessageId), ex);
+						caught = ex;
+					}
+
+					// success
+					if (caught == null) return;
+
+					// schedule retry
+					var retries = UpdateRetries(msg);
+					_logger.WarnFormat("scheduling retry no. {0} for msg #{1} ", retries, msg.MessageId);
+					
+					RetryLoop(connection, msg);
+
 				}, Tuple.Create(connection.MessageSender, message));
+		}
+
+
+		static int UpdateRetries(BrokeredMessage msg)
+		{
+			object val;
+			var hasVal = msg.Properties.TryGetValue(BusyRetriesKey, out val);
+			if (!hasVal) val = msg.Properties[BusyRetriesKey] = 1;
+			else val = msg.Properties[BusyRetriesKey] = (int) val + 1;
+			return (int) val;
 		}
 
 		// call only if first time gotten server busy exception
