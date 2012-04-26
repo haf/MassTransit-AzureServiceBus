@@ -155,7 +155,11 @@ namespace MassTransit.Transports.AzureServiceBus
 					}
 
 					// success
-					if (caught == null) return;
+					if (caught == null)
+					{
+						msg.Dispose();
+						return;
+					}
 
 					// schedule retry
 					var retries = UpdateRetries(msg);
