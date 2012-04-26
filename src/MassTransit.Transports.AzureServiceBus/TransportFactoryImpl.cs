@@ -36,28 +36,31 @@ namespace MassTransit.Transports.AzureServiceBus
 		readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>> _connCache;
 		readonly ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress> _addresses;
 		readonly AzureMessageNameFormatter _formatter;
+
 		bool _disposed;
 
-		readonly ReceiverSettings _settings;
+		readonly ReceiverSettings _receiverSettings;
+		readonly SenderSettings _senderSettings;
 
 		/// <summary>
 		/// 	c'tor
 		/// </summary>
 		public TransportFactoryImpl()
-			: this(new ReceiverSettingsImpl())
+			: this(new ReceiverSettingsImpl(), new SenderSettingsImpl())
 		{
 		}
 
 		/// <summary>
 		/// 	c'tor taking settings to configure the endpoint with
 		/// </summary>
-		public TransportFactoryImpl(ReceiverSettings settings)
+		public TransportFactoryImpl(ReceiverSettings receiverSettings, SenderSettings senderSettings)
 		{
 			_addresses = new ReaderWriterLockedDictionary<Uri, AzureServiceBusEndpointAddress>();
 			_connCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<ConnectionImpl>>();
 			_formatter = new AzureMessageNameFormatter();
 
-			_settings = settings;
+			_receiverSettings = receiverSettings;
+			_senderSettings = senderSettings;
 
 			_logger.Debug("created new transport factory");
 		}
@@ -90,7 +93,8 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			_logger.Debug("building duplex transport");
 
-			return new Transport(settings.Address, () => BuildInbound(settings), () => BuildOutbound(settings));
+			return new Transport(settings.Address, 
+				() => BuildInbound(settings), () => BuildOutbound(settings));
 		}
 
 		/// <summary>
@@ -111,7 +115,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			var client = GetConnection(address);
 
 			return new InboundTransportImpl(address, client, new PurgeImpl(settings.PurgeExistingMessages, address),
-			                                MessageNameFormatter, _settings);
+			                                MessageNameFormatter, _receiverSettings);
 		}
 
 		/// <summary>
@@ -130,7 +134,7 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			var client = GetConnection(address);
 
-			return new OutboundTransportImpl(address, client);
+			return new OutboundTransportImpl(address, client, _senderSettings);
 		}
 
 		/// <summary>
@@ -148,7 +152,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			_logger.DebugFormat("building error transport for address '{0}'", address);
 
 			var client = GetConnection(address);
-			return new OutboundTransportImpl(address, client);
+			return new OutboundTransportImpl(address, client, _senderSettings);
 		}
 
 		/// <summary>

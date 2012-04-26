@@ -12,17 +12,14 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Magnum.Extensions;
-using Magnum.Threading;
 using MassTransit.AzureServiceBus;
 using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using Microsoft.ServiceBus.Messaging;
-using MessageSender = MassTransit.AzureServiceBus.MessageSender;
 
 #pragma warning disable 1591
 
@@ -34,8 +31,7 @@ namespace MassTransit.Transports.AzureServiceBus
 	public class OutboundTransportImpl
 		: IOutboundTransport
 	{
-		const int MaxOutstanding = 100;
-		const string BusyRetriesKey = "busy-retries";
+		const string NumberOfRetries = "busy-retries";
 		static readonly ILog _logger = Logger.Get(typeof (OutboundTransportImpl));
 
 		bool _disposed;
@@ -43,23 +39,24 @@ namespace MassTransit.Transports.AzureServiceBus
 		int _messagesInFlight;
 		int _sleeping;
 
-		readonly ReaderWriterLockedObject<Queue<BrokeredMessage>> _retryMsgs
-			= new ReaderWriterLockedObject<Queue<BrokeredMessage>>(new Queue<BrokeredMessage>(MaxOutstanding));
-
-		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
 		readonly AzureServiceBusEndpointAddress _address;
+		readonly ConnectionHandler<ConnectionImpl> _connectionHandler;
+		readonly SenderSettings _settings;
 
 		/// <summary>
 		/// 	c'tor
 		/// </summary>
 		public OutboundTransportImpl(
 			[NotNull] AzureServiceBusEndpointAddress address,
-			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler)
+			[NotNull] ConnectionHandler<ConnectionImpl> connectionHandler, 
+			[NotNull] SenderSettings settings)
 		{
 			if (address == null) throw new ArgumentNullException("address");
 			if (connectionHandler == null) throw new ArgumentNullException("connectionHandler");
+			if (settings == null) throw new ArgumentNullException("settings");
 
 			_connectionHandler = connectionHandler;
+			_settings = settings;
 			_address = address;
 
 			_logger.DebugFormat("created outbound transport for address '{0}'", address);
@@ -94,108 +91,107 @@ namespace MassTransit.Transports.AzureServiceBus
 			_connectionHandler
 				.Use(connection =>
 					{
+						// don't have too many outstanding at same time
+						SpinWait.SpinUntil(() => _messagesInFlight < _settings.MaxOutstanding);
+
 						using (var body = new MemoryStream())
 						{
 							context.SerializeTo(body);
-							var bm = new BrokeredMessage(new MessageEnvelope(body.ToArray()));
+							
+							// the envelope is re-usable, so let's capture it in the below closure
+							// as a value
+							var envelope = new MessageEnvelope(body.ToArray());
 
-							if (!string.IsNullOrWhiteSpace(context.CorrelationId))
-								bm.CorrelationId = context.CorrelationId;
+							TrySendMessage(connection, () =>
+								{
+									var brokeredMessage = new BrokeredMessage(envelope);
 
-							if (!string.IsNullOrWhiteSpace(context.MessageId))
-								bm.MessageId = context.MessageId;
+									if (!string.IsNullOrWhiteSpace(context.CorrelationId))
+										brokeredMessage.CorrelationId = context.CorrelationId;
 
-							TrySendMessage(connection, bm);
+									if (!string.IsNullOrWhiteSpace(context.MessageId))
+										brokeredMessage.MessageId = context.MessageId;
+									
+									return brokeredMessage;
+								}, 1);
 						}
 					});
 		}
 
-		void TrySendMessage(ConnectionImpl connection, BrokeredMessage message)
-		{
-			// don't have too many outstanding at same time
-			SpinWait.SpinUntil(() => _messagesInFlight < MaxOutstanding);
 
-			Address.LogBeginSend(message.MessageId);
+		void TrySendMessage(ConnectionImpl connection, Func<BrokeredMessage> createMessage, int sendNumber)
+		{
+			var msg = createMessage();
+			var messageId = msg.MessageId;
+			var sender = connection.MessageSender;
+
+			msg.Properties[NumberOfRetries] = sendNumber - 1;
+
+			Address.LogBeginSend(msg.MessageId);
 
 			Interlocked.Increment(ref _messagesInFlight);
 
-			connection.MessageSender.BeginSend(message, ar =>
+			connection.MessageSender.BeginSend(msg, ar =>
 				{
-					var tuple = ar.AsyncState as Tuple<MessageSender, BrokeredMessage>;
-					var msg = tuple.Item2;
-					var sender = tuple.Item1;
-
 					Exception caught = null;
+
+					// if the queue is deleted in the middle of things here, then I can't recover
+					// at the moment; I have to extend the connection handler with an asynchronous
+					// API to let it re-initialize the queue and hence maybe even the full transport...
+
+					// So if I get MessagingEntityNotFoundException, I'm toast with this code: 
+					// don't delete queues in use.
+
+					Interlocked.Decrement(ref _messagesInFlight);
+
 					try
 					{
-						// if the queue is deleted in the middle of things here, then I can't recover
-						// at the moment; I have to extend the connection handler with an asynchronous
-						// API to let it re-initialize the queue and hence maybe even the full transport...
-						// MessagingEntityNotFoundException.
-						Interlocked.Decrement(ref _messagesInFlight);
-
 						sender.EndSend(ar);
-
 						Address.LogEndSend(msg.MessageId);
 					}
 					catch (ServerBusyException ex)
 					{
-						_logger.Warn(string.Format("server busy, retrying for msg #{0}", msg.MessageId), ex);
+						_logger.Warn(string.Format("server busy, retrying for msg #{0}", messageId), ex);
 						caught = ex;
 					}
 					catch (MessagingCommunicationException ex)
 					{
-						_logger.Warn(string.Format("server sad, retrying for msg #{0}", msg.MessageId), ex);
+						_logger.Warn(string.Format("server sad, retrying for msg #{0}", messageId), ex);
 						caught = ex;
 					}
 					catch (Exception ex)
 					{
-						_logger.Error(string.Format("other exception for msg #{0}", msg.MessageId), ex);
-						caught = ex;
+						// this is really bad, we are now losing a message, but we can't recover in any way
+						_logger.Fatal(string.Format("other exception for msg #{0} - giving up", messageId), ex);
+						// intentionally not setting 'caught' variable
 					}
 
-					// success
+					// always dispose the message, it's only good once
+					msg.Dispose();
+
+					// success or deadly exception (third catch), so we don't retry
 					if (caught == null)
-					{
-						msg.Dispose();
 						return;
-					}
-
-					// schedule retry
-					var retries = UpdateRetries(msg);
-					_logger.WarnFormat("scheduling retry no. {0} for msg #{1} ", retries, msg.MessageId);
 					
-					RetryLoop(connection, msg);
-
-				}, Tuple.Create(connection.MessageSender, message));
-		}
-
-
-		static int UpdateRetries(BrokeredMessage msg)
-		{
-			object val;
-			var hasVal = msg.Properties.TryGetValue(BusyRetriesKey, out val);
-			if (!hasVal) val = msg.Properties[BusyRetriesKey] = 1;
-			else val = msg.Properties[BusyRetriesKey] = (int) val + 1;
-			return (int) val;
+					RetryLoop(connection, messageId, sendNumber, createMessage);
+				}, null);
 		}
 
 		// call only if first time gotten server busy exception
-		void RetryLoop(ConnectionImpl connection, BrokeredMessage bm)
+		void RetryLoop(ConnectionImpl connection, string messageId, int sendNumber, Func<BrokeredMessage> createMessage)
 		{
-			Address.LogSendRetryScheduled(bm.MessageId, _messagesInFlight, Interlocked.Increment(ref _sleeping));
+			Address.LogSendRetryScheduled(messageId, _messagesInFlight, Interlocked.Increment(ref _sleeping));
+
 			// exception tells me to wait 10 seconds before retrying, so let's sleep 1 second instead,
 			// just 2,600,000,000 CPU cycles
 			Thread.Sleep(1.Seconds());
+
 			Interlocked.Decrement(ref _sleeping);
 
+			_logger.WarnFormat("scheduling retry no. {0} for msg #{1} ", sendNumber, messageId);
+
 			// push all pending retries onto the sending operation
-			_retryMsgs.WriteLock(queue =>
-				{
-					queue.Enqueue(bm);
-					while (queue.Count > 0)
-						TrySendMessage(connection, queue.Dequeue());
-				});
+			TrySendMessage(connection, createMessage, sendNumber + 1);
 		}
 	}
 }
