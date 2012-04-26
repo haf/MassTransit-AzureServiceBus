@@ -11,26 +11,18 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
 
-using System;
 using MassTransit.AzureServiceBus;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {
-	class ReceiverSettingsImpl : ReceiverSettings
+	public class SenderSettingsImpl
+		: SenderSettings
 	{
-		public ReceiverSettingsImpl()
+		public SenderSettingsImpl()
 		{
-			Concurrency = 1u;
-			BufferSize = 5u;
-			NThAsync = 5u;
-			ReceiveTimeout = TimeSpan.FromMilliseconds(50.0);
-			ReceiverName = NameHelper.GenerateRandomName();
+			MaxOutstanding = 10;
 		}
 
-		public uint Concurrency { get; set; }
-		public uint BufferSize { get; set; }
-		public uint NThAsync { get; set; }
-		public TimeSpan ReceiveTimeout { get; set; }
-		public string ReceiverName { get; set; }
+		public int MaxOutstanding { get; set; }
 	}
 }

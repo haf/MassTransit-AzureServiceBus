@@ -68,6 +68,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueueDescription.cs" />
     <Compile Include="ReceiverSettings.cs" />
+    <Compile Include="SenderSettings.cs" />
     <Compile Include="TopicDescription.cs" />
     <Compile Include="Unit.cs" />
     <Compile Include="Util\JetbrainsCodeAnnotations.cs" />

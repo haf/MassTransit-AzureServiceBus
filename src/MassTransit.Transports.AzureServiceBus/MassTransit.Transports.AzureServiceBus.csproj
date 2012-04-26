@@ -64,6 +64,7 @@
     <Compile Include="Configuration\ReceiverSettingsImpl.cs" />
     <Compile Include="Configuration\PublishEndpointInterceptor.cs" />
     <Compile Include="Configuration\PublishEndpointSinkLocator.cs" />
+    <Compile Include="Configuration\SenderSettingsImpl.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="InboundTransportImpl.cs" />
     <Compile Include="Properties\InternalsVisibleTo.cs" />
