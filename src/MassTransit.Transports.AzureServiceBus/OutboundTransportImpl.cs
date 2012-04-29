@@ -149,14 +149,29 @@ namespace MassTransit.Transports.AzureServiceBus
 						sender.EndSend(ar);
 						Address.LogEndSend(msg.MessageId);
 					}
+					// see: http://msdn.microsoft.com/en-us/library/windowsazure/hh418082.aspx
 					catch (ServerBusyException ex)
 					{
-						_logger.Warn(string.Format("server busy, retrying for msg #{0}", messageId), ex);
+						// "Service is not able to process the request at this time."
+						_logger.Warn(string.Format("service bus busy, retrying for msg #{0}", messageId), ex);
 						caught = ex;
 					}
 					catch (MessagingCommunicationException ex)
 					{
-						_logger.Warn(string.Format("server sad, retrying for msg #{0}", messageId), ex);
+						// "Client is not able to establish a connection to the Service Bus."
+						_logger.Warn(string.Format("service bus sad, retrying for msg #{0}", messageId), ex);
+						caught = ex;
+					}
+					catch (TimeoutException ex)
+					{
+						// "The server did not respond to the requested operation within the specified time which is controlled by OperationTimeout. The server may have completed the requested operation.This can happen due to network or other infrastructure delays."
+						_logger.Warn(string.Format("service bus confused, retrying for msg #{0}", messageId), ex);
+						caught = ex;
+					}
+					catch (UnauthorizedAccessException ex)
+					{
+						// "...could not acquire a token, the token is invalid, or the token does not contain the claims required to perform the operation."
+						_logger.Warn(string.Format("ACS confused, retrying for msg #{0}", messageId), ex);
 						caught = ex;
 					}
 					catch (Exception ex)
@@ -166,7 +181,7 @@ namespace MassTransit.Transports.AzureServiceBus
 						// intentionally not setting 'caught' variable
 					}
 
-					// always dispose the message, it's only good once
+					// always dispose the message; it's only good once
 					msg.Dispose();
 
 					// success or deadly exception (third catch), so we don't retry
