@@ -174,6 +174,11 @@ namespace MassTransit.Transports.AzureServiceBus
 						_logger.Warn(string.Format("ACS confused, retrying for msg #{0}", messageId), ex);
 						caught = ex;
 					}
+					catch(TimeoutException ex)
+					{
+						_logger.Info(string.Format("server timed out for msg #{0}", messageId), ex);
+						caught = ex;
+					}
 					catch (Exception ex)
 					{
 						// this is really bad, we are now losing a message, but we can't recover in any way
