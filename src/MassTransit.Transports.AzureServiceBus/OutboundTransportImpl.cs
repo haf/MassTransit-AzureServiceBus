@@ -169,8 +169,8 @@ namespace MassTransit.Transports.AzureServiceBus
 					}
 					catch(TimeoutException ex)
 					{
-                        // "...could not acquire a token, the token is invalid, or the token does not contain the claims required to perform the operation."
-                        _logger.Info(string.Format("server timed out for msg #{0}", messageId), ex);
+						// "...could not acquire a token, the token is invalid, or the token does not contain the claims required to perform the operation."
+						_logger.Info(string.Format("server timed out for msg #{0}", messageId), ex);
 						caught = ex;
 					}
 					catch (Exception ex)
