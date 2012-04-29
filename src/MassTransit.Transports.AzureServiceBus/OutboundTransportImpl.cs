@@ -162,21 +162,15 @@ namespace MassTransit.Transports.AzureServiceBus
 						_logger.Warn(string.Format("service bus sad, retrying for msg #{0}", messageId), ex);
 						caught = ex;
 					}
-					catch (TimeoutException ex)
-					{
-						// "The server did not respond to the requested operation within the specified time which is controlled by OperationTimeout. The server may have completed the requested operation.This can happen due to network or other infrastructure delays."
-						_logger.Warn(string.Format("service bus confused, retrying for msg #{0}", messageId), ex);
-						caught = ex;
-					}
 					catch (UnauthorizedAccessException ex)
 					{
-						// "...could not acquire a token, the token is invalid, or the token does not contain the claims required to perform the operation."
 						_logger.Warn(string.Format("ACS confused, retrying for msg #{0}", messageId), ex);
 						caught = ex;
 					}
 					catch(TimeoutException ex)
 					{
-						_logger.Info(string.Format("server timed out for msg #{0}", messageId), ex);
+                        // "...could not acquire a token, the token is invalid, or the token does not contain the claims required to perform the operation."
+                        _logger.Info(string.Format("server timed out for msg #{0}", messageId), ex);
 						caught = ex;
 					}
 					catch (Exception ex)
