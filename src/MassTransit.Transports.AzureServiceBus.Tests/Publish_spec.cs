@@ -4,7 +4,7 @@
 // this file except in compliance with the License. You may obtain a copy of the 
 // License at 
 // 
-//     http://www.apache.org/licenses/LICENSE-2.0 
+//     http://www.apache.org/licenses/LICENSE-2.0
 // 
 // Unless required by applicable law or agreed to in writing, software distributed 
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
@@ -47,7 +47,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 	[Integration]
 	public class When_publishing_correlated_interface
-		: EndpointTestFixture<TransportFactoryImpl>
 	{
 		Future<CorrelatedSwedishRat> _receivedAnyRat;
 		Guid correlationId;
@@ -59,24 +58,34 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			var details = new AccountDetails();
 
-			PublisherBus = SetupServiceBus(details.BuildUri("When_publishing_correlated_interface_publisher"), cfg => cfg.UseAzureServiceBusRouting());
-			SubscriberBus = SetupServiceBus(details.BuildUri("When_publishing_correlated_interface_subscriber"), cfg =>
+			_publisherBus = ServiceBusFactory.New(sbc =>
 				{
-					cfg.Subscribe(s => s.Handler<CorrelatedSwedishRat>(_receivedAnyRat.Complete).Transient());
-					cfg.UseAzureServiceBusRouting();
+					sbc.ReceiveFrom(details.BuildUri("When_publishing_correlated_interface_publisher"));
+					sbc.SetPurgeOnStartup(true);
+					sbc.UseAzureServiceBus();
+					sbc.UseAzureServiceBusRouting();
+				});
+
+			_subscriberBus = ServiceBusFactory.New(sbc =>
+				{
+					sbc.ReceiveFrom(details.BuildUri("When_publishing_correlated_interface_subscriber"));
+					sbc.SetPurgeOnStartup(true);
+					sbc.Subscribe(s => s.Handler<CorrelatedSwedishRat>(_receivedAnyRat.Complete).Transient());
+					sbc.UseAzureServiceBus();
+					sbc.UseAzureServiceBusRouting();
 				});
 
 			// wait for the inbound transport to become ready before publishing
-			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, 1.Milliseconds());
+			_subscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, 1.Milliseconds());
 
 			correlationId = CombGuid.Generate();
-			PublisherBus.Publish<CorrelatedSwedishRat>(new CorrImpl(correlationId, "meek"));
+			_publisherBus.Publish<CorrelatedSwedishRat>(new CorrImpl(correlationId, "meek"));
 
 			_receivedAnyRat.WaitUntilCompleted(15.Seconds()).ShouldBeTrue();
 		}
 
-		protected IServiceBus PublisherBus { get; private set; }
-		protected IServiceBus SubscriberBus { get; private set; }
+		IServiceBus _publisherBus;
+		IServiceBus _subscriberBus;
 
 		[Then]
 		public void sound_equals()
@@ -84,6 +93,13 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			_receivedAnyRat.Value
 				.SoundsLike
 				.ShouldBeEqualTo("meek");
+		}
+
+		[Finally]
+		public void dispose_buses()
+		{
+			_publisherBus.Dispose();
+			_subscriberBus.Dispose();
 		}
 	}
 
@@ -105,7 +121,6 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 	[TestFixture(typeof (MongolianRat))]
 	[Integration]
 	public class When_publishing_ordinary_interfaces<TMesg>
-		: EndpointTestFixture<TransportFactoryImpl>
 		where TMesg : class
 	{
 		Future<TMesg> _receivedAnyRat;
@@ -117,26 +132,36 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			var details = new AccountDetails();
 
-			PublisherBus = SetupServiceBus(details.BuildUri("publisher"), cfg => cfg.UseAzureServiceBusRouting());
-			SubscriberBus = SetupServiceBus(details.BuildUri("subscriber"), cfg =>
+			_publisherBus = ServiceBusFactory.New(sbc =>
 				{
-					cfg.Subscribe(s => s.Handler<TMesg>(_receivedAnyRat.Complete).Transient());
-					cfg.UseAzureServiceBusRouting();
+					sbc.ReceiveFrom(details.BuildUri("When_publishing_ordinary_interfaces_publisher"));
+					sbc.SetPurgeOnStartup(true);
+					sbc.UseAzureServiceBus();
+					sbc.UseAzureServiceBusRouting();
+				});
+
+			_subscriberBus = ServiceBusFactory.New(sbc =>
+				{
+					sbc.ReceiveFrom(details.BuildUri("When_publishing_ordinary_interfaces_subscriber"));
+					sbc.SetPurgeOnStartup(true);
+					sbc.Subscribe(s => s.Handler<TMesg>(_receivedAnyRat.Complete).Transient());
+					sbc.UseAzureServiceBus();
+					sbc.UseAzureServiceBusRouting();
 				});
 
 			// wait for the inbound transport to become ready before publishing
-			SubscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, 1.Milliseconds());
+			_subscriberBus.Endpoint.InboundTransport.Receive(c1 => c2 => { }, 1.Milliseconds());
 
-			PublisherBus.Publish<TMesg>(new
+			_publisherBus.Publish<TMesg>(new
 				{
 					SoundsLike = "peep"
 				});
 
-			_receivedAnyRat.WaitUntilCompleted(20.Seconds()).ShouldBeTrue();
+			_receivedAnyRat.WaitUntilCompleted(35.Seconds()).ShouldBeTrue();
 		}
 
-		protected IServiceBus PublisherBus { get; private set; }
-		protected IServiceBus SubscriberBus { get; private set; }
+		IServiceBus _publisherBus;
+		IServiceBus _subscriberBus;
 
 		[Then]
 		public void sound_equals()
@@ -144,6 +169,13 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 			dynamic val = _receivedAnyRat.Value;
 			string sound = val.SoundsLike;
 			sound.ShouldBeEqualTo("peep");
+		}
+
+		[Finally]
+		public void dispose_buses()
+		{
+			_publisherBus.Dispose();
+			_subscriberBus.Dispose();
 		}
 	}
 
@@ -258,9 +290,14 @@ namespace MassTransit.Transports.AzureServiceBus.Tests
 
 			var details = new AccountDetails();
 
-			PublisherBus = SetupServiceBus(details.BuildUri("When_publishing_subsuper_publisher"), cfg => cfg.UseAzureServiceBusRouting());
+			PublisherBus = SetupServiceBus(details.BuildUri("When_publishing_subsuper_publisher"), cfg =>
+				{
+					cfg.SetPurgeOnStartup(true);
+					cfg.UseAzureServiceBusRouting();
+				});
 			SubscriberBus = SetupServiceBus(details.BuildUri("When_publishing_subtype_interfaces_single_publish_and_subscribing_supertype_subscriber"), cfg =>
 				{
+					cfg.SetPurgeOnStartup(true);
 					cfg.Subscribe(s =>
 						{
 							s.Instance(supertypeConsumer).Transient();
