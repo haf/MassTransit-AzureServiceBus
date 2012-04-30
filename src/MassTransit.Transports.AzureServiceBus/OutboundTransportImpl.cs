@@ -183,7 +183,7 @@ namespace MassTransit.Transports.AzureServiceBus
 					// always dispose the message; it's only good once
 					msg.Dispose();
 
-					// success or deadly exception (third catch), so we don't retry
+					// success or deadly exception (last catch), so we don't retry
 					if (caught == null)
 						return;
 					
