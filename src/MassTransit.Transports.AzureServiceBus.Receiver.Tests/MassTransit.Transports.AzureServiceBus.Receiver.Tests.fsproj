@@ -8,7 +8,7 @@
     <ProjectGuid>{8626590e-5c0e-498c-a373-1dcdda2584e3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>MassTransit.Async.Tests</RootNamespace>
-    <AssemblyName>MassTransit.Async.Tests</AssemblyName>
+    <AssemblyName>MassTransit.Transports.AzureServiceBus.Receiver.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>MassTransit.Async.Tests</Name>
     <RestorePackages>true</RestorePackages>

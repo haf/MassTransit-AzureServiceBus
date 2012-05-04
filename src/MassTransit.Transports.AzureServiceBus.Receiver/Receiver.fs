@@ -12,7 +12,7 @@
  CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  specific language governing permissions and limitations under the License.
 *)
-namespace MassTransit.Async
+namespace MassTransit.Transports.AzureServiceBus.Receiver
 
 open Microsoft.ServiceBus
 open Microsoft.ServiceBus.Messaging

@@ -5,13 +5,12 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{47ac8fb8-c8f9-47e8-a303-7d673e2e24de}</ProjectGuid>
+    <ProjectGuid>{fab00836-a867-474e-9d9b-b240add41696}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>MassTransit.Async</RootNamespace>
-    <AssemblyName>MassTransit.Transports.AzureServiceBus.Receiver</AssemblyName>
+    <AssemblyName>MassTransit.Async</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>MassTransit.Transports.AzureServiceBus.Receiver</Name>
-    <RestorePackages>true</RestorePackages>
+    <Name>MassTransit.Async</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +20,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\MassTransit.Async.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\MassTransit.Async.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,19 +29,27 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\MassTransit.Async.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\MassTransit.Async.XML</DocumentationFile>
   </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <ItemGroup>
-    <Reference Include="FSharpx.Core">
-      <HintPath>..\packages\FSharpx.Core.1.5.49\lib\40\Fsharpx.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Compile Include="FaultPolicies.fs" />
+    <Compile Include="AsyncRetry.fs" />
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Magnum">
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit">
       <HintPath>..\packages\MassTransit.2.1.1\lib\net40\MassTransit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MassTransit.Transports.Msmq">
+      <HintPath>..\packages\MassTransit.2.1.1\lib\net40\MassTransit.Transports.MSMQ.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus">
@@ -58,29 +65,6 @@
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AccountDetails.fs" />
-    <None Include="packages.config" />
-    <None Include="app.config" />
-    <Compile Include="Topic.fs" />
-    <Compile Include="Queue.fs" />
-    <Compile Include="Receiver.fs" />
-    <None Include="ConsumeProduce.fsx" />
-    <Compile Include="Impl.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MassTransit.Async\MassTransit.Async.fsproj">
-      <Name>MassTransit.Async</Name>
-      <Project>{fab00836-a867-474e-9d9b-b240add41696}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
-      <Name>MassTransit.AzureServiceBus</Name>
-      <Project>{ccd26eda-5048-4752-863d-4301173dcc93}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
 	     Other similar extension points exist, see Microsoft.Common.targets.
 	<Target Name="BeforeBuild">

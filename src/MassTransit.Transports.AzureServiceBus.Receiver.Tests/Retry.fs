@@ -1,4 +1,6 @@
-﻿module FaultPoliciesTests
+﻿namespace MassTransit.Async
+
+module FaultPoliciesTests
 
 open System
 open MassTransit.Async.AsyncRetry
