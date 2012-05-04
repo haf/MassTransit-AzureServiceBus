@@ -14,11 +14,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.Transports.Azur
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PerfTests", "PerfTests", "{37BEC7A7-AC37-406A-9DE9-C62DA948C5E4}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MassTransit.Async", "MassTransit.Async\MassTransit.Async.fsproj", "{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MassTransit.Transports.AzureServiceBus.Receiver", "MassTransit.Transports.AzureServiceBus.Receiver\MassTransit.Transports.AzureServiceBus.Receiver.fsproj", "{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.AzureServiceBus", "MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj", "{CCD26EDA-5048-4752-863D-4301173DCC93}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MassTransit.Async.Tests", "MassTransit.Async.Tests\MassTransit.Async.Tests.fsproj", "{8626590E-5C0E-498C-A373-1DCDDA2584E3}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MassTransit.Transports.AzureServiceBus.Receiver.Tests", "MassTransit.Transports.AzureServiceBus.Receiver.Tests\MassTransit.Transports.AzureServiceBus.Receiver.Tests.fsproj", "{8626590E-5C0E-498C-A373-1DCDDA2584E3}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Utils", "PerformanceTesting\Utils\Utils.fsproj", "{55AF6CF2-F1DA-4A36-912D-C7A8E85A3239}"
 EndProject

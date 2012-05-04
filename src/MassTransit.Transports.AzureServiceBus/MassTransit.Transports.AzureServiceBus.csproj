@@ -94,9 +94,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\MassTransit.Async\MassTransit.Async.fsproj">
+    <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus.Receiver\MassTransit.Transports.AzureServiceBus.Receiver.fsproj">
       <Project>{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}</Project>
-      <Name>MassTransit.Async</Name>
+      <Name>MassTransit.Transports.AzureServiceBus.Receiver</Name>
     </ProjectReference>
     <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
       <Project>{CCD26EDA-5048-4752-863D-4301173DCC93}</Project>
