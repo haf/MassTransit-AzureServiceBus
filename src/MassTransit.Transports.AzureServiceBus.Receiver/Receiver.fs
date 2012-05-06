@@ -25,7 +25,7 @@ open System.Runtime.CompilerServices
 open System.Collections.Concurrent
 
 open MassTransit.AzureServiceBus
-open MassTransit.Async.Queue
+open MassTransit.Transports.AzureServiceBus.Receiver.Queue
 open MassTransit.Async.AsyncRetry
 
 type internal Agent<'T> = AutoCancelAgent<'T>

@@ -1,4 +1,4 @@
-using MassTransit.AzureServiceBus.Util;
+using MassTransit.Util;
 
 namespace MassTransit.AzureServiceBus
 {

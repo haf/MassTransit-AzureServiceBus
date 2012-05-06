@@ -59,9 +59,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AccountDetails.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
+    <Compile Include="Interfaces.fs" />
     <Compile Include="Topic.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="Receiver.fs" />

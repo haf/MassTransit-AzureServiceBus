@@ -1,5 +1,4 @@
 using Magnum.TestFramework;
-using MassTransit.Async;
 using MassTransit.AzureServiceBus;
 using MassTransit.Transports.AzureServiceBus.Management;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;

@@ -1,7 +1,7 @@
 ﻿module Impl
 
 open System
-open MassTransit.Transports.AzureServiceBus.Receiver
+open MassTransit.Transports.AzureServiceBus
 
 type QDesc(path) =
   let inner = Microsoft.ServiceBus.Messaging.QueueDescription(path)
