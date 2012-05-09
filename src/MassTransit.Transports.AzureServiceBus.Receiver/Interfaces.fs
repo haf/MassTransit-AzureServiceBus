@@ -6,16 +6,16 @@ open System
 open System.Threading.Tasks
 open MassTransit
 open MassTransit.Util
+open System.Runtime.Serialization
 
 [<Serializable>]
 type Unit() = class end
 
 type PathBasedEntity =
-  abstract member Path : string
+  abstract member Path : string with get
 
 type EntityDescription =
-  abstract member ExtensionData : Runtime.Serialization.ExtensionDataObject
-  // TODO: more getters!
+  abstract member ExtensionData : Runtime.Serialization.ExtensionDataObject with get
 
 type QueueDescription =
   inherit IEquatable<QueueDescription>
@@ -23,6 +23,22 @@ type QueueDescription =
   inherit IComparable
   inherit PathBasedEntity
   inherit EntityDescription
+  /// How long before the consumed message is re-inserted into the queue?
+  abstract member LockDuration : TimeSpan with get
+  /// Whether the queue is configured to be session-ful;
+  /// allowing a primitive key-value store as well as de-duplication
+  /// on a per-receiver basis.
+  abstract member RequiresSession : bool with get
+  abstract member EnableDeadLetteringOnMessageExpiration : bool with get
+  /// The maximum times to try to redeliver a message before moving it
+  /// to a poision message queue. Note - this property would preferrably be int.MaxValue, since MassTransit
+  /// handles the poison message queues itself and there's no need to use the 
+  /// AzureServiceBus API for this.
+  abstract member MaxDeliveryCount : int with get
+  /// Gets the number of messages present in the queue
+  abstract member MessageCount : int with get
+  /// Gets the inner <see cref="Microsoft.ServiceBus.Messaging.QueueDescription"/>.
+  abstract member Inner : Microsoft.ServiceBus.Messaging.QueueDescription with get
 
 type TopicDescription =
   inherit IEquatable<TopicDescription>
@@ -30,6 +46,19 @@ type TopicDescription =
   inherit IComparable
   inherit PathBasedEntity
   inherit EntityDescription
+  abstract member IsReadOnly : bool with get
+  /// You can use this if your entity is session-ful, to keep track of entity state.
+  abstract member ExtensionData : ExtensionDataObject with get
+  abstract member DefaultMessageTimeToLive : TimeSpan with get
+  abstract member MaxSizeInMegabytes : long with get
+  /// Only for session-ful work
+  abstract member RequiresDuplicateDetection : bool with get
+  /// Only for session-ful work
+  abstract member DuplicateDetectionHistoryTimeWindow : TimeSpan with get
+  /// Gets the queue size in bytes
+  abstract member SizeInBytes : long with get
+  /// Should be true in this transport.
+  abstract member EnableBatchedOperations : bool with get
 
 type AzureServiceBusEndpointAddress =
   inherit IEndpointAddress
