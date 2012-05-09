@@ -44,9 +44,9 @@
     <Compile Include="TransientFaults.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
-      <Name>MassTransit.AzureServiceBus</Name>
-      <Project>{ccd26eda-5048-4752-863d-4301173dcc93}</Project>
+    <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus.Receiver\MassTransit.Transports.AzureServiceBus.Receiver.fsproj">
+      <Name>MassTransit.Transports.AzureServiceBus.Receiver</Name>
+      <Project>{47ac8fb8-c8f9-47e8-a303-7d673e2e24de}</Project>
       <Private>True</Private>
     </ProjectReference>
     <Reference Include="Magnum">
