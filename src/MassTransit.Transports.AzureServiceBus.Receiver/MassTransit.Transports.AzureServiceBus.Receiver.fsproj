@@ -74,10 +74,6 @@
       <Project>{fab00836-a867-474e-9d9b-b240add41696}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\MassTransit.AzureServiceBus\MassTransit.AzureServiceBus.csproj">
-      <Name>MassTransit.AzureServiceBus</Name>
-      <Project>{ccd26eda-5048-4752-863d-4301173dcc93}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />

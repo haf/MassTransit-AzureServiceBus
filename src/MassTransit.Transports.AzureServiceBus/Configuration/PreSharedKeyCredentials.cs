@@ -12,7 +12,7 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using MassTransit.AzureServiceBus.Util;
+using MassTransit.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {

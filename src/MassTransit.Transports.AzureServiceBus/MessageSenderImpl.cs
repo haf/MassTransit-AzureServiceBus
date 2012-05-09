@@ -1,6 +1,5 @@
 using System;
 using Microsoft.ServiceBus.Messaging;
-using MessageSender = MassTransit.AzureServiceBus.MessageSender;
 
 namespace MassTransit.Transports.AzureServiceBus
 {

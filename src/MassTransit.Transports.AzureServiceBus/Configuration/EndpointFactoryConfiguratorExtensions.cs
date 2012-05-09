@@ -1,6 +1,6 @@
 using System;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.EndpointConfigurators;
+using MassTransit.Util;
 
 #pragma warning disable 1591
 

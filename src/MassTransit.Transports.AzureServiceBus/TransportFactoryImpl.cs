@@ -14,12 +14,11 @@
 using System;
 using Magnum.Extensions;
 using Magnum.Threading;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Configuration;
 using MassTransit.Transports.AzureServiceBus.Management;
+using MassTransit.Util;
 
 #pragma warning disable 1591
 

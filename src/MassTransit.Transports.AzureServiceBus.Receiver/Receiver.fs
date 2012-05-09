@@ -24,7 +24,7 @@ open System.Threading
 open System.Runtime.CompilerServices
 open System.Collections.Concurrent
 
-open MassTransit.AzureServiceBus
+open MassTransit.Transports.AzureServiceBus
 open MassTransit.Transports.AzureServiceBus.Receiver.Queue
 open MassTransit.Async.AsyncRetry
 

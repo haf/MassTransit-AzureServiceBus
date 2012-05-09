@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Magnum.TestFramework;
-using MassTransit.AzureServiceBus;
 using MassTransit.Configurators;
 using MassTransit.Transports.AzureServiceBus.Tests.Framework;
 using NUnit.Framework;

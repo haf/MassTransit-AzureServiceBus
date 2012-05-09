@@ -1,8 +1,7 @@
 using System;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.Pipeline.Inspectors;
 using MassTransit.Pipeline.Sinks;
+using MassTransit.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {

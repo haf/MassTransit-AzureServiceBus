@@ -13,12 +13,12 @@
 
 using System;
 using System.Threading.Tasks;
-using MassTransit.AzureServiceBus.Util;
+using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
-using MessageSender = MassTransit.AzureServiceBus.MessageSender;
-using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
+using MessageSender = MassTransit.Transports.AzureServiceBus.MessageSender;
+using QueueDescription = MassTransit.Transports.AzureServiceBus.QueueDescription;
+using TopicDescription = MassTransit.Transports.AzureServiceBus.TopicDescription;
 using SBQClient = Microsoft.ServiceBus.Messaging.QueueClient;
-using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus.Management
 {

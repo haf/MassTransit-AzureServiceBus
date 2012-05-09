@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Magnum.Extensions;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.Configurators;
+using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using MassTransit.Async;
-using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
-using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
+using MassTransit.Transports.AzureServiceBus.Receiver;
+using QueueDescription = MassTransit.Transports.AzureServiceBus.QueueDescription;
+using TopicDescription = MassTransit.Transports.AzureServiceBus.TopicDescription;
 
 #pragma warning disable 1591
 

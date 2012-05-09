@@ -26,7 +26,7 @@ module Topic =
   open Microsoft.ServiceBus.Messaging
 
   open MassTransit.Logging
-  open MassTransit.AzureServiceBus
+  open MassTransit.Transports.AzureServiceBus
   open MassTransit.Async.FaultPolicies
   
   let logger = Logger.Get("MassTransit.Async.Topic")

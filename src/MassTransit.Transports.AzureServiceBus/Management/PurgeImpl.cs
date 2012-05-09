@@ -13,10 +13,9 @@
 
 using System;
 using System.Threading.Tasks;
-using MassTransit.Async;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
+using MassTransit.Transports.AzureServiceBus.Receiver;
 using MassTransit.Logging;
+using MassTransit.Util;
 
 #pragma warning disable 1591
 
