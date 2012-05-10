@@ -24,6 +24,7 @@ module Queue =
   open System
   open Microsoft.ServiceBus
   open Microsoft.ServiceBus.Messaging
+  open System.Threading.Tasks
 
   open MassTransit.Logging
   open MassTransit.Transports.AzureServiceBus
@@ -98,7 +99,7 @@ module Queue =
     Async.StartAsTask(
       async {
         do! create nm desc
-        return Unit() })
+      }) :> Task
 
   /// Delete a queue from the given queue description asynchronously; never throws MessagingEntityNotFoundException.
   [<Extension;CompiledName("Delete")>]
@@ -124,7 +125,7 @@ module Queue =
     async {
       do! delete nm d
       do! create nm d
-      return Unit() }
+    }
 
   /// Naïve Drain operation, by deleting and then creating the queue,
   /// or simply creating the queue if it doesn't exist.

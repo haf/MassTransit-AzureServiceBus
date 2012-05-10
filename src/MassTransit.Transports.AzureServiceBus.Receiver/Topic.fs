@@ -24,6 +24,7 @@ module Topic =
   open System
   open Microsoft.ServiceBus
   open Microsoft.ServiceBus.Messaging
+  open System.Threading.Tasks
 
   open MassTransit.Logging
   open MassTransit.Transports.AzureServiceBus
@@ -57,11 +58,11 @@ module Topic =
     create' ()
     
   [<Extension;CompiledName("CreateAsync")>]
-  let createAsync nm desc = 
+  let createAsync nm desc : Task = 
     Async.StartAsTask(
         async {
           do! create nm desc
-          return Unit() })
+        }) :> Task
 
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Subscribe")>]

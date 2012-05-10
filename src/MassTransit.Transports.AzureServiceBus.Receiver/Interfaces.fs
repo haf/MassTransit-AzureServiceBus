@@ -8,9 +8,6 @@ open MassTransit
 open MassTransit.Util
 open System.Runtime.Serialization
 
-[<Serializable>]
-type Unit() = class end
-
 type SenderSettings =
   abstract member MaxOutstanding : int
 
@@ -98,7 +95,7 @@ type AzureServiceBusEndpointAddress =
   [<NotNull>]
   abstract member NamespaceManager : NamespaceManager
   [<NotNull>]
-  abstract member CreateQueue : unit -> Task<Unit>
+  abstract member CreateQueue : unit -> Task
   [<CanBeNull>]
   abstract member QueueDescription : QueueDescription
   [<CanBeNull>]

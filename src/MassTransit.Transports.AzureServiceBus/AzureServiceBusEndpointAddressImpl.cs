@@ -109,7 +109,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _nm; }
 		}
 
-		public Task<Unit> CreateQueue()
+		public Task CreateQueue()
 		{
 			if (QueueDescription == null)
 				throw new InvalidOperationException("Cannot create queue is the endpoint address is not for a queue (but for a topic)");
