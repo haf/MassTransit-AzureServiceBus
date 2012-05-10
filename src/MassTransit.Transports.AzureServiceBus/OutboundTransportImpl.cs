@@ -116,7 +116,7 @@ namespace MassTransit.Transports.AzureServiceBus
 									
 									return brokeredMessage;
 								}, 1);
-                            });
+                            }).Wait();
 						}
 					});
 		}
