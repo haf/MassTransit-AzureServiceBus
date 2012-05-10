@@ -34,6 +34,7 @@
     <DocumentationFile>bin\Release\MassTransit.Transports.AzureServiceBus.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Magnum, Version=2.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Magnum.2.0.0.4\lib\NET40\Magnum.dll</HintPath>
@@ -94,6 +95,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="..\MassTransit.Async\MassTransit.Async.fsproj">
+      <Project>{FAB00836-A867-474E-9D9B-B240ADD41696}</Project>
+      <Name>MassTransit.Async</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MassTransit.Transports.AzureServiceBus.Receiver\MassTransit.Transports.AzureServiceBus.Receiver.fsproj">
       <Project>{47AC8FB8-C8F9-47E8-A303-7D673E2E24DE}</Project>
       <Name>MassTransit.Transports.AzureServiceBus.Receiver</Name>

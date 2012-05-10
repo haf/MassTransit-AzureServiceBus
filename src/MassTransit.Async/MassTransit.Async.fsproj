@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="AsyncRetry.fs" />
     <Compile Include="FaultPolicies.fs" />
+    <Compile Include="Retries.fs" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

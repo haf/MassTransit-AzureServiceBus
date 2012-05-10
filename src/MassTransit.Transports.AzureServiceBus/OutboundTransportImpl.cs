@@ -15,6 +15,7 @@ using System;
 using System.IO;
 using System.Threading;
 using Magnum.Extensions;
+using MassTransit.Async;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Util;
@@ -101,7 +102,9 @@ namespace MassTransit.Transports.AzureServiceBus
 							// as a value
 							var envelope = new MessageEnvelope(body.ToArray());
 
-							TrySendMessage(connection, () =>
+                            Retries.Retry(FaultPolicies.FinalAzurePolicy, () =>
+                            {
+							    SendMessage(connection, () =>
 								{
 									var brokeredMessage = new BrokeredMessage(envelope);
 
@@ -113,12 +116,13 @@ namespace MassTransit.Transports.AzureServiceBus
 									
 									return brokeredMessage;
 								}, 1);
+                            });
 						}
 					});
 		}
 
 
-		void TrySendMessage(ConnectionImpl connection, Func<BrokeredMessage> createMessage, int sendNumber)
+		void SendMessage(ConnectionImpl connection, Func<BrokeredMessage> createMessage, int sendNumber)
 		{
 			var msg = createMessage();
 			var messageId = msg.MessageId;
@@ -131,80 +135,27 @@ namespace MassTransit.Transports.AzureServiceBus
 			Interlocked.Increment(ref _messagesInFlight);
 
 			connection.MessageSender.BeginSend(msg, ar =>
-				{
-					Exception caught = null;
+			{
+				// if the queue is deleted in the middle of things here, then I can't recover
+				// at the moment; I have to extend the connection handler with an asynchronous
+				// API to let it re-initialize the queue and hence maybe even the full transport...
 
-					// if the queue is deleted in the middle of things here, then I can't recover
-					// at the moment; I have to extend the connection handler with an asynchronous
-					// API to let it re-initialize the queue and hence maybe even the full transport...
+				// So if I get MessagingEntityNotFoundException, I'm toast with this code: 
+				// don't delete queues in use.
 
-					// So if I get MessagingEntityNotFoundException, I'm toast with this code: 
-					// don't delete queues in use.
+				Interlocked.Decrement(ref _messagesInFlight);
 
-					Interlocked.Decrement(ref _messagesInFlight);
-
-					try
-					{
-						sender.EndSend(ar);
-						Address.LogEndSend(msg.MessageId);
-					}
-					// see: http://msdn.microsoft.com/en-us/library/windowsazure/hh418082.aspx
-					catch (ServerBusyException ex)
-					{
-						// "Service is not able to process the request at this time."
-						_logger.Warn(string.Format("service bus busy, retrying for msg #{0}", messageId), ex);
-						caught = ex;
-					}
-					catch (MessagingCommunicationException ex)
-					{
-						// "Client is not able to establish a connection to the Service Bus."
-						_logger.Warn(string.Format("service bus sad, retrying for msg #{0}", messageId), ex);
-						caught = ex;
-					}
-					catch (UnauthorizedAccessException ex)
-					{
-						_logger.Warn(string.Format("ACS confused, retrying for msg #{0}", messageId), ex);
-						caught = ex;
-					}
-					catch(TimeoutException ex)
-					{
-						// "...could not acquire a token, the token is invalid, or the token does not contain the claims required to perform the operation."
-						_logger.Info(string.Format("server timed out for msg #{0}", messageId), ex);
-						caught = ex;
-					}
-					catch (Exception ex)
-					{
-						// this is really bad, we are now losing a message, but we can't recover in any way
-						_logger.Fatal(string.Format("other exception for msg #{0} - giving up", messageId), ex);
-						// intentionally not setting 'caught' variable
-					}
-
-					// always dispose the message; it's only good once
-					msg.Dispose();
-
-					// success or deadly exception (last catch), so we don't retry
-					if (caught == null)
-						return;
-					
-					RetryLoop(connection, messageId, sendNumber, createMessage);
-				}, null);
-		}
-
-		// call only if first time gotten server busy exception
-		void RetryLoop(ConnectionImpl connection, string messageId, int sendNumber, Func<BrokeredMessage> createMessage)
-		{
-			Address.LogSendRetryScheduled(messageId, _messagesInFlight, Interlocked.Increment(ref _sleeping));
-
-			// exception tells me to wait 10 seconds before retrying, so let's sleep 1 second instead,
-			// just 2,600,000,000 CPU cycles
-			Thread.Sleep(1.Seconds());
-
-			Interlocked.Decrement(ref _sleeping);
-
-			_logger.WarnFormat("scheduling retry no. {0} for msg #{1} ", sendNumber, messageId);
-
-			// push all pending retries onto the sending operation
-			TrySendMessage(connection, createMessage, sendNumber + 1);
+                try
+                {
+                    sender.EndSend(ar);
+                    Address.LogEndSend(msg.MessageId);
+                }
+                finally
+                {
+				    // always dispose the message; it's only good once
+				    msg.Dispose();                        
+                }
+			}, null);
 		}
 	}
 }
