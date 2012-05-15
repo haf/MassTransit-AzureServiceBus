@@ -14,7 +14,6 @@
 using System;
 using System.IO;
 using System.Threading;
-using Magnum.Extensions;
 using MassTransit.Async;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
@@ -102,9 +101,9 @@ namespace MassTransit.Transports.AzureServiceBus
 							// as a value
 							var envelope = new MessageEnvelope(body.ToArray());
 
-                            Retries.Retry(FaultPolicies.FinalAzurePolicy, () =>
-                            {
-							    SendMessage(connection, () =>
+							Retries.Retry(FaultPolicies.FinalAzurePolicy, () =>
+							{
+								SendMessage(connection, () =>
 								{
 									var brokeredMessage = new BrokeredMessage(envelope);
 
@@ -113,10 +112,10 @@ namespace MassTransit.Transports.AzureServiceBus
 
 									if (!string.IsNullOrWhiteSpace(context.MessageId))
 										brokeredMessage.MessageId = context.MessageId;
-									
+
 									return brokeredMessage;
 								}, 1);
-                            }).Wait();
+							}).Wait();
 						}
 					});
 		}
