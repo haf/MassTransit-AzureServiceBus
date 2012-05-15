@@ -18,9 +18,8 @@ using NUnit.Framework;
 
 namespace MassTransit.Transports.AzureServiceBus.Tests
 {
-	[Category("Chris - you're needed"),
-	 Description("This test verifies that one can use the testing framework with Azure Service Bus infrastructure"),
-	 Ignore("Somehow the test factory isn't disposing the resources, causing a ThreadAbortException")]
+	[Description("This test verifies that one can use the testing framework with Azure Service Bus infrastructure"),
+	 NotWorking("Because ASB is too slow to finish within the 8 allotted seconds")]
 	public class Handler_test_factory_contract
 	{
 		HandlerTest<A> _test;
