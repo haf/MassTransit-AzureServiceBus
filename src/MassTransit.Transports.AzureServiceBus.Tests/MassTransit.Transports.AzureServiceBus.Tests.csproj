@@ -88,6 +88,7 @@
     <Compile Include="Assumptions\A.cs" />
     <Compile Include="Azure_service_bus_endpoint_spec.cs" />
     <Compile Include="Azure_management_impl_spec.cs" />
+    <Compile Include="BugTrack\FromMailingList.cs" />
     <Compile Include="Credentials_impl_spec.cs" />
     <Compile Include="Pre_shared_key_credentials_transformations_spec.cs" />
     <Compile Include="Framework\AccountDetails.cs" />
