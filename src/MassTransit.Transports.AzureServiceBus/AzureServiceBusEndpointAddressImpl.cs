@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Magnum.Extensions;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.Configurators;
+using MassTransit.Util;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
-using MassTransit.Async;
-using QueueDescription = MassTransit.AzureServiceBus.QueueDescription;
-using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
+using MassTransit.Transports.AzureServiceBus.Receiver;
+using QueueDescription = MassTransit.Transports.AzureServiceBus.QueueDescription;
+using TopicDescription = MassTransit.Transports.AzureServiceBus.TopicDescription;
 
 #pragma warning disable 1591
 
@@ -110,7 +109,7 @@ namespace MassTransit.Transports.AzureServiceBus
 			get { return _nm; }
 		}
 
-		public Task<Unit> CreateQueue()
+		public Task CreateQueue()
 		{
 			if (QueueDescription == null)
 				throw new InvalidOperationException("Cannot create queue is the endpoint address is not for a queue (but for a topic)");

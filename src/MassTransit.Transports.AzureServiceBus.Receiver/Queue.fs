@@ -12,7 +12,7 @@
  CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  specific language governing permissions and limitations under the License.
 *)
-namespace MassTransit.Async
+namespace MassTransit.Transports.AzureServiceBus.Receiver
 
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
@@ -24,9 +24,10 @@ module Queue =
   open System
   open Microsoft.ServiceBus
   open Microsoft.ServiceBus.Messaging
+  open System.Threading.Tasks
 
   open MassTransit.Logging
-  open MassTransit.AzureServiceBus
+  open MassTransit.Transports.AzureServiceBus
   open MassTransit.Async.FaultPolicies
   
   let logger = Logger.Get("MassTransit.Async.Queue")
@@ -98,7 +99,7 @@ module Queue =
     Async.StartAsTask(
       async {
         do! create nm desc
-        return Unit() })
+      }) :> Task
 
   /// Delete a queue from the given queue description asynchronously; never throws MessagingEntityNotFoundException.
   [<Extension;CompiledName("Delete")>]
@@ -124,12 +125,12 @@ module Queue =
     async {
       do! delete nm d
       do! create nm d
-      return Unit() }
+    }
 
   /// Naïve Drain operation, by deleting and then creating the queue,
   /// or simply creating the queue if it doesn't exist.
   [<Extension;CompiledName("ToggleQueueAsync")>]
-  let toggleAsync nm desc = Async.StartAsTask(toggle nm desc)
+  let toggleAsync nm desc = Async.StartAsTask(toggle nm desc) :> Task
 
   /// Create a new message sender from the messaging factory and the queue description
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =

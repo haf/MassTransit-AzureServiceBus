@@ -12,7 +12,7 @@
  CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  specific language governing permissions and limitations under the License.
 *)
-namespace MassTransit.Async
+namespace MassTransit.Transports.AzureServiceBus.Receiver
 
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
@@ -24,9 +24,10 @@ module Topic =
   open System
   open Microsoft.ServiceBus
   open Microsoft.ServiceBus.Messaging
+  open System.Threading.Tasks
 
   open MassTransit.Logging
-  open MassTransit.AzureServiceBus
+  open MassTransit.Transports.AzureServiceBus
   open MassTransit.Async.FaultPolicies
   
   let logger = Logger.Get("MassTransit.Async.Topic")
@@ -57,11 +58,11 @@ module Topic =
     create' ()
     
   [<Extension;CompiledName("CreateAsync")>]
-  let createAsync nm desc = 
+  let createAsync nm desc : Task = 
     Async.StartAsTask(
         async {
           do! create nm desc
-          return Unit() })
+        }) :> Task
 
   /// Create a queue from the given queue description asynchronously; never throws MessagingEntityAlreadyExistsException
   [<Extension;CompiledName("Subscribe")>]

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Magnum.Extensions;
 using Magnum.Reflection;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
+using MassTransit.Transports.AzureServiceBus.Receiver;
 using MassTransit.Exceptions;
 using MassTransit.Pipeline.Configuration;
 using MassTransit.Pipeline.Sinks;
+using MassTransit.Util;
 
 namespace MassTransit.Transports.AzureServiceBus.Configuration
 {

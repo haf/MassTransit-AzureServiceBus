@@ -13,12 +13,11 @@
 
 using System;
 using System.Collections.Generic;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.Logging;
 using MassTransit.Subscriptions.Coordinator;
 using MassTransit.Subscriptions.Messages;
 using Magnum.Extensions;
+using MassTransit.Util;
 
 #pragma warning disable 1591
 

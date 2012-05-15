@@ -63,6 +63,7 @@ module FaultPolicies =
       yield! badNetwork
       yield! badAzure }
 
+  [<CompiledName("FinalAzurePolicy")>]
   let finalPolicy = Seq.fold compose (RetryPolicies.NoRetry()) transients
-
+  
   let asyncRetry = AsyncRetryBuilder finalPolicy // (1) // (finalPolicy)

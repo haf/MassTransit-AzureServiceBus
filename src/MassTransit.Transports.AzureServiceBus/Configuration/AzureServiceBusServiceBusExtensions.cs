@@ -1,8 +1,8 @@
 ﻿using System;
 using Magnum.Extensions;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.BusConfigurators;
 using MassTransit.Pipeline.Configuration;
+using MassTransit.Util;
 
 #pragma warning disable 1591
 

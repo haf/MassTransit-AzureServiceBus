@@ -1,10 +1,9 @@
 using System;
-using MassTransit.Async;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
+using MassTransit.Transports.AzureServiceBus.Receiver;
 using MassTransit.Logging;
+using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
-using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
+using TopicDescription = MassTransit.Transports.AzureServiceBus.TopicDescription;
 
 namespace MassTransit.Transports.AzureServiceBus
 {
@@ -21,15 +20,15 @@ namespace MassTransit.Transports.AzureServiceBus
 		static readonly ILog _logger = Logger.Get(typeof (PerConnectionReceiver));
 
 		readonly ReceiverSettings _settings;
-		readonly Action<Receiver> _onBound;
-		readonly Action<Receiver> _onUnbound;
-		Receiver _receiver;
+		readonly Action<Receiver.Receiver> _onBound;
+        readonly Action<Receiver.Receiver> _onUnbound;
+		Receiver.Receiver _receiver;
 
 		public PerConnectionReceiver(
 			[NotNull] AzureServiceBusEndpointAddress address, 
-			[NotNull] ReceiverSettings settings, 
-			[NotNull] Action<Receiver> onBound, 
-			[NotNull] Action<Receiver> onUnbound)
+			[NotNull] ReceiverSettings settings,
+            [NotNull] Action<Receiver.Receiver> onBound,
+            [NotNull] Action<Receiver.Receiver> onUnbound)
 		{
 			if (address == null) throw new ArgumentNullException("address");
 			if (onBound == null) throw new ArgumentNullException("onBound");

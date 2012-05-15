@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.Serialization;
-using MassTransit.AzureServiceBus;
 
 #pragma warning disable 1591
 

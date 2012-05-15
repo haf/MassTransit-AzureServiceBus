@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using MassTransit.Async;
-using MassTransit.AzureServiceBus;
+using MassTransit.Transports.AzureServiceBus.Receiver;
 
 #pragma warning disable 1591
 

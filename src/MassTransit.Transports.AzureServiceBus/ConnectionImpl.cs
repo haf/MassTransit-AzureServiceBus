@@ -12,14 +12,13 @@
 // specific language governing permissions and limitations under the License.
 
 using System;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.Exceptions;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Internal;
 using MassTransit.Transports.AzureServiceBus.Management;
+using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
-using MessageSender = MassTransit.AzureServiceBus.MessageSender;
+using MessageSender = MassTransit.Transports.AzureServiceBus.MessageSender;
 
 #pragma warning disable 1591
 
@@ -98,13 +97,17 @@ namespace MassTransit.Transports.AzureServiceBus
 				_messagingFactory = _endpointAddress.MessagingFactoryFactory();
 
 			// check if it's a queue or a subscription to subscribe either the queue or the subscription?
-			_messageSender = _endpointAddress.QueueDescription != null
-			                 	? _endpointAddress.CreateQueue()
-			                 	  	.Then(_ =>
-			                 	  	      _messagingFactory.TryCreateMessageSender(_endpointAddress.QueueDescription, _prefetchCount))
-			                 	  	.Result
-			                 	: _messagingFactory.TryCreateMessageSender(_endpointAddress.TopicDescription)
-			                 	  	.Result;
+			if(_endpointAddress.QueueDescription != null)
+                _messageSender = _endpointAddress.CreateQueue()
+			                 	 .ContinueWith(t =>
+			                 	                   {
+			                 	                       t.Wait();
+			                 	                       return _messagingFactory.TryCreateMessageSender(_endpointAddress.QueueDescription, _prefetchCount).Result;
+			                 	                   })
+			                 	 .Result;
+            else
+			    _messageSender = _messagingFactory.TryCreateMessageSender(_endpointAddress.TopicDescription)
+			                 	 .Result;
 
 			if (_messageSender == null)
 				throw new TransportException(_endpointAddress.Uri, "The create message sender on messaging factory returned null.");

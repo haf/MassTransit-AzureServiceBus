@@ -15,13 +15,13 @@ using System;
 using System.IO;
 using System.Text;
 using Magnum.Caching;
-using MassTransit.AzureServiceBus;
-using MassTransit.AzureServiceBus.Util;
 using MassTransit.Context;
 using MassTransit.Logging;
 using MassTransit.Transports.AzureServiceBus.Management;
+using MassTransit.Util;
 using Microsoft.ServiceBus.Messaging;
-using TopicDescription = MassTransit.AzureServiceBus.TopicDescription;
+using MassTransit.Transports.AzureServiceBus.Receiver;
+using TopicDescription = MassTransit.Transports.AzureServiceBus.TopicDescription;
 
 #pragma warning disable 1591
 

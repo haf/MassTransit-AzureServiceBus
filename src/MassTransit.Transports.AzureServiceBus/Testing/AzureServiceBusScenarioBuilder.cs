@@ -1,6 +1,6 @@
-﻿using MassTransit.AzureServiceBus.Util;
-using MassTransit.Testing.ScenarioBuilders;
+﻿using MassTransit.Testing.ScenarioBuilders;
 using MassTransit.Transports.AzureServiceBus.Configuration;
+using MassTransit.Util;
 
 #pragma warning disable 1591
 
