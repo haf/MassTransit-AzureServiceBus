@@ -96,36 +96,52 @@ namespace MassTransit.Transports.AzureServiceBus
 						using (var body = new MemoryStream())
 						{
 							context.SerializeTo(body);
-							
+
 							// the envelope is re-usable, so let's capture it in the below closure
 							// as a value
 							var envelope = new MessageEnvelope(body.ToArray());
 
-							Retries.Retry(FaultPolicies.FinalAzurePolicy, () =>
-							{
-								SendMessage(connection, () =>
+							var sending = Retries.Retry(FaultPolicies.FinalAzurePolicy,
+								new Func<AsyncCallback, object, IAsyncResult>((cb, state) =>
 								{
-									var brokeredMessage = new BrokeredMessage(envelope);
+									return SendMessage(connection, () =>
+										{
+											var brokeredMessage = new BrokeredMessage(envelope);
 
-									if (!string.IsNullOrWhiteSpace(context.CorrelationId))
-										brokeredMessage.CorrelationId = context.CorrelationId;
+											if (!string.IsNullOrWhiteSpace(context.CorrelationId))
+												brokeredMessage.CorrelationId = context.CorrelationId;
 
-									if (!string.IsNullOrWhiteSpace(context.MessageId))
-										brokeredMessage.MessageId = context.MessageId;
+											if (!string.IsNullOrWhiteSpace(context.MessageId))
+												brokeredMessage.MessageId = context.MessageId;
 
-									return brokeredMessage;
-								}, 1);
-							}).Wait();
+											return brokeredMessage;
+										}, 1, cb, state);
+								}),
+								(IAsyncResult ar) =>
+								{
+									var state = (StateHolder)ar.AsyncState;
+									Interlocked.Decrement(ref _messagesInFlight);
+
+									try
+									{
+										state.Sender.EndSend(ar);
+										Address.LogEndSend(state.Message.MessageId);
+									}
+									finally
+									{
+										// always dispose the message; it's only good once
+										state.Message.Dispose();
+									}
+								});
+							sending.Wait();
 						}
 					});
 		}
 
-
-		void SendMessage(ConnectionImpl connection, Func<BrokeredMessage> createMessage, int sendNumber)
+		IAsyncResult SendMessage(ConnectionImpl connection, Func<BrokeredMessage> createMessage, 
+			int sendNumber, AsyncCallback cb, object state)
 		{
 			var msg = createMessage();
-			var messageId = msg.MessageId;
-			var sender = connection.MessageSender;
 
 			msg.Properties[NumberOfRetries] = sendNumber - 1;
 
@@ -133,28 +149,21 @@ namespace MassTransit.Transports.AzureServiceBus
 
 			Interlocked.Increment(ref _messagesInFlight);
 
-			connection.MessageSender.BeginSend(msg, ar =>
+			return connection.MessageSender.BeginSend(msg,
+				cb, new StateHolder(connection.MessageSender, msg));
+		}
+
+		[Serializable]
+		struct StateHolder
+		{
+			public StateHolder(MessageSender sender, BrokeredMessage message) : this()
 			{
-				// if the queue is deleted in the middle of things here, then I can't recover
-				// at the moment; I have to extend the connection handler with an asynchronous
-				// API to let it re-initialize the queue and hence maybe even the full transport...
+				Sender = sender;
+				Message = message;
+			}
 
-				// So if I get MessagingEntityNotFoundException, I'm toast with this code: 
-				// don't delete queues in use.
-
-				Interlocked.Decrement(ref _messagesInFlight);
-
-                try
-                {
-                    sender.EndSend(ar);
-                    Address.LogEndSend(msg.MessageId);
-                }
-                finally
-                {
-				    // always dispose the message; it's only good once
-				    msg.Dispose();                        
-                }
-			}, null);
+			public MessageSender Sender { get; private set; }
+			public BrokeredMessage Message { get; private set; }
 		}
 	}
 }

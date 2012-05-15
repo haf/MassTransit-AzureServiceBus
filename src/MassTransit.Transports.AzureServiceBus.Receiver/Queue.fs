@@ -130,7 +130,7 @@ module Queue =
   /// Naïve Drain operation, by deleting and then creating the queue,
   /// or simply creating the queue if it doesn't exist.
   [<Extension;CompiledName("ToggleQueueAsync")>]
-  let toggleAsync nm desc = Async.StartAsTask(toggle nm desc)
+  let toggleAsync nm desc = Async.StartAsTask(toggle nm desc) :> Task
 
   /// Create a new message sender from the messaging factory and the queue description
   let newSender (mf : MessagingFactory) nm (desc : QueueDescription) =
